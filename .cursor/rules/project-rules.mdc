@@ -22,9 +22,11 @@ alwaysApply: true
   - STRICTLY follow Biome rules.
   - **NO non-null assertions** (`!`). Use optional chaining (`?.`) or explicit null checks.
   - **NO `any` type**: Define proper interfaces or types.
+  - **Button UX**: Buttons should prefer icons over text whenever semantics are clear. If a text button is required, keep wording minimal.
   - **Accessibility**:
     - Always associate `<label>` with inputs using `htmlFor` + `id` or nesting.
     - Always specify `type` for `<button>` (button, submit, reset).
+    - Icon-only buttons must include meaningful `aria-label`.
   - **Auto-Format**: After modifying files, run `bun biome format --write <file_path>` to ensure code style consistency.
   - Run `bun check` to verify before finishing tasks. If issues persist and cannot be resolved, report them to the user.
 - **Environment Variables**:
