@@ -1,18 +1,64 @@
-export default function Home() {
+import { Button, Flex, Heading, Text } from "@radix-ui/themes";
+import { signIn, signOut } from "@/auth";
+import { AgentCommandCenter } from "@/components/agent-command-center";
+import { AppShell } from "@/components/app-shell";
+import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
+
+const hasGoogleAuthConfig =
+  Boolean(process.env.AUTH_GOOGLE_ID) &&
+  Boolean(process.env.AUTH_GOOGLE_SECRET);
+
+export default async function Home() {
+  async function loginWithGoogle() {
+    "use server";
+    await signIn("google", { redirectTo: "/" });
+  }
+
+  async function logout() {
+    "use server";
+    await signOut({ redirectTo: "/" });
+  }
+
+  const userId = await getCurrentUserId();
+  const isLoggedIn = Boolean(userId);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 font-sans">
-      <main className="w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-10 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-800">AI 智能刷题助手</h1>
-        <p className="mt-4 text-slate-600">
-          欢迎使用本项目。你可以先进入目录管理创建一级目录，再逐步接入题目上传、判题与复习策略。
-        </p>
-        <a
-          className="mt-8 inline-flex items-center rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-500"
-          href="/topics"
-        >
-          进入目录管理
-        </a>
-      </main>
-    </div>
+    <AppShell
+      userLabel={isLoggedIn ? `用户 ${userId?.slice(0, 8)}` : "未登录"}
+      floatingActions={
+        isLoggedIn ? (
+          <form action={logout}>
+            <Button type="submit" variant="soft" color="gray">
+              退出登录
+            </Button>
+          </form>
+        ) : hasGoogleAuthConfig ? (
+          <form action={loginWithGoogle}>
+            <Button type="submit">登录</Button>
+          </form>
+        ) : (
+          <Button type="button" disabled>
+            Google 登录未配置
+          </Button>
+        )
+      }
+    >
+      <Flex
+        direction="column"
+        align="center"
+        justify="center"
+        gap="6"
+        style={{ minHeight: "calc(100vh - 170px)", padding: "0 16px" }}
+      >
+        <Heading size="9" align="center">
+          把题目变成可执行的
+          <Text color="blue"> 学习计划 </Text>
+        </Heading>
+        <Text size="4" color="gray" align="center">
+          上传题目，文字、图片或文档，系统会自动生成目录、编排与复习任务。
+        </Text>
+        <AgentCommandCenter isLoggedIn={isLoggedIn} />
+      </Flex>
+    </AppShell>
   );
 }

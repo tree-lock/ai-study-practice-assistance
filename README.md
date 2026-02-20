@@ -51,19 +51,21 @@
 -   **AI SDK**: [Vercel AI SDK](https://sdk.vercel.ai)
 -   **Model Provider**: OpenAI (GPT-4o) / Google (Gemini 1.5 Pro)
 -   **Storage**: AWS S3 / Cloudflare R2 (For images/PDFs)
--   **UI Components**: Tailwind CSS + Shadcn/ui
+-   **UI Components**: Radix Themes + Tailwind CSS
 
 ## 📅 开发进度表 (Roadmap)
 
 ### Phase 1: 基础建设 (Infrastructure)
 - [x] 初始化 Next.js + Bun 项目结构 (已完成依赖安装: Drizzle, Postgres, Zod)
 - [x] 配置 PostgreSQL + Drizzle ORM 环境 (Schema, Migration)
-- [ ] 集成 Auth.js (Google OAuth)
+- [x] 集成 Auth.js (Google OAuth)
 - [x] 设计数据库 Schema (Topics, Questions, Users)
 - [x] 实现基础目录 (Topic) 的 CRUD
 
+### Phase 1.5: 上传题目 (当前阶段)
+- [x] 在主页集成「上传题目」入口（选择/创建目录 → 文本题目 + 图片/PDF 文件名占位落库）
+
 ### Phase 2: 核心循环 (Core Loop)
-- [ ] 实现题目手动录入功能 (Markdown/LaTeX 支持)
 - [ ] 开发基础刷题界面 (选择题)
 - [ ] 实现做题记录与状态更新 (做对/做错)
 - [ ] 搭建文件上传服务 (S3/R2 集成)
@@ -79,6 +81,13 @@
 - [ ] 开发错题变式生成功能
 - [ ] 制作学习报告与掌握度热力图
 - [ ] 移动端适配与 PWA 优化
+
+### UI 体验升级（进行中）
+- [x] 接入 Radix Themes，统一基础组件风格
+- [x] 完成 Agent 风格工作台页面（Dashboard）与侧边导航骨架
+- [x] 调整为路径化工作区架构：主页 `/`，工作区 `/dashboard`，子页面使用 `/dashboard/*`
+- [x] 保留按 ID 切换入口：`/topics/[topicId]` 重定向到 `/dashboard/topics/[topicId]`
+- [ ] 接入真实 Agent 对话流（输入 -> 执行 -> 结果卡片）
 
 ## 📦 快速开始
 

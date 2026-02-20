@@ -55,6 +55,20 @@ describe("TopicManager", () => {
     });
   });
 
+  it("创建目录失败时应展示错误提示", async () => {
+    createTopicMock.mockResolvedValue({ error: "请先登录后再创建目录" });
+    render(<TopicForm />);
+
+    fireEvent.change(screen.getByLabelText("名称"), {
+      target: { value: "高等数学" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建目录" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("请先登录后再创建目录")).toBeInTheDocument();
+    });
+  });
+
   it("点击删除并确认后应调用 deleteTopic", async () => {
     deleteTopicMock.mockResolvedValue({ success: true });
     vi.stubGlobal(
