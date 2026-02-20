@@ -47,6 +47,9 @@ alwaysApply: true
 - **Consent First**: If an action has side effects (e.g., database migration, file deletion), ask for consent first, then execute immediately upon approval.
 - **Retry Limit**: If an action (e.g., linter fix, test run) fails or produces the same error 3 times in a row, STOP and ask the user for guidance. Do NOT loop indefinitely.
 - **Planning Change Sync**: If a request changes product planning or feature strategy, update both implementation code and `README.md` in the same task.
+- **Git Operations**: 
+  - **No Unauthorized Execution**: You may suggest git commands when relevant to the task, but **NEVER** execute `git` commands (especially commit, push, or destructive ones) without explicit user permission or a clear instruction to do so.
+  - **Explicit Triggers**: Only execute git commands when the user gives clear instructions like "commit 代码", "push 代码", etc.
 
 ### Browser Debugging & MCP Usage
 

@@ -1,3 +1,7 @@
+---
+alwaysApply: false
+---
+
 # Git Workflow & Version Control Standards
 
 ## Commit Message Convention
@@ -6,6 +10,7 @@ All commit messages must follow the Conventional Commits format:
 `<type>(<scope>): <subject>`
 
 ### Types
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only changes
@@ -16,6 +21,7 @@ All commit messages must follow the Conventional Commits format:
 - `chore`: Changes to the build process or auxiliary tools and libraries such as documentation generation
 
 ### Rules
+
 - **Scope** is optional but recommended for clarity (e.g., `feat(auth): add login`).
 - **Subject** must be concise and use imperative mood.
 
@@ -24,13 +30,13 @@ All commit messages must follow the Conventional Commits format:
 1.  **No Unauthorized Execution**: You may suggest git commands when relevant to the task, but **NEVER** execute `git` commands (especially destructive ones) without explicit user permission or a clear instruction to do so.
 2.  **Explicit Triggers**:
     - **"commit 代码"**: When the user says this, you should:
-        1.  Check status (`git status`).
-        2.  Stage all changes (`git add .`).
-        3.  Generate a conventional commit message based on the changes.
-        4.  Execute the commit.
+      1.  Check status (`git status`).
+      2.  Stage all changes (`git add .`).
+      3.  Generate a conventional commit message based on the changes.
+      4.  Execute the commit.
     - **"push 代码"**: When the user says this, you should:
-        1.  Push the current branch to the remote (`git push`).
-        2.  Handle upstream setting if necessary (`git push -u origin <branch>`).
+      1.  Push the current branch to the remote (`git push`).
+      2.  Handle upstream setting if necessary (`git push -u origin <branch>`).
 
 ## GitHub Integration (MCP)
 
