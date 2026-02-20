@@ -16,6 +16,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
+import { GhostButton } from "@/components/ghost-button";
 import { getNextUploadMock } from "@/lib/mock/agent-upload-mocks";
 
 type UploadFileItem = {
@@ -43,7 +44,7 @@ const QuestionMarkdownContent = memo(function QuestionMarkdownContent({
   questionMarkdown,
 }: QuestionMarkdownContentProps) {
   return (
-    <div style={{ lineHeight: 1.65 }}>
+    <div className="leading-[1.65]">
       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
         {questionMarkdown}
       </ReactMarkdown>
@@ -101,7 +102,7 @@ function QuestionPanel({
       : newCatalogInput;
 
   return (
-    <Flex direction="column" gap="2" style={{ padding: "12px 14px" }}>
+    <Flex direction="column" gap="2" className="py-3 px-3.5">
       <Flex justify="between" align="center">
         <Text size="2" weight="bold">
           题目（Markdown + 公式）
@@ -114,18 +115,7 @@ function QuestionPanel({
                   type="button"
                   onClick={onCancelEdit}
                   aria-label="取消编辑题目"
-                  style={{
-                    border: "1px solid #d1d5db",
-                    borderRadius: 6,
-                    width: 26,
-                    height: 22,
-                    padding: 0,
-                    background: "#fff",
-                    color: "#4b5563",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-gray-300 bg-white p-0 text-gray-600"
                 >
                   <Cross2Icon />
                 </button>
@@ -133,18 +123,7 @@ function QuestionPanel({
                   type="button"
                   onClick={onSaveEdit}
                   aria-label="保存题目编辑"
-                  style={{
-                    border: "1px solid #bfdbfe",
-                    borderRadius: 6,
-                    width: 26,
-                    height: 22,
-                    padding: 0,
-                    background: "#eff6ff",
-                    color: "#1d4ed8",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-blue-200 bg-blue-50 p-0 text-blue-700"
                 >
                   <CheckIcon />
                 </button>
@@ -154,18 +133,7 @@ function QuestionPanel({
                 type="button"
                 onClick={onStartEdit}
                 aria-label="编辑题目"
-                style={{
-                  border: "1px solid #d1d5db",
-                  borderRadius: 6,
-                  width: 26,
-                  height: 22,
-                  padding: 0,
-                  background: "#fff",
-                  color: "#4b5563",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-gray-300 bg-white p-0 text-gray-600"
               >
                 <Pencil2Icon />
               </button>
@@ -194,16 +162,7 @@ function QuestionPanel({
             <textarea
               value={draftValue}
               onChange={(event) => onDraftChange(event.target.value)}
-              style={{
-                width: "100%",
-                minHeight: 120,
-                border: "1px solid #dbe1ea",
-                borderRadius: 8,
-                padding: "8px 10px",
-                font: "inherit",
-                lineHeight: 1.5,
-                resize: "vertical",
-              }}
+              className="min-h-[120px] w-full resize-y rounded-lg border border-[#dbe1ea] px-2.5 py-2 font-inherit leading-relaxed"
             />
           ) : (
             <QuestionMarkdownContent questionMarkdown={questionMarkdown} />
@@ -212,25 +171,21 @@ function QuestionPanel({
             <Flex
               direction="column"
               gap="2"
-              style={{
-                marginTop: 4,
-                paddingTop: 10,
-                borderTop: "1px solid #eef2f7",
-              }}
+              className="border-t border-[#eef2f7] pt-2.5"
             >
               <Text size="1" color="gray">
                 Agent 目录建议
               </Text>
-              <Flex gap="2" wrap="wrap" align="center">
+              <Flex gap="2" align="center" className="w-full">
                 <Select.Root
                   value={selectedCatalogActionId ?? undefined}
                   onValueChange={onSelectCatalogAction}
-                  size="1"
+                  size="2"
                 >
                   <Select.Trigger
                     aria-label="选择目录操作"
                     placeholder="选择目录操作"
-                    style={{ minWidth: 150 }}
+                    className="min-w-[150px] shrink-0"
                   />
                   <Select.Content position="popper">
                     {catalogOptions.map((option) => (
@@ -241,11 +196,11 @@ function QuestionPanel({
                   </Select.Content>
                 </Select.Root>
                 {selectedCatalogOption?.type === "save-existing" ? (
-                  <div style={{ flex: 1, minWidth: 210 }}>
+                  <div className="min-w-0 flex-1">
                     <Select.Root
                       value={selectedExistingCatalog || undefined}
                       onValueChange={onSelectExistingCatalog}
-                      size="1"
+                      size="2"
                     >
                       <Select.Trigger
                         aria-label="选择已有目录"
@@ -262,16 +217,18 @@ function QuestionPanel({
                     </Select.Root>
                   </div>
                 ) : (
-                  <TextField.Root
-                    size="1"
-                    aria-label="目录名称"
-                    value={newCatalogInput}
-                    onChange={(event) =>
-                      onNewCatalogInputChange(event.target.value)
-                    }
-                    placeholder="输入目录名称"
-                    style={{ flex: 1, minWidth: 210 }}
-                  />
+                  <div className="min-w-0 flex-1">
+                    <TextField.Root
+                      size="2"
+                      aria-label="目录名称"
+                      value={newCatalogInput}
+                      onChange={(event) =>
+                        onNewCatalogInputChange(event.target.value)
+                      }
+                      placeholder="输入目录名称"
+                      style={{ width: "100%" }}
+                    />
+                  </div>
                 )}
                 <button
                   type="button"
@@ -280,29 +237,11 @@ function QuestionPanel({
                     !selectedCatalogActionId || !effectiveCatalogValue.trim()
                   }
                   aria-label="确认目录方案"
-                  style={{
-                    width: 30,
-                    height: 30,
-                    border: "none",
-                    borderRadius: "50%",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background:
-                      selectedCatalogActionId && effectiveCatalogValue.trim()
-                        ? "#2563eb"
-                        : "#93c5fd",
-                    color: "#fff",
-                    opacity:
-                      selectedCatalogActionId && effectiveCatalogValue.trim()
-                        ? 1
-                        : 0.7,
-                    boxShadow:
-                      selectedCatalogActionId && effectiveCatalogValue.trim()
-                        ? "0 4px 10px rgba(37, 99, 235, 0.28)"
-                        : "none",
-                    transition: "all 0.15s ease",
-                  }}
+                  className={`inline-flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-none text-white transition-all duration-150 ease-in-out ${
+                    selectedCatalogActionId && effectiveCatalogValue.trim()
+                      ? "bg-blue-600 opacity-100 shadow-[0_4px_10px_rgba(37,99,235,0.28)]"
+                      : "bg-blue-300 opacity-70"
+                  }`}
                 >
                   <CheckIcon width={14} height={14} />
                 </button>
@@ -530,7 +469,7 @@ export function AgentCommandCenter() {
   const shouldShowResultPanels = files.length > 0 || generateStatus !== "idle";
 
   return (
-    <Flex direction="column" gap="5" style={{ width: "100%", maxWidth: 760 }}>
+    <Flex direction="column" gap="5" className="w-full max-w-[760px]">
       <Flex
         direction="column"
         gap="2"
@@ -538,44 +477,26 @@ export function AgentCommandCenter() {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        style={{
-          background: isDragging ? "#f0f4f8" : "#fafbfc",
-          borderRadius: 16,
-          border: isDragging ? "2px dashed #3b82f6" : "1px solid #e8ecf1",
-          padding: "14px 16px",
-          minHeight: isMaximized ? 560 : 140,
-          maxHeight: isMaximized ? "72vh" : undefined,
-          transition: "background 0.15s, border 0.15s",
-          position: "relative",
-        }}
+        className={`relative rounded-2xl px-4 py-3.5 transition-[background,border] duration-150 ${
+          isDragging
+            ? "min-h-[140px] border-2 border-dashed border-blue-500 bg-[#f0f4f8]"
+            : "min-h-[140px] border border-[#e8ecf1] bg-[#fafbfc]"
+        } ${isMaximized ? "min-h-[560px] max-h-[72vh]" : ""}`}
       >
-        <IconButton
-          type="button"
-          variant="ghost"
-          color="gray"
-          size="1"
+        <GhostButton
+          layout="icon"
           aria-label={isMaximized ? "退出最大化" : "最大化输入框"}
           onClick={() => setIsMaximized((prev) => !prev)}
-          style={{ position: "absolute", top: 10, right: 10 }}
+          className="absolute top-2.5 right-2.5"
         >
           {isMaximized ? <ExitFullScreenIcon /> : <EnterFullScreenIcon />}
-        </IconButton>
+        </GhostButton>
         <input
           ref={fileInputRef}
           type="file"
           multiple
           accept="image/*,.pdf,.txt,.md"
-          style={{
-            position: "absolute",
-            width: 1,
-            height: 1,
-            padding: 0,
-            margin: -1,
-            overflow: "hidden",
-            clip: "rect(0,0,0,0)",
-            whiteSpace: "nowrap",
-            border: 0,
-          }}
+          className="sr-only"
           aria-hidden
           onChange={(e) => {
             const selected = e.target.files;
@@ -593,18 +514,10 @@ export function AgentCommandCenter() {
           }}
           onInput={adjustTextareaHeight}
           rows={1}
+          className="w-full min-h-0 max-h-none overflow-y-auto border-none bg-transparent p-0 font-inherit leading-normal outline-none resize-none"
           style={{
             minHeight: MIN_TEXTAREA_HEIGHT,
             maxHeight: MAX_TEXTAREA_HEIGHT,
-            overflowY: "auto",
-            background: "transparent",
-            border: "none",
-            outline: "none",
-            resize: "none",
-            width: "100%",
-            font: "inherit",
-            padding: 0,
-            lineHeight: 1.5,
           }}
         />
         {files.length > 0 ? (
@@ -614,23 +527,12 @@ export function AgentCommandCenter() {
                 key={item.id}
                 direction="column"
                 gap="1"
-                style={{
-                  width: 98,
-                  borderRadius: 12,
-                  border: "1px solid #d9dee8",
-                  overflow: "hidden",
-                  background: "#fff",
-                }}
+                className="w-[98px] overflow-hidden rounded-xl border border-[#d9dee8] bg-white"
               >
                 <Flex
                   align="start"
                   justify="end"
-                  style={{
-                    position: "relative",
-                    width: "100%",
-                    height: 72,
-                    background: "#eef2f7",
-                  }}
+                  className="relative h-[72px] w-full bg-[#eef2f7]"
                 >
                   {item.previewUrl ? (
                     <Image
@@ -639,20 +541,10 @@ export function AgentCommandCenter() {
                       fill
                       sizes="98px"
                       unoptimized
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
+                      className="absolute inset-0 size-full object-cover"
                     />
                   ) : (
-                    <Flex
-                      align="center"
-                      justify="center"
-                      style={{ width: "100%", height: "100%" }}
-                    >
+                    <Flex align="center" justify="center" className="size-full">
                       <Text size="1" color="gray">
                         {item.file.name.split(".").pop()?.toUpperCase() ??
                           "FILE"}
@@ -666,24 +558,14 @@ export function AgentCommandCenter() {
                     size="1"
                     aria-label="移除文件"
                     onClick={() => removeFile(item.id)}
-                    style={{
-                      margin: 4,
-                      zIndex: 1,
-                      background: "rgba(17, 24, 39, 0.65)",
-                      color: "#fff",
-                    }}
+                    className="z-[1] m-1 bg-[rgba(17,24,39,0.65)] text-white"
                   >
                     <Cross2Icon />
                   </IconButton>
                 </Flex>
                 <Text
                   size="1"
-                  style={{
-                    padding: "0 6px 6px",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
+                  className="overflow-hidden text-ellipsis whitespace-nowrap px-1.5 pb-1.5 pt-0"
                   title={item.file.name}
                 >
                   {item.file.name}
@@ -692,7 +574,7 @@ export function AgentCommandCenter() {
             ))}
           </Flex>
         ) : null}
-        <Flex justify="between" align="center" style={{ marginTop: "auto" }}>
+        <Flex justify="between" align="center" className="mt-auto">
           <Flex gap="1">
             <IconButton
               type="button"
@@ -721,26 +603,13 @@ export function AgentCommandCenter() {
             }
             disabled={generateButtonDisabled}
             onClick={handleGenerateClick}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none",
-              borderRadius: "50%",
-              width: 28,
-              height: 28,
-              transition: "all 0.2s ease",
-              background: generateButtonDisabled
-                ? "#9ca3af"
+            className={`inline-flex h-7 w-7 items-center justify-center rounded-full border-none text-white transition-all duration-200 ease-in-out ${
+              generateButtonDisabled
+                ? "bg-gray-400 opacity-72"
                 : generateStatus === "generating"
-                  ? "#1f2432"
-                  : "#111827",
-              boxShadow: generateButtonDisabled
-                ? "none"
-                : "0 3px 8px rgba(17, 24, 39, 0.22)",
-              color: "#fff",
-              opacity: generateButtonDisabled ? 0.72 : 1,
-            }}
+                  ? "bg-[#1f2432] shadow-[0_3px_8px_rgba(17,24,39,0.22)]"
+                  : "bg-[#111827] shadow-[0_3px_8px_rgba(17,24,39,0.22)]"
+            }`}
           >
             {generateStatus === "generating" ? (
               <Cross2Icon width={14} height={14} />
@@ -751,15 +620,10 @@ export function AgentCommandCenter() {
         </Flex>
       </Flex>
       {shouldShowResultPanels ? (
-        <Flex direction="column" gap="3" style={{ width: "100%" }}>
+        <Flex direction="column" gap="3" className="w-full">
           <Flex
             direction="column"
-            style={{
-              background: "#fff",
-              border: "1px solid #e5eaf3",
-              borderRadius: 12,
-              overflow: "hidden",
-            }}
+            className="overflow-hidden rounded-xl border border-[#e5eaf3] bg-white"
           >
             <QuestionPanel
               generateStatus={generateStatus}

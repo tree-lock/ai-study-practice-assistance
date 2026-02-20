@@ -75,9 +75,7 @@ export function TopicQuestions({
 
   return (
     <Flex direction="column" gap="4">
-      <Card
-        style={{ border: "none", boxShadow: "none", background: "#ffffff" }}
-      >
+      <Card className="border-none bg-white shadow-none">
         <form onSubmit={handleSubmit}>
           <Flex direction="column" gap="4">
             <Heading size="4">上传题目到当前目录</Heading>
@@ -96,7 +94,7 @@ export function TopicQuestions({
             </Box>
 
             <Flex gap="4" wrap="wrap">
-              <Box style={{ minWidth: 180 }}>
+              <Box className="min-w-[180px]">
                 <Text as="label" size="2" weight="medium">
                   题目类型
                 </Text>
@@ -117,7 +115,7 @@ export function TopicQuestions({
                 </Box>
               </Box>
 
-              <Box style={{ minWidth: 240, flex: 1 }}>
+              <Box className="min-w-[240px] flex-1">
                 <Text as="label" size="2" weight="medium">
                   题目来源（可选）
                 </Text>
@@ -183,9 +181,7 @@ export function TopicQuestions({
         </form>
       </Card>
 
-      <Card
-        style={{ border: "none", boxShadow: "none", background: "#ffffff" }}
-      >
+      <Card className="border-none bg-white shadow-none">
         <Flex direction="column" gap="3">
           <Heading size="4">本目录题目</Heading>
           {initialQuestions.length === 0 ? (
@@ -197,11 +193,7 @@ export function TopicQuestions({
               {initialQuestions.map((question) => (
                 <Card
                   key={question.id}
-                  style={{
-                    border: "none",
-                    boxShadow: "none",
-                    background: "#f7f7f8",
-                  }}
+                  className="border-none bg-[#f7f7f8] shadow-none"
                 >
                   <Flex direction="column" gap="2">
                     <Flex align="center" gap="2">

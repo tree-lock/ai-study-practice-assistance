@@ -1,4 +1,5 @@
 import { Button, Flex, Heading, Text } from "@radix-ui/themes";
+import { getTopics } from "@/app/actions/topic";
 import { signIn, signOut } from "@/auth";
 import { AgentCommandCenter } from "@/components/agent-command-center";
 import { AppShell } from "@/components/app-shell";
@@ -21,9 +22,11 @@ export default async function Home() {
 
   const userId = await getCurrentUserId();
   const isLoggedIn = Boolean(userId);
+  const topics = await getTopics();
 
   return (
     <AppShell
+      topics={topics}
       userLabel={isLoggedIn ? `用户 ${userId?.slice(0, 8)}` : "未登录"}
       floatingActions={
         isLoggedIn ? (
@@ -48,7 +51,7 @@ export default async function Home() {
         align="center"
         justify="center"
         gap="6"
-        style={{ minHeight: "calc(100vh - 170px)", padding: "0 16px" }}
+        className="min-h-[calc(100vh-170px)] px-4"
       >
         <Heading size="9" align="center" className="home-hero-title">
           把题目变成可执行的

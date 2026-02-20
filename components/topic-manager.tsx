@@ -23,9 +23,7 @@ interface Topic {
 export function TopicList({ topics }: { topics: Topic[] }) {
   if (topics.length === 0) {
     return (
-      <Card
-        style={{ border: "none", boxShadow: "none", background: "#ffffff" }}
-      >
+      <Card className="border-none bg-white shadow-none">
         <Text size="2" color="gray">
           暂无目录，请先创建。
         </Text>
@@ -36,10 +34,7 @@ export function TopicList({ topics }: { topics: Topic[] }) {
   return (
     <Flex direction="column" gap="4">
       {topics.map((topic) => (
-        <Card
-          key={topic.id}
-          style={{ border: "none", boxShadow: "none", background: "#ffffff" }}
-        >
+        <Card key={topic.id} className="border-none bg-white shadow-none">
           <Flex align="center" justify="between" gap="4">
             <Box>
               <Text as="p" size="3" weight="bold">
@@ -102,7 +97,7 @@ export function TopicForm() {
   };
 
   return (
-    <Card style={{ border: "none", boxShadow: "none", background: "#ffffff" }}>
+    <Card className="border-none bg-white shadow-none">
       <form onSubmit={handleSubmit}>
         <Flex direction="column" gap="4">
           <Heading size="4">添加目录</Heading>

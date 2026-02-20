@@ -27,6 +27,17 @@ alwaysApply: true
     - Always associate `<label>` with inputs using `htmlFor` + `id` or nesting.
     - Always specify `type` for `<button>` (button, submit, reset).
     - Icon-only buttons must include meaningful `aria-label`.
+  - **Styling Best Practices**:
+    - Use Tailwind CSS `className` when possible; prefer it over inline `style`.
+    - Unless necessary, avoid using `margin`. Prefer `padding`, `flex + gap`, or other layout techniques to prevent margin collapse issues.
+  - **Ghost buttons**: Do NOT use Radix `IconButton` or `Button` with `variant="ghost"` — they apply negative margins that cause layout bugs. Use the custom `GhostButton` component from `@/components/ghost-button` instead (layout: "icon" | "icon-text" | "text").
+  - **Navigation**: Use Next.js `Link` for in-app navigation. Do NOT use `onClick={() => (window.location.href = "/path")}` — use `Link` (optionally with `GhostButton asChild`) for client-side navigation without full page reload.
+  - **Radix UI Themes & className**:
+    - Some Radix components apply `className` to a wrapper or have high-specificity CSS that overrides Tailwind utilities. For layout and sizing, use `style` when `className` does not produce the expected result.
+    - Components known to require `style` for layout/sizing in this project:
+      - **IconButton**: `width`, `justifyContent`, `gap`, `paddingLeft` (e.g. full-width icon+text buttons)
+      - **TextField.Root**: `width` (e.g. flex-fill or 100% width)
+      - **Select.Trigger**: `width` (e.g. `width: "100%"` in a flex container)
   - **Auto-Format**: After modifying files, run `bun biome format --write <file_path>` to ensure code style consistency.
   - Run `bun check` to verify before finishing tasks. If issues persist and cannot be resolved, report them to the user.
 - **Environment Variables**:

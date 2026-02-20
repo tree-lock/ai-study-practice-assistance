@@ -32,13 +32,28 @@ export async function createTopic(data: z.infer<typeof topicSchema>) {
     return { error: treeifyError(validated.error) };
   }
 
+  const existing = await db
+    .select({ id: topics.id })
+    .from(topics)
+    .where(
+      and(
+        eq(topics.userId, userId),
+        eq(topics.name, validated.data.name.trim()),
+      ),
+    )
+    .limit(1);
+  if (existing.length > 0) {
+    return { error: "该目录名称已存在" };
+  }
+
   try {
     await db.insert(topics).values({
-      name: validated.data.name,
+      name: validated.data.name.trim(),
       description: validated.data.description,
       userId,
     });
     revalidatePath("/");
+    revalidatePath("/topics");
     return { success: true };
   } catch (error) {
     console.error("创建目录失败:", error);
