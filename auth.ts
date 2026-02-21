@@ -1,7 +1,7 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 
 const hasGoogleAuthConfig =
   Boolean(process.env.AUTH_GOOGLE_ID) &&
@@ -17,7 +17,7 @@ const providers = hasGoogleAuthConfig
   : [];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(getDb()),
   session: { strategy: "database" },
   providers,
   pages: {

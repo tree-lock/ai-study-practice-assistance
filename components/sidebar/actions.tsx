@@ -15,13 +15,13 @@ type SidebarActionsProps = {
 
 export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
-  const [isCreatingDir, setIsCreatingDir] = useState(false);
-  const [newDirName, setNewDirName] = useState("");
+  const [isCreatingTopic, setIsCreatingTopic] = useState(false);
+  const [newTopicName, setNewTopicName] = useState("");
   const [createError, setCreateError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreateDir = async () => {
-    const name = newDirName.trim();
+  const handleCreateTopic = async () => {
+    const name = newTopicName.trim();
     if (!name || isSubmitting) return;
     setIsSubmitting(true);
     setCreateError("");
@@ -29,19 +29,19 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
     setIsSubmitting(false);
     if ("error" in result) {
       const message =
-        typeof result.error === "string" ? result.error : "创建目录失败";
+        typeof result.error === "string" ? result.error : "创建题库失败";
       setCreateError(message);
       return;
     }
-    setNewDirName("");
-    setIsCreatingDir(false);
+    setNewTopicName("");
+    setIsCreatingTopic(false);
     setCreateError("");
     router.refresh();
   };
 
   const handleCancelCreate = () => {
-    setIsCreatingDir(false);
-    setNewDirName("");
+    setIsCreatingTopic(false);
+    setNewTopicName("");
     setCreateError("");
   };
 
@@ -70,12 +70,12 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
         </Link>
       </GhostButton>
 
-      {isCreatingDir && !collapsed ? (
+      {isCreatingTopic && !collapsed ? (
         <Flex direction="column" gap="1" className="px-2">
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              void handleCreateDir();
+              void handleCreateTopic();
             }}
             onKeyDown={(e) => {
               if (e.key === "Escape") {
@@ -86,17 +86,17 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
           >
             <TextField.Root
               size="2"
-              value={newDirName}
+              value={newTopicName}
               onChange={(e) => {
-                setNewDirName(e.target.value);
+                setNewTopicName(e.target.value);
                 setCreateError("");
               }}
               onBlur={() => {
-                if (!newDirName.trim()) {
+                if (!newTopicName.trim()) {
                   handleCancelCreate();
                 }
               }}
-              placeholder="输入目录名称..."
+              placeholder="输入题库名称..."
               autoFocus
               disabled={isSubmitting}
               style={{ width: "100%" }}
@@ -115,15 +115,15 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
             if (collapsed) {
               onExpand();
             } else {
-              setIsCreatingDir(true);
+              setIsCreatingTopic(true);
             }
           }}
-          aria-label="新建目录"
+          aria-label="新建题库"
           className="pl-3"
         >
           <PlusIcon />
           <Text size="2" className={collapsed ? "hidden" : ""}>
-            新建目录
+            新建题库
           </Text>
         </GhostButton>
       )}

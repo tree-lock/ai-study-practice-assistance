@@ -8,9 +8,6 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  // TODO: 测试用延迟，测试完成后删除
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
   const { id: topicId } = await params;
 
   const userId = await getCurrentUserId();

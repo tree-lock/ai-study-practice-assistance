@@ -25,7 +25,7 @@ export function TopicList({ topics }: { topics: Topic[] }) {
     return (
       <Card className="border-none bg-white shadow-none">
         <Text size="2" color="gray">
-          暂无目录，请先创建。
+          暂无题库，请先创建。
         </Text>
       </Card>
     );
@@ -46,14 +46,14 @@ export function TopicList({ topics }: { topics: Topic[] }) {
             </Box>
             <Flex align="center" gap="2">
               <Button asChild type="button" variant="soft" color="blue">
-                <Link href={`/dashboard/topics/${topic.id}`}>进入目录</Link>
+                <Link href={`/dashboard/topics/${topic.id}`}>进入题库</Link>
               </Button>
               <Button
                 type="button"
                 variant="soft"
                 color="red"
                 onClick={async () => {
-                  if (confirm("确认删除该目录吗？")) {
+                  if (confirm("确认删除该题库吗？")) {
                     await deleteTopic(topic.id);
                   }
                 }}
@@ -100,7 +100,7 @@ export function TopicForm() {
     <Card className="border-none bg-white shadow-none">
       <form onSubmit={handleSubmit}>
         <Flex direction="column" gap="4">
-          <Heading size="4">添加目录</Heading>
+          <Heading size="4">添加题库</Heading>
 
           <Box>
             <Text as="label" htmlFor="topic-name" size="2" weight="medium">
@@ -135,7 +135,7 @@ export function TopicForm() {
           </Box>
 
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "提交中..." : "创建目录"}
+            {isSubmitting ? "提交中..." : "创建题库"}
           </Button>
 
           {error ? (

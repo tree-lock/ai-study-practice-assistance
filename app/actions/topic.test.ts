@@ -16,7 +16,14 @@ const {
   revalidatePathMock,
 } = vi.hoisted(() => {
   const localLimitMock = vi.fn().mockResolvedValue([]);
-  const localWhereSelectMock = vi.fn(() => ({ limit: localLimitMock }));
+  const localWhereSelectMock = vi.fn(() => ({
+    // biome-ignore lint/suspicious/noThenProperty: mock thenable for Drizzle chain
+    then: (
+      onFulfilled: (v: unknown) => void,
+      onRejected?: (e: unknown) => void,
+    ) => localLimitMock().then(onFulfilled, onRejected),
+    limit: localLimitMock,
+  }));
   const localFromMock = vi.fn(() => ({ where: localWhereSelectMock }));
   const localSelectMock = vi.fn(() => ({ from: localFromMock }));
 
@@ -95,7 +102,7 @@ describe("topic actions", () => {
 
   it("getTopics 应返回查询结果", async () => {
     const rows = [{ id: "1", name: "高等数学", description: "极限与微分" }];
-    whereSelectMock.mockResolvedValue(rows);
+    limitMock.mockResolvedValue(rows);
 
     const result = await getTopics();
 
@@ -117,7 +124,7 @@ describe("topic actions", () => {
   it("createTopic 校验失败时应返回 error", async () => {
     const result = await createTopic({
       name: "",
-      description: "无效目录",
+      description: "无效题库",
     });
 
     expect(result).toHaveProperty("error");
@@ -152,7 +159,7 @@ describe("topic actions", () => {
       description: "矩阵",
     });
 
-    expect(result).toEqual({ error: "请先登录后再创建目录" });
+    expect(result).toEqual({ error: "请先登录后再创建题库" });
     expect(insertMock).not.toHaveBeenCalled();
   });
 
@@ -165,7 +172,7 @@ describe("topic actions", () => {
       description: "随机变量与分布",
     });
 
-    expect(result).toEqual({ error: "创建目录失败" });
+    expect(result).toEqual({ error: "创建题库失败" });
     expect(revalidatePathMock).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
@@ -189,7 +196,7 @@ describe("topic actions", () => {
       description: "矩阵",
     });
 
-    expect(result).toEqual({ error: "请先登录后再更新目录" });
+    expect(result).toEqual({ error: "请先登录后再更新题库" });
     expect(updateMock).not.toHaveBeenCalled();
   });
 
@@ -217,7 +224,7 @@ describe("topic actions", () => {
       description: "线性表与树图",
     });
 
-    expect(result).toEqual({ error: "更新目录失败" });
+    expect(result).toEqual({ error: "更新题库失败" });
     expect(revalidatePathMock).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
@@ -238,7 +245,7 @@ describe("topic actions", () => {
 
     const result = await deleteTopic("topic-1");
 
-    expect(result).toEqual({ error: "请先登录后再删除目录" });
+    expect(result).toEqual({ error: "请先登录后再删除题库" });
     expect(deleteMock).not.toHaveBeenCalled();
   });
 
@@ -248,7 +255,7 @@ describe("topic actions", () => {
 
     const result = await deleteTopic("topic-1");
 
-    expect(result).toEqual({ error: "删除目录失败" });
+    expect(result).toEqual({ error: "删除题库失败" });
     expect(revalidatePathMock).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });

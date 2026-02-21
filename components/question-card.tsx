@@ -1,6 +1,9 @@
+"use client";
+
 import { Badge, Card, Flex, Text } from "@radix-ui/themes";
 import Link from "next/link";
 import type { TopicQuestion } from "@/app/actions/question";
+import { QuestionMarkdownContent } from "./agent-command-center/question-markdown-content";
 
 type QuestionCardProps = {
   question: TopicQuestion;
@@ -14,11 +17,6 @@ const TYPE_LABEL: Record<TopicQuestion["type"], string> = {
 };
 
 export function QuestionCard({ question, topicId }: QuestionCardProps) {
-  const contentPreview =
-    question.content.length > 80
-      ? `${question.content.slice(0, 80)}...`
-      : question.content;
-
   return (
     <Link
       href={`/topics/${topicId}/questions/${question.id}`}
@@ -36,10 +34,10 @@ export function QuestionCard({ question, topicId }: QuestionCardProps) {
               </Badge>
             ) : null}
           </Flex>
-          <Text size="2" className="line-clamp-3">
-            {contentPreview}
-          </Text>
-          <Flex align="center" justify="between" className="mt-auto pt-2">
+          <div className="line-clamp-3">
+            <QuestionMarkdownContent questionMarkdown={question.content} />
+          </div>
+          <Flex align="center" justify="between" className="mt-auto pt-4">
             <Text size="1" color="gray">
               {question.creator?.name ?? "匿名用户"}
             </Text>

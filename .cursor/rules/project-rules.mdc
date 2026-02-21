@@ -28,6 +28,7 @@ alwaysApply: true
   - STRICTLY follow Biome rules.
   - **NO non-null assertions** (`!`). Use optional chaining (`?.`) or explicit null checks.
   - **NO `any` type**: Define proper interfaces or types.
+  - **NO `as any` assertions**: Prohibited unless explicitly requested by user, no type-safe alternative exists, and justified with comments. See `.cursor/rules/no-any-assertions.mdc`.
   - **Button UX**: Buttons should prefer icons over text whenever semantics are clear. If a text button is required, keep wording minimal.
   - **Accessibility**:
     - Always associate `<label>` with inputs using `htmlFor` + `id` or nesting.
@@ -45,6 +46,7 @@ alwaysApply: true
       - **TextField.Root**: `width` (e.g. flex-fill or 100% width)
       - **Select.Trigger**: `width` (e.g. `width: "100%"` in a flex container)
   - **Auto-Format**: After modifying files, run `bun biome format --write <file_path>` to ensure code style consistency.
+  - **Type Safety**: After code modifications, run `bun run typecheck` (or `tsc --noEmit`) to verify type correctness.
   - Run `bun check` to verify before finishing tasks. If issues persist and cannot be resolved, report them to the user.
 - **Environment Variables**:
   - Do NOT use `dotenv`. Bun automatically loads `.env` files.
@@ -95,7 +97,7 @@ Every response must follow this structure exactly:
 2. **我完成了什么 (Completed Actions)**
    - Concise list of completed actions (file creations, edits, deletions).
 3. **验证结果 (Verification)**
-   - Confirm linter checks (`bun check`), type safety, or manual tests performed.
+   - Confirm linter checks (`bun check`), type checking (`bun run typecheck`), and type safety.
 4. **目前有什么问题 (Current Issues)**
    - List of known bugs, blockers, or unresolved issues. If none, state "None".
 5. **你需要我同意什么 (Pending Approval)**

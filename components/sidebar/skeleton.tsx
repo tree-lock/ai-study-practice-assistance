@@ -35,7 +35,7 @@ export function SidebarSkeleton() {
           <Flex align="center" gap="2" className="pl-3 py-1.5">
             <Skeleton width="15px" height="15px" />
             <Skeleton>
-              <Text size="2">新建目录</Text>
+              <Text size="2">新建题库</Text>
             </Skeleton>
           </Flex>
         </Flex>
@@ -44,23 +44,23 @@ export function SidebarSkeleton() {
         <Flex direction="column" gap="2">
           <Skeleton className="pl-3">
             <Text as="p" size="2" weight="bold">
-              目录
+              题库
             </Text>
           </Skeleton>
           <Flex direction="column" gap="1">
             <Flex className="pl-3 py-1.5">
               <Skeleton width="120px">
-                <Text size="2">目录项</Text>
+                <Text size="2">题库项</Text>
               </Skeleton>
             </Flex>
             <Flex className="pl-3 py-1.5">
               <Skeleton width="90px">
-                <Text size="2">目录项</Text>
+                <Text size="2">题库项</Text>
               </Skeleton>
             </Flex>
             <Flex className="pl-3 py-1.5">
               <Skeleton width="140px">
-                <Text size="2">目录项</Text>
+                <Text size="2">题库项</Text>
               </Skeleton>
             </Flex>
           </Flex>

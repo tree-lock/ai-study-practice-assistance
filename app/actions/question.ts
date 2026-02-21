@@ -9,7 +9,7 @@ import { questions, tags, topics, users } from "@/lib/db/schema";
 
 const createQuestionSchema = z
   .object({
-    topicId: z.string().uuid("目录参数不合法"),
+    topicId: z.string().uuid("题库参数不合法"),
     content: z.string().trim().optional(),
     type: z.enum(["choice", "blank", "subjective"]).default("subjective"),
     source: z.string().trim().optional(),
@@ -146,7 +146,7 @@ export async function createQuestionsInTopic(input: {
 
   const accessible = await canAccessTopic(parsed.data.topicId, userId);
   if (!accessible) {
-    return { success: false as const, error: "目录不存在或无权限操作" };
+    return { success: false as const, error: "题库不存在或无权限操作" };
   }
 
   const rows: Array<{
@@ -182,4 +182,60 @@ export async function createQuestionsInTopic(input: {
   revalidatePath("/");
 
   return { success: true as const, count: rows.length };
+}
+
+async function fetchQuestionById(
+  questionId: string,
+  topicId: string,
+): Promise<TopicQuestion | null> {
+  "use cache";
+  cacheTag(`question-${questionId}`);
+
+  const rows = await db
+    .select({
+      id: questions.id,
+      content: questions.content,
+      type: questions.type,
+      source: questions.source,
+      createdAt: questions.createdAt,
+      creatorId: users.id,
+      creatorName: users.name,
+    })
+    .from(questions)
+    .leftJoin(users, eq(questions.creatorId, users.id))
+    .where(and(eq(questions.id, questionId), eq(questions.topicId, topicId)))
+    .limit(1);
+
+  const row = rows.at(0);
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    content: row.content,
+    type: row.type,
+    source: row.source,
+    createdAt: row.createdAt,
+    creator: row.creatorId
+      ? { id: row.creatorId, name: row.creatorName }
+      : null,
+  };
+}
+
+export async function getQuestionById(
+  questionId: string,
+  topicId: string,
+): Promise<TopicQuestion | null> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return null;
+  }
+
+  const accessible = await canAccessTopic(topicId, userId);
+  if (!accessible) {
+    return null;
+  }
+
+  return fetchQuestionById(questionId, topicId);
 }

@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 import { topics } from "@/lib/db/schema";
 
 const topicSchema = z.object({
-  name: z.string().min(1, "目录名称不能为空"),
+  name: z.string().min(1, "题库名称不能为空"),
   description: z.string().optional(),
 });
 
@@ -45,7 +45,7 @@ export async function getTopicById(id: string) {
 export async function createTopic(data: z.infer<typeof topicSchema>) {
   const userId = await getCurrentUserId();
   if (!userId) {
-    return { error: "请先登录后再创建目录" };
+    return { error: "请先登录后再创建题库" };
   }
 
   const validated = topicSchema.safeParse(data);
@@ -64,7 +64,7 @@ export async function createTopic(data: z.infer<typeof topicSchema>) {
     )
     .limit(1);
   if (existing.length > 0) {
-    return { error: "该目录名称已存在" };
+    return { error: "该题库名称已存在" };
   }
 
   try {
@@ -77,8 +77,8 @@ export async function createTopic(data: z.infer<typeof topicSchema>) {
     revalidatePath("/topics");
     return { success: true };
   } catch (error) {
-    console.error("创建目录失败:", error);
-    return { error: "创建目录失败" };
+    console.error("创建题库失败:", error);
+    return { error: "创建题库失败" };
   }
 }
 
@@ -88,7 +88,7 @@ export async function updateTopic(
 ) {
   const userId = await getCurrentUserId();
   if (!userId) {
-    return { error: "请先登录后再更新目录" };
+    return { error: "请先登录后再更新题库" };
   }
 
   const validated = topicSchema.safeParse(data);
@@ -108,15 +108,15 @@ export async function updateTopic(
     revalidatePath("/");
     return { success: true };
   } catch (error) {
-    console.error("更新目录失败:", error);
-    return { error: "更新目录失败" };
+    console.error("更新题库失败:", error);
+    return { error: "更新题库失败" };
   }
 }
 
 export async function deleteTopic(id: string) {
   const userId = await getCurrentUserId();
   if (!userId) {
-    return { error: "请先登录后再删除目录" };
+    return { error: "请先登录后再删除题库" };
   }
 
   try {
@@ -126,7 +126,7 @@ export async function deleteTopic(id: string) {
     revalidatePath("/");
     return { success: true };
   } catch (error) {
-    console.error("删除目录失败:", error);
-    return { error: "删除目录失败" };
+    console.error("删除题库失败:", error);
+    return { error: "删除题库失败" };
   }
 }

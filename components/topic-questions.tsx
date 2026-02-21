@@ -78,7 +78,7 @@ export function TopicQuestions({
       <Card className="border-none bg-white shadow-none">
         <form onSubmit={handleSubmit}>
           <Flex direction="column" gap="4">
-            <Heading size="4">上传题目到当前目录</Heading>
+            <Heading size="4">上传题目到当前题库</Heading>
 
             <Box>
               <Text as="label" size="2" weight="medium">
@@ -183,7 +183,7 @@ export function TopicQuestions({
 
       <Card className="border-none bg-white shadow-none">
         <Flex direction="column" gap="3">
-          <Heading size="4">本目录题目</Heading>
+          <Heading size="4">本题库题目</Heading>
           {initialQuestions.length === 0 ? (
             <Text size="2" color="gray">
               还没有题目，先上传第一道题吧。

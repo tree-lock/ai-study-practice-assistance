@@ -15,7 +15,7 @@ export default function Home() {
         <Text color="blue"> 学习计划 </Text>
       </Heading>
       <Text size="4" color="gray" align="center" className="home-hero-subtitle">
-        上传题目，文字、图片或文档，系统会自动生成目录、编排与复习任务。
+        上传题目，文字、图片或文档，系统会自动生成题库、编排与复习任务。
       </Text>
       <AgentCommandCenter />
     </Flex>

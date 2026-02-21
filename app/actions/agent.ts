@@ -1,7 +1,11 @@
 "use server";
 
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
+import { db } from "@/lib/db";
+import { topics } from "@/lib/db/schema";
 
 const agentPromptSchema = z.object({
   prompt: z.string().min(4, "请输入更具体的学习目标"),
@@ -124,4 +128,92 @@ export async function runAgentPlan(input: {
       steps,
     },
   };
+}
+
+const saveToCatalogSchema = z.object({
+  catalogName: z.string().trim().min(1, "题库名称不能为空"),
+  questionContent: z.string().trim().min(1, "题目内容不能为空"),
+  source: z.string().trim().optional(),
+  actionType: z.enum(["save-existing", "create-new"]),
+});
+
+type SaveToCatalogResult =
+  | { success: true; topicId: string; questionId: string }
+  | { success: false; error: string };
+
+export async function saveQuestionToCatalog(
+  input: z.infer<typeof saveToCatalogSchema>,
+): Promise<SaveToCatalogResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, error: "请先登录后再保存题目" };
+  }
+
+  const parsed = saveToCatalogSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "输入不合法",
+    };
+  }
+
+  const { catalogName, questionContent, source, actionType } = parsed.data;
+
+  try {
+    let topicId: string;
+
+    if (actionType === "save-existing") {
+      // 查找已存在的题库
+      const existingTopic = await db
+        .select({ id: topics.id })
+        .from(topics)
+        .where(eq(topics.name, catalogName))
+        .limit(1);
+
+      if (existingTopic.length === 0) {
+        return {
+          success: false,
+          error: "指定的题库不存在",
+        };
+      }
+
+      topicId = existingTopic[0].id;
+    } else {
+      // 创建新题库
+      const newTopic = await db
+        .insert(topics)
+        .values({
+          name: catalogName,
+          userId,
+          description: `自动创建的题库 - ${new Date().toLocaleDateString("zh-CN")}`,
+        })
+        .returning({ id: topics.id });
+
+      topicId = newTopic[0].id;
+    }
+
+    // 创建题目
+    const { questions } = await import("@/lib/db/schema");
+    const newQuestion = await db
+      .insert(questions)
+      .values({
+        topicId,
+        content: questionContent,
+        type: "subjective",
+        source: source || undefined,
+        creatorId: userId,
+      })
+      .returning({ id: questions.id });
+
+    const questionId = newQuestion[0].id;
+
+    // 更新缓存
+    revalidatePath("/");
+    revalidatePath(`/topics/${topicId}`);
+
+    return { success: true, topicId, questionId };
+  } catch (error) {
+    console.error("保存题目到题库失败:", error);
+    return { success: false, error: "保存失败，请稍后重试" };
+  }
 }

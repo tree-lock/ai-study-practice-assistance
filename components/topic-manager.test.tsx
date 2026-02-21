@@ -27,12 +27,12 @@ describe("TopicManager", () => {
     deleteTopicMock.mockReset();
   });
 
-  it("应当渲染一级目录表单且不显示上级目录字段", () => {
+  it("应当渲染一级题库表单且不显示上级题库字段", () => {
     render(<TopicForm />);
 
     expect(screen.getByLabelText("名称")).toBeInTheDocument();
     expect(screen.getByLabelText("描述")).toBeInTheDocument();
-    expect(screen.queryByLabelText("上级目录（可选）")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("上级题库（可选）")).not.toBeInTheDocument();
   });
 
   it("提交表单时应调用 createTopic", async () => {
@@ -45,7 +45,7 @@ describe("TopicManager", () => {
     fireEvent.change(screen.getByLabelText("描述"), {
       target: { value: "微积分与极限" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "创建目录" }));
+    fireEvent.click(screen.getByRole("button", { name: "创建题库" }));
 
     await waitFor(() => {
       expect(createTopicMock).toHaveBeenCalledWith({
@@ -55,17 +55,17 @@ describe("TopicManager", () => {
     });
   });
 
-  it("创建目录失败时应展示错误提示", async () => {
-    createTopicMock.mockResolvedValue({ error: "请先登录后再创建目录" });
+  it("创建题库失败时应展示错误提示", async () => {
+    createTopicMock.mockResolvedValue({ error: "请先登录后再创建题库" });
     render(<TopicForm />);
 
     fireEvent.change(screen.getByLabelText("名称"), {
       target: { value: "高等数学" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "创建目录" }));
+    fireEvent.click(screen.getByRole("button", { name: "创建题库" }));
 
     await waitFor(() => {
-      expect(screen.getByText("请先登录后再创建目录")).toBeInTheDocument();
+      expect(screen.getByText("请先登录后再创建题库")).toBeInTheDocument();
     });
   });
 
