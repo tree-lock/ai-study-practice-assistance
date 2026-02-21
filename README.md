@@ -1,148 +1,143 @@
-# 🎓 AI 智能刷题助手 (AI Study Assistant)
+# AI 智能刷题助手 (AI Study Assistant)
 
-这是一个基于 **Bun + Next.js + AI** 构建的现代化智能刷题与学习辅助平台。旨在通过 AI 技术帮助用户高效管理题库、智能判题、生成个性化学习报告，并利用艾宾浩斯遗忘曲线科学规划复习进度。
+基于 **Bun + Next.js + AI** 构建的智能刷题与学习辅助平台。通过 AI 技术帮助用户高效管理题库、智能分析题目、自动提取知识点，并规划科学的复习进度。
 
-## 🚀 项目愿景
+## 项目愿景
 
-打造一个“输入-处理-输出-反馈”的完整学习闭环：
+打造一个"输入-处理-输出-反馈"的完整学习闭环：
 
-1.  **输入**：多模态导入题目（PDF/图片/文本）。
-2.  **处理**：AI 自动解析、打标、建立知识图谱。
-3.  **输出**：智能刷题、错题重练、变式训练。
-4.  **反馈**：生成学习报告、动态调整复习计划。
+1. **输入**：多模态导入题目（文本/PDF/图片）
+2. **处理**：AI 自动解析、识别题型、提取知识点
+3. **输出**：智能刷题、错题重练、变式训练
+4. **反馈**：生成学习报告、动态调整复习计划
 
-## ✨ 核心功能
+## 已实现功能
 
-### 1. 智能题库导入 (Smart Ingestion)
+### AI 智能题目分析
 
-- **多模态上传**：支持批量上传 PDF 或图片（试卷/习题册）。
-- **AI 解析**：自动识别题目内容、选项、公式（LaTeX）及手写笔记。
-- **导入校对**：提供左右分屏的校对界面，确保入库准确性。
-- **智能去重**：利用向量搜索（Vector Search）检测并提示重复题目。
+- **智能解析**：输入原始题目文本，AI 自动格式化为结构化 Markdown + LaTeX
+- **题型识别**：自动识别 6 种题型（选择题、填空题、主观题、应用题、证明题、综合题）
+- **知识点提取**：AI 自动提取 1-3 个知识点标签
+- **题库推荐**：根据题目内容智能推荐存放的题库（已有或建议新建）
+- **实时预览**：支持题目内容编辑和 LaTeX 公式实时预览
 
-### 2. 结构化知识管理 (Knowledge Management)
+### 结构化知识管理
 
-- **一级题库**：题库结构统一为一级题库（如“考研数学”“高等数学”“数据结构”），不再使用上级/子级关系，降低维护复杂度。
-- **智能标签**：AI 自动为题目打上知识点、难度、题型标签。
-- **知识图谱**：构建知识点依赖关系（如：做错“二重积分” -> 推荐复习“极坐标”）。
+- **一级题库**：扁平化题库结构（如"考研数学""数据结构"），降低维护复杂度
+- **智能标签**：AI 自动为题目打上知识点标签
+- **LaTeX 渲染**：支持行内公式 `$...$` 和行间公式 `$$...$$`
 
-### 3. 沉浸式刷题体验 (Practice Mode)
+### 用户系统
 
-- **多种题型**：支持选择题、填空题、主观题。
-- **AI 判题**：
-  - **选择题**：自动核对。
-  - **填空/主观题**：支持拍照上传手写答案，AI 识别笔迹并进行逻辑批改，指出具体错误步骤。
-- **专注模式**：全屏刷题，屏蔽干扰，记录答题耗时。
+- **Google OAuth**：一键登录，无需注册
+- **数据隔离**：题库和题目按用户隔离，保证数据安全
 
-### 4. 科学复习与反馈 (Review & Feedback)
+## 规划中功能
 
-- **艾宾浩斯调度引擎**：基于记忆曲线自动安排每日复习任务。
-- **错题归因**：用户可标记错因（粗心/概念不清/运算错误），AI 据此调整推荐策略。
-- **变式训练**：针对错题，AI 一键生成“举一反三”的变式题，巩固薄弱点。
+- [ ] 基础刷题界面（选择题答题交互）
+- [ ] 做题记录与学习状态追踪
+- [ ] 文件上传（S3/R2）与图片/PDF OCR 解析
+- [ ] AI 判题（填空题/主观题智能批改）
+- [ ] 艾宾浩斯复习算法调度
+- [ ] 错题变式生成
+- [ ] 学习报告与掌握度热力图
 
-### 5. 数据分析与报告 (Analytics)
+## 技术栈
 
-- **学习报告**：生成每日/每周学习总结，分析掌握度变化。
-- **掌握度热力图**：可视化展示各知识点的掌握情况。
-- **复习建议**：基于数据推荐今日重点攻克的知识盲区。
+| 类别 | 技术 |
+|------|------|
+| **运行时** | [Bun](https://bun.sh) |
+| **框架** | [Next.js 16](https://nextjs.org) (App Router) |
+| **数据库** | PostgreSQL + [pgvector](https://github.com/pgvector/pgvector) |
+| **ORM** | [Drizzle ORM](https://orm.drizzle.team) |
+| **验证** | [Zod](https://zod.dev) |
+| **认证** | [Auth.js (NextAuth v5)](https://authjs.dev) |
+| **AI 模型** | MiniMax (MiniMax-M2.5) |
+| **UI 组件** | [Radix Themes](https://www.radix-ui.com/themes) + [Tailwind CSS](https://tailwindcss.com) |
+| **Markdown** | react-markdown + remark-math + rehype-katex |
+| **代码规范** | [Biome](https://biomejs.dev) |
 
-## 🛠 技术栈
+## 项目结构
 
-- **Runtime & Package Manager**: [Bun](https://bun.sh)
-- **Framework**: [Next.js 15](https://nextjs.org) (App Router)
-- **Database**: PostgreSQL (with `pgvector` for AI search)
-- **ORM**: [Drizzle ORM](https://orm.drizzle.team)
-- **Validation**: [Zod](https://zod.dev) (End-to-end type safety)
-- **Auth**: [Auth.js (NextAuth v5)](https://authjs.dev) (Google Login)
-- **AI SDK**: [Vercel AI SDK](https://sdk.vercel.ai)
-- **Model Provider**: OpenAI (GPT-4o) / Google (Gemini 1.5 Pro)
-- **Storage**: AWS S3 / Cloudflare R2 (For images/PDFs)
-- **UI Components**: Radix Themes + Tailwind CSS
+```
+├── app/                    # Next.js App Router
+│   ├── page.tsx            # 首页 - AI 命令中心
+│   ├── layout.tsx          # 全局布局
+│   ├── actions/            # Server Actions
+│   │   ├── topic.ts        # 题库 CRUD
+│   │   ├── question.ts     # 题目 CRUD
+│   │   └── agent.ts        # AI 分析/保存题目
+│   └── topics/[id]/        # 题库详情页
+├── components/             # React 组件
+│   ├── agent-command-center/   # AI 命令中心组件
+│   ├── sidebar/            # 侧边栏导航
+│   └── ...
+├── lib/                    # 核心库
+│   ├── db/                 # 数据库 Schema & 连接
+│   ├── ai/                 # AI 模型配置与分析逻辑
+│   └── auth/               # 认证相关
+└── docs/                   # 项目文档
+```
 
-## 📅 开发进度表 (Roadmap)
+## 快速开始
 
-### Phase 1: 基础建设 (Infrastructure)
+### 1. 克隆项目
 
-- [x] 初始化 Next.js + Bun 项目结构 (已完成依赖安装: Drizzle, Postgres, Zod)
-- [x] 配置 PostgreSQL + Drizzle ORM 环境 (Schema, Migration)
-- [x] 集成 Auth.js (Google OAuth)
-- [x] 设计数据库 Schema (Topics, Questions, Users)
-- [x] 实现基础题库 (Topic) 的 CRUD
+```bash
+git clone <repository-url>
+cd <project-directory>
+```
 
-### Phase 1.5: 上传题目 (当前阶段)
+### 2. 安装依赖
 
-- [x] 在主页集成「上传题目」入口（选择/创建题库 → 文本题目 + 图片/PDF 文件名占位落库）
+```bash
+bun install
+```
 
-### Phase 2: 核心循环 (Core Loop)
+### 3. 配置环境变量
 
-- [ ] 开发基础刷题界面 (选择题)
-- [ ] 实现做题记录与状态更新 (做对/做错)
-- [ ] 搭建文件上传服务 (S3/R2 集成)
+复制 `.env.example` 为 `.env.local` 并填入配置：
 
-### Phase 3: AI 深度集成 (AI Integration)
+```env
+# 数据库
+DATABASE_URL="postgresql://..."
 
-- [ ] 接入 Vercel AI SDK
-- [ ] 实现图片/PDF 上传与 OCR 智能解析
-- [ ] 开发 AI 判题功能 (填空/主观题)
-- [ ] 实现 AI 错题分析与知识点提取
+# Auth.js
+AUTH_SECRET="..."
+AUTH_GOOGLE_ID="..."
+AUTH_GOOGLE_SECRET="..."
 
-### Phase 4: 高级功能与算法 (Advanced)
+# AI 模型 (MiniMax)
+MINIMAX_API_KEY="..."
+```
 
-- [ ] 实现艾宾浩斯复习算法调度
-- [ ] 开发错题变式生成功能
-- [ ] 制作学习报告与掌握度热力图
-- [ ] 移动端适配与 PWA 优化
+### 4. 启动数据库
 
-### UI 体验升级（进行中）
+```bash
+docker-compose up -d
+```
 
-- [x] 接入 Radix Themes，统一基础组件风格
-- [x] 完成 Agent 风格工作台页面（Dashboard）与侧边导航骨架
-- [x] 调整为路径化工作区架构：主页 `/`，工作区 `/dashboard`，子页面使用 `/dashboard/*`
-- [x] 保留按 ID 切换入口：`/topics/[topicId]` 重定向到 `/dashboard/topics/[topicId]`
-- [ ] 接入真实 Agent 对话流（输入 -> 执行 -> 结果卡片）
+### 5. 初始化数据库
 
-## 📦 快速开始
+```bash
+bun run db:push
+```
 
-1.  **克隆项目**
+### 6. 启动开发服务器
 
-    ```bash
-    git clone <repository-url>
-    cd <project-directory>
-    ```
+```bash
+bun dev
+```
 
-2.  **安装依赖**
+访问 [http://localhost:3000](http://localhost:3000) 开始使用。
 
-    ```bash
-    bun install
-    ```
+## 开发命令
 
-3.  **配置环境变量**
-    复制 `.env.example` 为 `.env.local` 并填入以下配置：
-
-    ```env
-    DATABASE_URL="postgresql://..."
-    AUTH_SECRET="..."
-    AUTH_GOOGLE_ID="..."
-    AUTH_GOOGLE_SECRET="..."
-    OPENAI_API_KEY="..."
-    # 或其他 AI Provider Key
-    ```
-
-4.  **初始化数据库**
-
-    ```bash
-    bun run db:push
-    ```
-
-5.  **启动开发服务器**
-
-    ```bash
-    bun dev
-    ```
-
-6.  **运行自动化测试**
-    ```bash
-    bun run test
-    ```
-
-打开 [http://localhost:3000](http://localhost:3000) 查看结果。
+| 命令 | 说明 |
+|------|------|
+| `bun dev` | 启动开发服务器 |
+| `bun build` | 构建生产版本 |
+| `bun check` | 运行 Biome lint + typecheck |
+| `bun run db:push` | 推送 Schema 到数据库 |
+| `bun run db:studio` | 打开 Drizzle Studio |
+| `bun test` | 运行测试 |
