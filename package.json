@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "build:prod": "bun --env-file=.env run build",
+    "start": "next start -p 8080",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",

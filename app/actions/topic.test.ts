@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
+  limitMock,
   fromMock,
   whereSelectMock,
   selectMock,
@@ -14,7 +15,8 @@ const {
   getCurrentUserIdMock,
   revalidatePathMock,
 } = vi.hoisted(() => {
-  const localWhereSelectMock = vi.fn();
+  const localLimitMock = vi.fn().mockResolvedValue([]);
+  const localWhereSelectMock = vi.fn(() => ({ limit: localLimitMock }));
   const localFromMock = vi.fn(() => ({ where: localWhereSelectMock }));
   const localSelectMock = vi.fn(() => ({ from: localFromMock }));
 
@@ -32,6 +34,7 @@ const {
   const localRevalidatePathMock = vi.fn();
 
   return {
+    limitMock: localLimitMock,
     fromMock: localFromMock,
     whereSelectMock: localWhereSelectMock,
     selectMock: localSelectMock,
@@ -73,6 +76,7 @@ import {
 
 describe("topic actions", () => {
   beforeEach(() => {
+    limitMock.mockReset().mockResolvedValue([]);
     fromMock.mockClear();
     whereSelectMock.mockReset();
     selectMock.mockClear();
@@ -135,6 +139,7 @@ describe("topic actions", () => {
       description: "矩阵与向量空间",
       userId: "user-1",
     });
+    expect(revalidatePathMock).toHaveBeenCalledWith("/");
     expect(revalidatePathMock).toHaveBeenCalledWith("/topics");
     expect(result).toEqual({ success: true });
   });
@@ -199,7 +204,7 @@ describe("topic actions", () => {
     expect(updateMock).toHaveBeenCalledOnce();
     expect(setMock).toHaveBeenCalledOnce();
     expect(whereUpdateMock).toHaveBeenCalledOnce();
-    expect(revalidatePathMock).toHaveBeenCalledWith("/topics");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/");
     expect(result).toEqual({ success: true });
   });
 
@@ -224,7 +229,7 @@ describe("topic actions", () => {
 
     expect(deleteMock).toHaveBeenCalledOnce();
     expect(whereDeleteMock).toHaveBeenCalledOnce();
-    expect(revalidatePathMock).toHaveBeenCalledWith("/topics");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/");
     expect(result).toEqual({ success: true });
   });
 
