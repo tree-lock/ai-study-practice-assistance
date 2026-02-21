@@ -10,9 +10,10 @@ import { GhostButton } from "@/components/ghost-button";
 
 type SidebarActionsProps = {
   collapsed: boolean;
+  onExpand: () => void;
 };
 
-export function SidebarActions({ collapsed }: SidebarActionsProps) {
+export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
   const [isCreatingDir, setIsCreatingDir] = useState(false);
   const [newDirName, setNewDirName] = useState("");
@@ -52,7 +53,16 @@ export function SidebarActions({ collapsed }: SidebarActionsProps) {
         aria-label="新增题目"
         className="pl-3"
       >
-        <Link href="/" className="text-inherit no-underline">
+        <Link
+          href="/"
+          className="text-inherit no-underline"
+          onClick={(e) => {
+            if (collapsed) {
+              e.preventDefault();
+              onExpand();
+            }
+          }}
+        >
           <FilePlusIcon />
           <Text size="2" className={collapsed ? "hidden" : ""}>
             新增题目
@@ -102,9 +112,12 @@ export function SidebarActions({ collapsed }: SidebarActionsProps) {
         <GhostButton
           layout="icon-text"
           onClick={() => {
-            !collapsed && setIsCreatingDir(true);
+            if (collapsed) {
+              onExpand();
+            } else {
+              setIsCreatingDir(true);
+            }
           }}
-          disabled={collapsed}
           aria-label="新建目录"
           className="pl-3"
         >

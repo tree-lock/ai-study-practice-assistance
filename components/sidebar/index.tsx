@@ -41,7 +41,10 @@ export function Sidebar({ topics = [], userLabel }: SidebarProps) {
             collapsed={collapsed}
             onToggleCollapse={() => setCollapsed((prev) => !prev)}
           />
-          <SidebarActions collapsed={collapsed} />
+          <SidebarActions
+            collapsed={collapsed}
+            onExpand={() => setCollapsed(false)}
+          />
           <SidebarTopicList topics={topics} collapsed={collapsed} />
         </Flex>
         <SidebarFooter userLabel={userLabel} collapsed={collapsed} />
