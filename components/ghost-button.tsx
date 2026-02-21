@@ -34,10 +34,10 @@ export function GhostButton({
     : "bg-transparent cursor-pointer hover:bg-gray-200 active:bg-gray-300";
 
   const layoutClasses = {
-    icon: "h-7 w-7 shrink-0 p-1",
+    icon: "h-8 w-8 shrink-0 p-1",
     "icon-text":
-      "min-h-8 w-full justify-start px-3 py-1.5 text-left text-[13px]",
-    text: "min-h-8 w-full justify-start px-3 py-1.5 text-left text-[13px]",
+      "min-h-8 justify-start px-3 py-1.5 text-left text-[13px] whitespace-nowrap",
+    text: "min-h-8 justify-start px-3 py-1.5 text-left text-[13px] whitespace-nowrap",
   };
 
   const mergedClassName =

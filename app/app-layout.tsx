@@ -4,6 +4,7 @@ import { getTopics } from "@/app/actions/topic";
 import { signIn, signOut } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { Sidebar } from "@/components/sidebar";
+import { SidebarSkeleton } from "@/components/sidebar/skeleton";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 
 const hasGoogleAuthConfig =
@@ -77,11 +78,7 @@ export default function AppLayout({
         )
       }
       sidebar={
-        <Suspense
-          fallback={
-            <div className="sticky top-0 h-screen w-[250px] min-w-[250px] bg-[#efeff1] py-3.5 px-2.5" />
-          }
-        >
+        <Suspense fallback={<SidebarSkeleton />}>
           <SidebarContent />
         </Suspense>
       }

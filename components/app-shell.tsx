@@ -1,5 +1,3 @@
-"use client";
-
 import { GearIcon } from "@radix-ui/react-icons";
 import { Box, Flex, Heading, Text } from "@radix-ui/themes";
 import { GhostButton } from "@/components/ghost-button";
@@ -47,7 +45,7 @@ export function AppShell({
         <Box className="flex-1 relative">
           <Box className="w-full py-5 px-6">
             {floatingActions ? (
-              <Box className="absolute top-5 right-5 z-[5]">
+              <Box className="absolute top-5 right-5 z-10">
                 <Flex align="center" gap="2">
                   <GhostButton layout="icon" aria-label="设置">
                     <GearIcon />

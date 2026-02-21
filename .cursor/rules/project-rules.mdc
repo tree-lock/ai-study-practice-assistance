@@ -18,6 +18,12 @@ alwaysApply: true
 
 ## Coding Standards
 
+- **Component Architecture**:
+  - **Component Separation**: Avoid over-coupling multiple features in a single file. Split complex components into focused sub-components (e.g., Sidebar → UserInfo, Actions, TopicList).
+  - **Suspense for Async Data**: Use `Suspense` boundaries to wrap async Server Components. Pass Promises to child components instead of making the entire page async, preventing full-page blocking during data fetching.
+  - **Layout Reuse**: Shared layout components (Sidebar, AppShell) should be placed in `layout.tsx` to avoid repetition across pages. Pages should only contain page-specific content.
+  - **Minimize 'use client'**: Only add `'use client'` directive when the component requires client-side interactivity (useState, useEffect, event handlers, usePathname, etc.). If a component only receives callbacks via props, it can remain a Server Component.
+
 - **Linter/Formatter**: Biome
   - STRICTLY follow Biome rules.
   - **NO non-null assertions** (`!`). Use optional chaining (`?.`) or explicit null checks.

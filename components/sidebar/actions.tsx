@@ -54,7 +54,9 @@ export function SidebarActions({ collapsed }: SidebarActionsProps) {
       >
         <Link href="/" className="text-inherit no-underline">
           <FilePlusIcon />
-          {!collapsed && <Text size="2">新增题目</Text>}
+          <Text size="2" className={collapsed ? "hidden" : ""}>
+            新增题目
+          </Text>
         </Link>
       </GhostButton>
 
@@ -99,13 +101,17 @@ export function SidebarActions({ collapsed }: SidebarActionsProps) {
       ) : (
         <GhostButton
           layout="icon-text"
-          onClick={() => !collapsed && setIsCreatingDir(true)}
+          onClick={() => {
+            !collapsed && setIsCreatingDir(true);
+          }}
           disabled={collapsed}
           aria-label="新建目录"
           className="pl-3"
         >
           <PlusIcon />
-          {!collapsed && <Text size="2">新建目录</Text>}
+          <Text size="2" className={collapsed ? "hidden" : ""}>
+            新建目录
+          </Text>
         </GhostButton>
       )}
     </Flex>

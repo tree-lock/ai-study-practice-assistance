@@ -25,7 +25,7 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
 
   return (
     <Flex direction="column" gap="2">
-      <Text as="p" size="2" weight="bold" className="pl-3">
+      <Text as="p" size="2" weight="bold" className="pl-3 whitespace-nowrap">
         目录
       </Text>
       <Flex direction="column">
