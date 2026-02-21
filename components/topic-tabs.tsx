@@ -8,8 +8,9 @@ const TAB_OPTIONS = [
   { value: "all", label: "所有题", disabled: false },
   { value: "today", label: "今日推荐", disabled: true },
   { value: "starred", label: "已收藏", disabled: true },
-  { value: "wrong", label: "夹带题", disabled: true },
-  { value: "mastered", label: "收回题", disabled: true },
+  { value: "wrong", label: "错题本", disabled: true },
+  { value: "undone", label: "未完成", disabled: true },
+  { value: "done", label: "已完成", disabled: true },
 ] as const;
 
 const SORT_OPTIONS = [
@@ -29,7 +30,7 @@ export function TopicTabs({ activeTab, onTabChange }: TopicTabsProps) {
   const currentSort = SORT_OPTIONS.find((opt) => opt.value === sortBy);
 
   return (
-    <div className="flex items-center justify-between pb-2">
+    <div className="flex items-center justify-between">
       <Tabs.Root value={activeTab} onValueChange={onTabChange}>
         <Tabs.List>
           {TAB_OPTIONS.map((tab) => (

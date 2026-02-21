@@ -3,54 +3,50 @@
 import useSWR, { mutate } from "swr";
 import type { TopicQuestion, TopicTag } from "@/app/actions/question";
 
+type TopicInfo = {
+  id: string;
+  name: string;
+  description: string | null;
+};
+
 type TopicData = {
+  topic: TopicInfo;
   questions: Array<TopicQuestion>;
   tags: Array<TopicTag>;
 };
 
+async function fetcher(url: string): Promise<TopicData> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(error.error || "Failed to fetch");
+  }
+  return res.json();
+}
+
 /**
- * 客户端缓存 hook，用于缓存 topic 页面数据
+ * 客户端数据获取 hook，使用 SWR suspense 模式
  *
  * 工作原理：
- * 1. 首次访问：Server Component 获取数据 -> 传给客户端作为 fallbackData
- * 2. 返回页面：SWR 立即显示缓存数据（无需等待）
- * 3. 后台重新验证：可选，通过 revalidateOnFocus 等配置
+ * 1. 使用 suspense: true，数据加载时会触发 Suspense boundary
+ * 2. 数据加载完成后缓存在 SWR 中
+ * 3. 再次访问页面时，优先显示缓存数据（无需等待）
  */
-export function useTopicData(
-  topicId: string,
-  fallbackData?: TopicData,
-): TopicData & { isLoading: boolean } {
-  const { data, isLoading } = useSWR<TopicData>(
-    `topic-${topicId}`,
-    null, // 不需要 fetcher，数据来自 Server Component
-    {
-      fallbackData,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      revalidateIfStale: false,
-    },
-  );
+export function useTopicData(topicId: string): TopicData {
+  const { data } = useSWR<TopicData>(`/api/topics/${topicId}`, fetcher, {
+    suspense: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 
-  return {
-    questions: data?.questions ?? [],
-    tags: data?.tags ?? [],
-    isLoading,
-  };
+  return data as TopicData;
 }
 
 /**
- * 预热缓存 - 在 Server Component 中调用，将数据写入 SWR 缓存
- * 这样客户端组件首次渲染时就能立即获取数据
- */
-export function prefillTopicCache(topicId: string, data: TopicData) {
-  mutate(`topic-${topicId}`, data, false);
-}
-
-/**
- * 更新缓存 - 在数据变更后调用（如创建/删除题目）
+ * 使缓存失效 - 在数据变更后调用（如创建/删除题目）
  */
 export function invalidateTopicCache(topicId: string) {
-  mutate(`topic-${topicId}`);
+  mutate(`/api/topics/${topicId}`);
 }
 
 /**
@@ -61,7 +57,7 @@ export function updateTopicQuestionsCache(
   updater: (questions: Array<TopicQuestion>) => Array<TopicQuestion>,
 ) {
   mutate(
-    `topic-${topicId}`,
+    `/api/topics/${topicId}`,
     (current: TopicData | undefined) => {
       if (!current) return current;
       return {

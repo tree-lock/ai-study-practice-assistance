@@ -5,10 +5,9 @@ import Link from "next/link";
 type TopicHeaderProps = {
   name: string;
   description: string | null;
-  topicId: string;
 };
 
-export function TopicHeader({ name, description, topicId }: TopicHeaderProps) {
+export function TopicHeader({ name, description }: TopicHeaderProps) {
   return (
     <div className="flex flex-col gap-4 pb-6">
       <div className="flex flex-col gap-1">
@@ -28,7 +27,7 @@ export function TopicHeader({ name, description, topicId }: TopicHeaderProps) {
           </TextField.Slot>
         </TextField.Root>
         <Button asChild>
-          <Link href={`/topics/${topicId}/create`}>
+          <Link href="/">
             <PlusIcon />
             创建
           </Link>

@@ -131,7 +131,6 @@ export const questions = pgTable("questions", {
     onDelete: "set null",
   }),
 });
-
 export const tags = pgTable("tags", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),

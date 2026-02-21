@@ -16,7 +16,7 @@ export function TagFilter({
   const allSelected = selectedTagId === null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 py-4">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => onTagSelect(null)}

@@ -43,7 +43,7 @@ export function AppShell({
         {sidebarContent}
 
         <Box className="flex-1 relative">
-          <Box className="w-full py-5 px-6">
+          <Box className="w-full">
             {floatingActions ? (
               <Box className="absolute top-5 right-5 z-10">
                 <Flex align="center" gap="2">
