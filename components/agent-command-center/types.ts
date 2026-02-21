@@ -18,5 +18,28 @@ export type CatalogActionOption = {
   type: CatalogActionType;
   optionLabel: string;
   suggestion: string;
-  topicId?: string; // 当 type 为 save-existing 时，存储题库 ID
+  topicId?: string;
+};
+
+export type QuestionType =
+  | "choice"
+  | "blank"
+  | "subjective"
+  | "application"
+  | "proof"
+  | "comprehensive";
+
+export type CatalogRecommendation = {
+  action: "use-existing" | "create-new";
+  topicId?: string;
+  topicName: string;
+  reason: string;
+};
+
+export type AnalysisResult = {
+  formattedContent: string;
+  questionType: QuestionType;
+  questionTypeLabel: string;
+  knowledgePoints: string[];
+  catalogRecommendation: CatalogRecommendation;
 };

@@ -13,17 +13,13 @@
 
 ### 1. 本地数据库 Push
 
-当需要将数据库 schema 推送到**本地开发数据库**时，使用：
+当需要将数据库 schema 推送到**本地开发数据库**时，**必须**显式指定环境变量文件：
 
 ```bash
 bun --env-file=.env.local db:push
 ```
 
-或直接使用（因为 Bun 会自动加载 `.env.local`）：
-
-```bash
-bun db:push
-```
+> **注意**: 不能直接使用 `bun db:push`，因为 Bun 的环境变量不会自动传递给 drizzle-kit 子进程。
 
 ### 2. 生产数据库 Push
 
@@ -52,14 +48,15 @@ bun --env-file=.env.production.local db:push
 ## 示例对话
 
 **用户**: "帮我 push 数据库到本地"
-**助手**: 执行 `bun db:push`（使用 `.env.local`）
+**助手**: 执行 `bun --env-file=.env.local db:push`
 
 **用户**: "需要更新生产数据库"
-**助手**: 执行 `bun --env-file=.env.production.local db:push`（使用 `.env.production.local`）
+**助手**: 执行 `bun --env-file=.env.production.local db:push`
 
 ## 注意事项
 
-1. **永远不要**在不指定环境变量的情况下在生产环境运行 `db:push`
+1. **永远不要**在不指定环境变量的情况下运行 `db:push`（无论本地还是生产环境）
 2. **环境文件默认存在**: `.env.local` 和 `.env.production.local` 文件默认存在于项目根题库（它们是隐藏文件）
 3. **仅在报错时提醒**: 只有当运行命令时明确提示找不到环境文件时，才提醒用户检查文件是否存在或路径是否正确
 4. 对于重要的生产数据库变更，建议先使用 `bun --env-file=.env.production.local db:generate` 生成迁移文件进行审查
+5. 其他 drizzle-kit 命令（如 `db:generate`、`db:migrate`）也需要显式指定环境文件

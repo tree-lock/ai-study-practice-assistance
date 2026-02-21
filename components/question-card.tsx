@@ -14,6 +14,9 @@ const TYPE_LABEL: Record<TopicQuestion["type"], string> = {
   choice: "选择题",
   blank: "填空题",
   subjective: "主观题",
+  application: "应用题",
+  proof: "证明题",
+  comprehensive: "综合题",
 };
 
 export function QuestionCard({ question, topicId }: QuestionCardProps) {

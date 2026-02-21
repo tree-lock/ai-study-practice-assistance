@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   createQuestionsInTopic,
+  type QuestionType,
   type TopicQuestion,
 } from "@/app/actions/question";
 
@@ -24,12 +25,13 @@ type TopicQuestionsProps = {
   initialQuestions: Array<TopicQuestion>;
 };
 
-type QuestionType = "choice" | "blank" | "subjective";
-
 const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
   choice: "选择题",
   blank: "填空题",
   subjective: "主观题",
+  application: "应用题",
+  proof: "证明题",
+  comprehensive: "综合题",
 };
 
 export function TopicQuestions({

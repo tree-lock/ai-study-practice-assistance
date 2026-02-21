@@ -8,7 +8,7 @@ export default function Home() {
       align="center"
       justify="center"
       gap="6"
-      className="min-h-[calc(100vh-170px)] px-4"
+      className="min-h-[calc(100vh-170px)] px-4 overflow-auto"
     >
       <Heading size="9" align="center" className="home-hero-title">
         把题目变成可执行的

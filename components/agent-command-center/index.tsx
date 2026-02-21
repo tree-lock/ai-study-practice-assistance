@@ -2,14 +2,21 @@
 
 import { Flex } from "@radix-ui/themes";
 import { useRef, useState } from "react";
-import { saveQuestionToCatalog } from "@/app/actions/agent";
+import {
+  analyzeQuestionAction,
+  saveQuestionToCatalog,
+} from "@/app/actions/agent";
 import { getTopics } from "@/app/actions/topic";
-import { getNextUploadMock } from "@/lib/mock/agent-upload-mocks";
 import { buildCatalogActions } from "./catalog-actions";
 import { InputArea } from "./input-area";
 import { QuestionPanel } from "./question-panel";
 import { textToMarkdown } from "./text-to-markdown";
-import type { CatalogActionOption, TopicOption, UploadFileItem } from "./types";
+import type {
+  AnalysisResult,
+  CatalogActionOption,
+  TopicOption,
+  UploadFileItem,
+} from "./types";
 
 export function AgentCommandCenter() {
   const [prompt, setPrompt] = useState("");
@@ -35,8 +42,11 @@ export function AgentCommandCenter() {
   const [newCatalogInput, setNewCatalogInput] = useState("");
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [questionDraft, setQuestionDraft] = useState("");
-  const [mockSourceLabel, setMockSourceLabel] = useState<string | null>(null);
+  const [sourceLabel, setSourceLabel] = useState<string | null>(null);
   const [isSavingToTopic, setIsSavingToTopic] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
+    null,
+  );
   const generateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function toUploadItem(file: File): UploadFileItem {
@@ -86,71 +96,90 @@ export function AgentCommandCenter() {
     setNewCatalogInput("");
     setIsEditingQuestion(false);
     setQuestionDraft("");
-    setMockSourceLabel(null);
+    setSourceLabel(null);
+    setAnalysisResult(null);
 
-    // 优先使用 prompt 文字内容，如果没有则使用 mock 数据
     const hasPromptText = prompt.trim().length > 0;
-    const delayMs = 1200 + Math.floor(Math.random() * 800);
 
-    // 提前获取目录列表
-    const topics = await getTopics();
-    const topicOptions: Array<TopicOption> = topics.map((topic) => ({
-      id: topic.id,
-      name: topic.name,
-    }));
+    if (!hasPromptText) {
+      setGenerateStatus("stopped");
+      return;
+    }
 
-    generateTimerRef.current = setTimeout(() => {
-      if (hasPromptText) {
-        // 使用实际的 prompt 内容转换为 markdown
+    try {
+      const result = await analyzeQuestionAction({ rawContent: prompt.trim() });
+
+      if (!result.success) {
+        console.error("AI 分析失败:", result.error);
         const convertedMarkdown = textToMarkdown(prompt);
-        // 使用真实的目录列表生成推荐选项
-        const catalogOptions = buildCatalogActions(topicOptions);
-        const defaultCatalogOption = catalogOptions[0];
-        const createOption = catalogOptions.find(
-          (option) => option.type === "create-new",
-        );
-        setMockSourceLabel("文字输入");
+        const topics = await getTopics();
+        const topicOptions: Array<TopicOption> = topics.map((topic) => ({
+          id: topic.id,
+          name: topic.name,
+        }));
+        const catalogOpts = buildCatalogActions(topicOptions);
+        const defaultOpt = catalogOpts[0];
+        const createOpt = catalogOpts.find((o) => o.type === "create-new");
+
+        setSourceLabel("文字输入（AI 分析失败，使用本地转换）");
         setQuestionMarkdown(convertedMarkdown);
-        setCatalogOptions(catalogOptions);
+        setCatalogOptions(catalogOpts);
         setExistingCatalogCandidates(topicOptions);
-        setSelectedCatalogActionId(defaultCatalogOption?.id ?? null);
+        setSelectedCatalogActionId(defaultOpt?.id ?? null);
         setSelectedExistingCatalogId(
-          defaultCatalogOption?.type === "save-existing"
+          defaultOpt?.type === "save-existing"
             ? (topicOptions[0]?.id ?? null)
             : null,
         );
-        setNewCatalogInput(createOption?.suggestion ?? "");
+        setNewCatalogInput(createOpt?.suggestion ?? "");
         setQuestionDraft(convertedMarkdown);
-      } else {
-        // 使用 mock 数据（仅在有文件上传时）
-        const mock = getNextUploadMock();
-        // mock 数据是 string[]，需要转换为 TopicOption[]
-        const mockTopicOptions: Array<TopicOption> =
-          mock.output.recommendedCatalog.map((name, index) => ({
-            id: `mock-${index}`,
-            name,
-          }));
-        const nextCatalogOptions = buildCatalogActions(mockTopicOptions);
-        const defaultCatalogOption = nextCatalogOptions[0];
-        const createOption = nextCatalogOptions.find(
-          (option) => option.type === "create-new",
-        );
-        setMockSourceLabel(mock.input.sourceLabel);
-        setQuestionMarkdown(mock.output.questionMarkdown);
-        setCatalogOptions(nextCatalogOptions);
-        setExistingCatalogCandidates(mockTopicOptions);
-        setSelectedCatalogActionId(defaultCatalogOption?.id ?? null);
-        setSelectedExistingCatalogId(
-          defaultCatalogOption?.type === "save-existing"
-            ? (mockTopicOptions[0]?.id ?? null)
-            : null,
-        );
-        setNewCatalogInput(createOption?.suggestion ?? "");
-        setQuestionDraft(mock.output.questionMarkdown);
+        setGenerateStatus("done");
+        return;
       }
+
+      const analysis = result.data;
+      setAnalysisResult(analysis);
+
+      const topics = await getTopics();
+      const topicOptions: Array<TopicOption> = topics.map((topic) => ({
+        id: topic.id,
+        name: topic.name,
+      }));
+
+      const catalogOpts = buildCatalogActions(topicOptions);
+
+      let defaultActionId: string | null = null;
+      let defaultExistingId: string | null = null;
+      let defaultNewInput = "";
+
+      if (analysis.catalogRecommendation.action === "use-existing") {
+        const existingOpt = catalogOpts.find((o) => o.type === "save-existing");
+        defaultActionId = existingOpt?.id ?? null;
+        const recommendedTopic = topicOptions.find(
+          (t) =>
+            t.id === analysis.catalogRecommendation.topicId ||
+            t.name === analysis.catalogRecommendation.topicName,
+        );
+        defaultExistingId = recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
+      } else {
+        const createOpt = catalogOpts.find((o) => o.type === "create-new");
+        defaultActionId = createOpt?.id ?? null;
+        defaultNewInput = analysis.catalogRecommendation.topicName;
+      }
+
+      setSourceLabel("AI 智能分析");
+      setQuestionMarkdown(analysis.formattedContent);
+      setCatalogOptions(catalogOpts);
+      setExistingCatalogCandidates(topicOptions);
+      setSelectedCatalogActionId(defaultActionId);
+      setSelectedExistingCatalogId(defaultExistingId);
+      setNewCatalogInput(defaultNewInput);
+      setQuestionDraft(analysis.formattedContent);
       setGenerateStatus("done");
-      generateTimerRef.current = null;
-    }, delayMs);
+    } catch (error) {
+      console.error("生成失败:", error);
+      setGenerateStatus("stopped");
+    }
   }
 
   function handleGenerateClick() {
@@ -190,7 +219,8 @@ export function AgentCommandCenter() {
             <QuestionPanel
               generateStatus={generateStatus}
               questionMarkdown={questionMarkdown}
-              mockSourceLabel={mockSourceLabel}
+              sourceLabel={sourceLabel}
+              analysisResult={analysisResult}
               isEditing={isEditingQuestion}
               draftValue={questionDraft}
               onDraftChange={setQuestionDraft}
@@ -234,10 +264,8 @@ export function AgentCommandCenter() {
                   return;
                 }
 
-                // 根据选项类型获取题库名称
                 let topicName: string;
                 if (selectedOption.type === "save-existing") {
-                  // 从已选题库 ID 查找名称
                   const selectedTopic = existingCatalogCandidates.find(
                     (topic) => topic.id === selectedExistingCatalogId,
                   );
@@ -247,7 +275,6 @@ export function AgentCommandCenter() {
                   }
                   topicName = selectedTopic.name;
                 } else {
-                  // 新建题库，使用输入框的值
                   topicName = newCatalogInput.trim();
                   if (!topicName) {
                     alert("请输入题库名称");
@@ -260,13 +287,14 @@ export function AgentCommandCenter() {
                   const result = await saveQuestionToCatalog({
                     catalogName: topicName,
                     questionContent: questionMarkdown.trim(),
-                    source: mockSourceLabel || undefined,
+                    source: sourceLabel || undefined,
                     actionType: selectedOption.type,
+                    questionType: analysisResult?.questionType,
+                    knowledgePoints: analysisResult?.knowledgePoints,
                   });
 
                   if (result.success) {
                     alert(`题目已保存到题库"${topicName}"`);
-                    // 重置状态
                     setPrompt("");
                     setFiles([]);
                     setQuestionMarkdown("");
@@ -277,7 +305,8 @@ export function AgentCommandCenter() {
                     setNewCatalogInput("");
                     setIsEditingQuestion(false);
                     setQuestionDraft("");
-                    setMockSourceLabel(null);
+                    setSourceLabel(null);
+                    setAnalysisResult(null);
                     setGenerateStatus("idle");
                   } else {
                     alert(`保存失败：${result.error}`);

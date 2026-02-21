@@ -18,6 +18,9 @@ export const questionTypeEnum = pgEnum("question_type", [
   "choice",
   "blank",
   "subjective",
+  "application",
+  "proof",
+  "comprehensive",
 ]);
 export const progressStatusEnum = pgEnum("progress_status", [
   "new",

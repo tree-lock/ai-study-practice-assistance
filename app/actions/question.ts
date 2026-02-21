@@ -7,11 +7,22 @@ import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 import { db } from "@/lib/db";
 import { questions, tags, topics, users } from "@/lib/db/schema";
 
+const QUESTION_TYPES = [
+  "choice",
+  "blank",
+  "subjective",
+  "application",
+  "proof",
+  "comprehensive",
+] as const;
+
+export type QuestionType = (typeof QUESTION_TYPES)[number];
+
 const createQuestionSchema = z
   .object({
     topicId: z.string().uuid("题库参数不合法"),
     content: z.string().trim().optional(),
-    type: z.enum(["choice", "blank", "subjective"]).default("subjective"),
+    type: z.enum(QUESTION_TYPES).default("subjective"),
     source: z.string().trim().optional(),
     fileNames: z.array(z.string().trim().min(1)).default([]),
   })
@@ -25,7 +36,7 @@ const createQuestionSchema = z
 export type TopicQuestion = {
   id: string;
   content: string;
-  type: "choice" | "blank" | "subjective";
+  type: QuestionType;
   source: string | null;
   createdAt: Date;
   creator: { id: string; name: string | null } | null;
@@ -125,7 +136,7 @@ export async function getTagsByTopic(
 export async function createQuestionsInTopic(input: {
   topicId: string;
   content?: string;
-  type?: "choice" | "blank" | "subjective";
+  type?: QuestionType;
   source?: string;
   fileNames?: Array<string>;
 }) {
@@ -152,7 +163,7 @@ export async function createQuestionsInTopic(input: {
   const rows: Array<{
     topicId: string;
     content: string;
-    type: "choice" | "blank" | "subjective";
+    type: QuestionType;
     source?: string;
     creatorId: string;
   }> = [];

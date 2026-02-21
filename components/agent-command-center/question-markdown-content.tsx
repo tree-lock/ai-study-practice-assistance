@@ -11,7 +11,7 @@ export const QuestionMarkdownContent = memo(function QuestionMarkdownContent({
   questionMarkdown,
 }: QuestionMarkdownContentProps) {
   return (
-    <div className="leading-[1.65]">
+    <div className="question-markdown leading-[1.65] [&>p]:mb-3 [&>p:last-child]:mb-0">
       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
         {questionMarkdown}
       </ReactMarkdown>

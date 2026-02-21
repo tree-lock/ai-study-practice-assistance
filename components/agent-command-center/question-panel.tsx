@@ -1,18 +1,19 @@
 "use client";
 
 import { CheckIcon, Cross2Icon, Pencil2Icon } from "@radix-ui/react-icons";
-import { Flex, Text } from "@radix-ui/themes";
+import { Badge, Flex, Text } from "@radix-ui/themes";
 import type { CatalogActionOption } from "./catalog-actions";
 import { CatalogPanel } from "./catalog-panel";
 import { QuestionMarkdownContent } from "./question-markdown-content";
-import type { TopicOption } from "./types";
+import type { AnalysisResult, TopicOption } from "./types";
 
 type GenerateStatus = "idle" | "generating" | "done" | "stopped";
 
 type QuestionPanelProps = {
   generateStatus: GenerateStatus;
   questionMarkdown: string;
-  mockSourceLabel: string | null;
+  sourceLabel: string | null;
+  analysisResult: AnalysisResult | null;
   isEditing: boolean;
   draftValue: string;
   onDraftChange: (value: string) => void;
@@ -34,7 +35,8 @@ type QuestionPanelProps = {
 export function QuestionPanel({
   generateStatus,
   questionMarkdown,
-  mockSourceLabel,
+  sourceLabel,
+  analysisResult,
   isEditing,
   draftValue,
   onDraftChange,
@@ -55,9 +57,16 @@ export function QuestionPanel({
   return (
     <Flex direction="column" gap="2" className="py-3 px-3.5">
       <Flex justify="between" align="center">
-        <Text size="2" weight="bold">
-          题目 (Markdown + 公式)
-        </Text>
+        <Flex gap="2" align="center">
+          <Text size="2" weight="bold">
+            题目
+          </Text>
+          {analysisResult?.questionTypeLabel ? (
+            <Badge color="blue" size="1">
+              {analysisResult.questionTypeLabel}
+            </Badge>
+          ) : null}
+        </Flex>
         {generateStatus === "done" ? (
           <Flex gap="2">
             {isEditing ? (
@@ -94,21 +103,36 @@ export function QuestionPanel({
       </Flex>
       {generateStatus === "generating" ? (
         <Text size="2" color="gray">
-          正在模拟生成题目内容...
+          AI 正在分析题目...
         </Text>
       ) : null}
       {generateStatus === "stopped" ? (
         <Text size="2" color="gray">
-          已停止生成。你可以再次点击上传按钮重新生成。
+          已停止生成。你可以再次点击按钮重新分析。
         </Text>
       ) : null}
       {generateStatus === "done" && questionMarkdown ? (
-        <Flex direction="column" gap="2">
-          {mockSourceLabel ? (
+        <Flex direction="column" gap="3">
+          {sourceLabel ? (
             <Text size="1" color="gray">
-              模拟来源:{mockSourceLabel}
+              来源: {sourceLabel}
             </Text>
           ) : null}
+
+          {analysisResult?.knowledgePoints &&
+          analysisResult.knowledgePoints.length > 0 ? (
+            <Flex gap="1" wrap="wrap" align="center">
+              <Text size="1" color="gray">
+                知识点:
+              </Text>
+              {analysisResult.knowledgePoints.map((point) => (
+                <Badge key={point} color="green" variant="soft" size="1">
+                  {point}
+                </Badge>
+              ))}
+            </Flex>
+          ) : null}
+
           {isEditing ? (
             <textarea
               value={draftValue}
@@ -118,6 +142,22 @@ export function QuestionPanel({
           ) : (
             <QuestionMarkdownContent questionMarkdown={questionMarkdown} />
           )}
+
+          {analysisResult?.catalogRecommendation?.reason ? (
+            <Flex
+              className="rounded-lg bg-blue-50 px-3 py-2"
+              direction="column"
+              gap="1"
+            >
+              <Text size="1" weight="medium" color="blue">
+                AI 推荐
+              </Text>
+              <Text size="2" color="gray">
+                {analysisResult.catalogRecommendation.reason}
+              </Text>
+            </Flex>
+          ) : null}
+
           {!isEditing && catalogOptions.length > 0 ? (
             <CatalogPanel
               catalogOptions={catalogOptions}
