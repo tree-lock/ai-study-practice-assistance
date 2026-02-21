@@ -1,11 +1,11 @@
 "use server";
 
 import { and, desc, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { cacheTag, revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 import { db } from "@/lib/db";
-import { questions, topics } from "@/lib/db/schema";
+import { questions, tags, topics, users } from "@/lib/db/schema";
 
 const createQuestionSchema = z
   .object({
@@ -28,6 +28,12 @@ export type TopicQuestion = {
   type: "choice" | "blank" | "subjective";
   source: string | null;
   createdAt: Date;
+  creator: { id: string; name: string | null } | null;
+};
+
+export type TopicTag = {
+  id: string;
+  name: string;
 };
 
 async function canAccessTopic(topicId: string, userId: string) {
@@ -38,6 +44,37 @@ async function canAccessTopic(topicId: string, userId: string) {
     .limit(1);
 
   return found.length > 0;
+}
+
+async function fetchQuestionsByTopic(topicId: string) {
+  "use cache";
+  cacheTag(`topic-${topicId}-questions`);
+
+  const rows = await db
+    .select({
+      id: questions.id,
+      content: questions.content,
+      type: questions.type,
+      source: questions.source,
+      createdAt: questions.createdAt,
+      creatorId: users.id,
+      creatorName: users.name,
+    })
+    .from(questions)
+    .leftJoin(users, eq(questions.creatorId, users.id))
+    .where(eq(questions.topicId, topicId))
+    .orderBy(desc(questions.createdAt));
+
+  return rows.map((row) => ({
+    id: row.id,
+    content: row.content,
+    type: row.type,
+    source: row.source,
+    createdAt: row.createdAt,
+    creator: row.creatorId
+      ? { id: row.creatorId, name: row.creatorName }
+      : null,
+  }));
 }
 
 export async function getQuestionsByTopic(
@@ -53,17 +90,36 @@ export async function getQuestionsByTopic(
     return [];
   }
 
+  return fetchQuestionsByTopic(topicId);
+}
+
+async function fetchTagsByTopic(topicId: string) {
+  "use cache";
+  cacheTag(`topic-${topicId}-tags`);
+
   return await db
     .select({
-      id: questions.id,
-      content: questions.content,
-      type: questions.type,
-      source: questions.source,
-      createdAt: questions.createdAt,
+      id: tags.id,
+      name: tags.name,
     })
-    .from(questions)
-    .where(eq(questions.topicId, topicId))
-    .orderBy(desc(questions.createdAt));
+    .from(tags)
+    .where(eq(tags.topicId, topicId));
+}
+
+export async function getTagsByTopic(
+  topicId: string,
+): Promise<Array<TopicTag>> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return [];
+  }
+
+  const accessible = await canAccessTopic(topicId, userId);
+  if (!accessible) {
+    return [];
+  }
+
+  return fetchTagsByTopic(topicId);
 }
 
 export async function createQuestionsInTopic(input: {
@@ -122,6 +178,7 @@ export async function createQuestionsInTopic(input: {
   }
 
   await db.insert(questions).values(rows);
+  updateTag(`topic-${parsed.data.topicId}-questions`);
   revalidatePath("/");
 
   return { success: true as const, count: rows.length };

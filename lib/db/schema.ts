@@ -132,6 +132,28 @@ export const questions = pgTable("questions", {
   }),
 });
 
+export const tags = pgTable("tags", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  topicId: uuid("topic_id")
+    .references(() => topics.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const questionTags = pgTable(
+  "question_tags",
+  {
+    questionId: uuid("question_id")
+      .references(() => questions.id, { onDelete: "cascade" })
+      .notNull(),
+    tagId: uuid("tag_id")
+      .references(() => tags.id, { onDelete: "cascade" })
+      .notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.questionId, t.tagId] })],
+);
+
 export const options = pgTable("options", {
   id: uuid("id").defaultRandom().primaryKey(),
   questionId: uuid("question_id")

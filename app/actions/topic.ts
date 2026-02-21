@@ -1,7 +1,7 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { cacheTag, revalidatePath } from "next/cache";
 import { treeifyError, z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 import { db } from "@/lib/db";
@@ -19,6 +19,27 @@ export async function getTopics() {
   }
 
   return await db.select().from(topics).where(eq(topics.userId, userId));
+}
+
+async function fetchTopicById(topicId: string, userId: string) {
+  "use cache";
+  cacheTag(`topic-${topicId}`);
+
+  const result = await db
+    .select()
+    .from(topics)
+    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function getTopicById(id: string) {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return null;
+  }
+
+  return fetchTopicById(id, userId);
 }
 
 export async function createTopic(data: z.infer<typeof topicSchema>) {

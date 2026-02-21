@@ -1,6 +1,7 @@
 import { Theme } from "@radix-ui/themes";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SWRProvider } from "@/components/swr-provider";
 import AppLayout from "./app-layout";
 import "@radix-ui/themes/styles.css";
 import "./globals.css";
@@ -31,7 +32,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Theme appearance="light" accentColor="blue" grayColor="sand">
-          <AppLayout>{children}</AppLayout>
+          <SWRProvider>
+            <AppLayout>{children}</AppLayout>
+          </SWRProvider>
         </Theme>
       </body>
     </html>
