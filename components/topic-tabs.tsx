@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronDownIcon } from "@radix-ui/react-icons";
-import { Button, DropdownMenu, Tabs } from "@radix-ui/themes";
+import { ExpandMore } from "@mui/icons-material";
+import { Button, Menu, MenuItem, Tabs as MuiTabs, Tab } from "@mui/material";
 import { useState } from "react";
 
 const TAB_OPTIONS = [
@@ -26,45 +26,54 @@ type TopicTabsProps = {
 
 export function TopicTabs({ activeTab, onTabChange }: TopicTabsProps) {
   const [sortBy, setSortBy] = useState("latest");
+  const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
 
   const currentSort = SORT_OPTIONS.find((opt) => opt.value === sortBy);
 
   return (
     <div className="flex items-center justify-between">
-      <Tabs.Root value={activeTab} onValueChange={onTabChange}>
-        <Tabs.List>
-          {TAB_OPTIONS.map((tab) => (
-            <Tabs.Trigger
-              key={tab.value}
-              value={tab.value}
-              disabled={tab.disabled}
-            >
-              {tab.label}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-      </Tabs.Root>
+      <MuiTabs
+        value={activeTab}
+        onChange={(_, newValue) => onTabChange(newValue)}
+      >
+        {TAB_OPTIONS.map((tab) => (
+          <Tab
+            key={tab.value}
+            value={tab.value}
+            label={tab.label}
+            disabled={tab.disabled}
+          />
+        ))}
+      </MuiTabs>
 
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger>
-          <div className="p-px">
-            <Button variant="ghost" color="gray">
-              {currentSort?.label ?? "排序"}
-              <ChevronDownIcon />
-            </Button>
-          </div>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
+      <div>
+        <Button
+          color="inherit"
+          endIcon={<ExpandMore />}
+          onClick={(e) => setSortAnchorEl(e.currentTarget)}
+          sx={{ textTransform: "none" }}
+        >
+          {currentSort?.label ?? "排序"}
+        </Button>
+        <Menu
+          anchorEl={sortAnchorEl}
+          open={Boolean(sortAnchorEl)}
+          onClose={() => setSortAnchorEl(null)}
+        >
           {SORT_OPTIONS.map((opt) => (
-            <DropdownMenu.Item
+            <MenuItem
               key={opt.value}
-              onSelect={() => setSortBy(opt.value)}
+              selected={sortBy === opt.value}
+              onClick={() => {
+                setSortBy(opt.value);
+                setSortAnchorEl(null);
+              }}
             >
               {opt.label}
-            </DropdownMenu.Item>
+            </MenuItem>
           ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+        </Menu>
+      </div>
     </div>
   );
 }

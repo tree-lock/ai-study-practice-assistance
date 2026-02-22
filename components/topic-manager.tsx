@@ -4,12 +4,10 @@ import {
   Box,
   Button,
   Card,
-  Flex,
-  Heading,
-  Text,
-  TextArea,
+  CardContent,
   TextField,
-} from "@radix-ui/themes";
+  Typography,
+} from "@mui/material";
 import Link from "next/link";
 import { useState } from "react";
 import { createTopic, deleteTopic } from "@/app/actions/topic";
@@ -24,47 +22,60 @@ export function TopicList({ topics }: { topics: Topic[] }) {
   if (topics.length === 0) {
     return (
       <Card className="border-none bg-white shadow-none">
-        <Text size="2" color="gray">
-          暂无题库，请先创建。
-        </Text>
+        <CardContent>
+          <Typography variant="body2" color="text.secondary">
+            暂无题库，请先创建。
+          </Typography>
+        </CardContent>
       </Card>
     );
   }
 
   return (
-    <Flex direction="column" gap="4">
+    <Box display="flex" flexDirection="column" gap={2}>
       {topics.map((topic) => (
         <Card key={topic.id} className="border-none bg-white shadow-none">
-          <Flex align="center" justify="between" gap="4">
-            <Box>
-              <Text as="p" size="3" weight="bold">
-                {topic.name}
-              </Text>
-              <Text as="p" size="2" color="gray">
-                {topic.description || "暂无描述"}
-              </Text>
+          <CardContent>
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+              gap={2}
+            >
+              <Box>
+                <Typography variant="h6" fontWeight="fontWeightBold">
+                  {topic.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {topic.description || "暂无描述"}
+                </Typography>
+              </Box>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Button
+                  component={Link}
+                  href={`/dashboard/topics/${topic.id}`}
+                  variant="outlined"
+                  color="primary"
+                >
+                  进入题库
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={async () => {
+                    if (confirm("确认删除该题库吗？")) {
+                      await deleteTopic(topic.id);
+                    }
+                  }}
+                >
+                  删除
+                </Button>
+              </Box>
             </Box>
-            <Flex align="center" gap="2">
-              <Button asChild type="button" variant="soft" color="blue">
-                <Link href={`/dashboard/topics/${topic.id}`}>进入题库</Link>
-              </Button>
-              <Button
-                type="button"
-                variant="soft"
-                color="red"
-                onClick={async () => {
-                  if (confirm("确认删除该题库吗？")) {
-                    await deleteTopic(topic.id);
-                  }
-                }}
-              >
-                删除
-              </Button>
-            </Flex>
-          </Flex>
+          </CardContent>
         </Card>
       ))}
-    </Flex>
+    </Box>
   );
 }
 
@@ -98,53 +109,60 @@ export function TopicForm() {
 
   return (
     <Card className="border-none bg-white shadow-none">
-      <form onSubmit={handleSubmit}>
-        <Flex direction="column" gap="4">
-          <Heading size="4">添加题库</Heading>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <Box display="flex" flexDirection="column" gap={2}>
+            <Typography variant="h6">添加题库</Typography>
 
-          <Box>
-            <Text as="label" htmlFor="topic-name" size="2" weight="medium">
-              名称
-            </Text>
-            <Box mt="2">
-              <TextField.Root
+            <Box>
+              <Typography
+                variant="subtitle2"
+                component="label"
+                htmlFor="topic-name"
+              >
+                名称
+              </Typography>
+              <TextField
                 id="topic-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                fullWidth
+                margin="normal"
               />
             </Box>
-          </Box>
 
-          <Box>
-            <Text
-              as="label"
-              htmlFor="topic-description"
-              size="2"
-              weight="medium"
-            >
-              描述
-            </Text>
-            <Box mt="2">
-              <TextArea
+            <Box>
+              <Typography
+                variant="subtitle2"
+                component="label"
+                htmlFor="topic-description"
+              >
+                描述
+              </Typography>
+              <TextField
                 id="topic-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                multiline
+                rows={3}
+                fullWidth
+                margin="normal"
               />
             </Box>
+
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
+              {isSubmitting ? "提交中..." : "创建题库"}
+            </Button>
+
+            {error ? (
+              <Typography variant="caption" color="error">
+                {error}
+              </Typography>
+            ) : null}
           </Box>
-
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "提交中..." : "创建题库"}
-          </Button>
-
-          {error ? (
-            <Text size="2" color="red">
-              {error}
-            </Text>
-          ) : null}
-        </Flex>
-      </form>
+        </form>
+      </CardContent>
     </Card>
   );
 }

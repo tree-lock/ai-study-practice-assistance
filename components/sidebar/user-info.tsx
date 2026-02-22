@@ -1,9 +1,5 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  HomeIcon,
-} from "@radix-ui/react-icons";
-import { Avatar, Box, Flex, IconButton, Text } from "@radix-ui/themes";
+import { ChevronLeft, ChevronRight, Home } from "@mui/icons-material";
+import { Avatar, Box, IconButton, Typography } from "@mui/material";
 import Link from "next/link";
 
 export function SidebarUserInfo({
@@ -17,37 +13,41 @@ export function SidebarUserInfo({
     return (
       <div className="p-px">
         <IconButton
-          variant="ghost"
-          color="gray"
+          color="inherit"
           onClick={onToggleCollapse}
           aria-label="展开侧边栏"
+          size="small"
         >
-          <ChevronRightIcon />
+          <ChevronRight />
         </IconButton>
       </div>
     );
   }
 
   return (
-    <Flex align="center" justify="between">
+    <Box display="flex" alignItems="center" justifyContent="space-between">
       <div className="p-px">
-        <IconButton variant="ghost" color="gray" asChild aria-label="返回首页">
-          <Link href="/">
-            <HomeIcon />
-          </Link>
+        <IconButton
+          component={Link}
+          href="/"
+          color="inherit"
+          aria-label="返回首页"
+          size="small"
+        >
+          <Home />
         </IconButton>
       </div>
       <div className="p-px">
         <IconButton
-          variant="ghost"
-          color="gray"
+          color="inherit"
           onClick={onToggleCollapse}
           aria-label="收起侧边栏"
+          size="small"
         >
-          <ChevronLeftIcon />
+          <ChevronLeft />
         </IconButton>
       </div>
-    </Flex>
+    </Box>
   );
 }
 
@@ -59,18 +59,25 @@ export function SidebarFooter({
   collapsed: boolean;
 }) {
   return (
-    <Flex align="center" gap="3" className="whitespace-nowrap">
-      <Avatar fallback="AI" radius="full" />
+    <Box
+      display="flex"
+      alignItems="center"
+      gap={1.5}
+      className="whitespace-nowrap"
+    >
+      <Avatar alt="AI" sx={{ width: 32, height: 32 }}>
+        AI
+      </Avatar>
       {!collapsed ? (
         <Box>
-          <Text as="p" size="2" weight="bold">
+          <Typography variant="subtitle2" fontWeight="fontWeightBold">
             AI 学习助教
-          </Text>
-          <Text as="p" size="1" color="gray">
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
             {userLabel ?? "欢迎使用"}
-          </Text>
+          </Typography>
         </Box>
       ) : null}
-    </Flex>
+    </Box>
   );
 }

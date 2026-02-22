@@ -1,5 +1,5 @@
-import { GearIcon } from "@radix-ui/react-icons";
-import { Box, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
+import { Settings } from "@mui/icons-material";
+import { Box, IconButton, Typography } from "@mui/material";
 import { Sidebar } from "@/components/sidebar";
 
 type Topic = {
@@ -38,47 +38,53 @@ export function AppShell({
 
   return (
     <Box className="min-h-screen bg-[#f3f3f5]">
-      <Flex>
+      <Box display="flex">
         {sidebarContent}
 
         <Box className="flex-1 relative">
           <Box className="w-full">
             {floatingActions ? (
               <Box className="absolute top-5 right-5 z-10">
-                <Flex align="center" gap="2">
-                  <IconButton variant="ghost" color="gray" aria-label="设置">
-                    <GearIcon />
+                <Box display="flex" alignItems="center" gap={0.5}>
+                  <IconButton color="inherit" aria-label="设置" size="small">
+                    <Settings />
                   </IconButton>
                   {floatingActions}
-                </Flex>
+                </Box>
               </Box>
             ) : null}
 
             {title || subtitle || headerActions ? (
-              <Flex justify="between" align="start" gap="3" mb="5">
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="start"
+                gap={2}
+                mb={2.5}
+              >
                 <Box>
-                  {title ? <Heading size="7">{title}</Heading> : null}
+                  {title ? <Typography variant="h3">{title}</Typography> : null}
                   {subtitle ? (
-                    <Text as="p" size="2" color="gray" mt="1">
+                    <Typography variant="body2" color="text.secondary" mt={0.5}>
                       {subtitle}
-                    </Text>
+                    </Typography>
                   ) : null}
                 </Box>
-                <Flex align="center" gap="2">
+                <Box display="flex" alignItems="center" gap={1}>
                   <div className="p-px">
-                    <IconButton variant="ghost" color="gray" aria-label="设置">
-                      <GearIcon />
+                    <IconButton color="inherit" aria-label="设置" size="small">
+                      <Settings />
                     </IconButton>
                   </div>
                   {headerActions}
-                </Flex>
-              </Flex>
+                </Box>
+              </Box>
             ) : null}
 
             {children}
           </Box>
         </Box>
-      </Flex>
+      </Box>
     </Box>
   );
 }

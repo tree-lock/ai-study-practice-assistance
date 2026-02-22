@@ -1,14 +1,14 @@
 "use client";
 
 import {
-  ArrowUpIcon,
-  Cross2Icon,
-  EnterFullScreenIcon,
-  ExitFullScreenIcon,
-  MixerHorizontalIcon,
-  PlusIcon,
-} from "@radix-ui/react-icons";
-import { Flex, IconButton } from "@radix-ui/themes";
+  Add,
+  ArrowUpward,
+  Close,
+  Fullscreen,
+  FullscreenExit,
+  Tune,
+} from "@mui/icons-material";
+import { Box, IconButton } from "@mui/material";
 import { useCallback, useEffect, useRef } from "react";
 import { FileUpload } from "./file-upload";
 import type { UploadFileItem } from "./types";
@@ -120,9 +120,10 @@ export function InputArea({
     generateStatus !== "generating" && !canStartGenerate;
 
   return (
-    <Flex
-      direction="column"
-      gap="2"
+    <Box
+      display="flex"
+      flexDirection="column"
+      gap={1}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -133,14 +134,14 @@ export function InputArea({
           : "min-h-[140px] border border-[#e8ecf1] bg-[#fafbfc]"
       } ${isMaximized ? "min-h-[560px] max-h-[72vh]" : ""}`}
     >
-      <div className="absolute top-2.5 right-2.5 p-px">
+      <div className="absolute top-2.5 right-2.5">
         <IconButton
-          variant="ghost"
-          color="gray"
+          color="inherit"
           aria-label={isMaximized ? "退出最大化" : "最大化输入框"}
           onClick={() => onIsMaximizedChange(!isMaximized)}
+          size="small"
         >
-          {isMaximized ? <ExitFullScreenIcon /> : <EnterFullScreenIcon />}
+          {isMaximized ? <FullscreenExit /> : <Fullscreen />}
         </IconButton>
       </div>
       <input
@@ -173,28 +174,31 @@ export function InputArea({
         }}
       />
       <FileUpload files={files} onRemoveFile={onRemoveFile} />
-      <Flex justify="between" align="center" className="mt-auto">
-        <Flex gap="1">
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        className="mt-auto"
+      >
+        <Box display="flex" gap={0.5}>
           <IconButton
             type="button"
-            variant="soft"
-            color="gray"
-            size="1"
+            color="inherit"
+            size="small"
             aria-label="添加文件"
             onClick={() => fileInputRef.current?.click()}
           >
-            <PlusIcon />
+            <Add />
           </IconButton>
           <IconButton
             type="button"
-            variant="soft"
-            color="gray"
-            size="1"
+            color="inherit"
+            size="small"
             aria-label="选项"
           >
-            <MixerHorizontalIcon />
+            <Tune />
           </IconButton>
-        </Flex>
+        </Box>
         <button
           type="button"
           aria-label={
@@ -211,12 +215,12 @@ export function InputArea({
           }`}
         >
           {generateStatus === "generating" ? (
-            <Cross2Icon width={14} height={14} />
+            <Close sx={{ fontSize: 14 }} />
           ) : (
-            <ArrowUpIcon width={14} height={14} />
+            <ArrowUpward sx={{ fontSize: 14 }} />
           )}
         </button>
-      </Flex>
-    </Flex>
+      </Box>
+    </Box>
   );
 }

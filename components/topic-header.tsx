@@ -1,5 +1,5 @@
-import { MagnifyingGlassIcon, PlusIcon } from "@radix-ui/react-icons";
-import { Button, Heading, Text, TextField } from "@radix-ui/themes";
+import { Add, Search } from "@mui/icons-material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import Link from "next/link";
 import { KnowledgePointManager } from "./knowledge-point-manager";
 import { OutlineEditor } from "./outline-editor";
@@ -18,38 +18,44 @@ export function TopicHeader({
   outline,
 }: TopicHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 pb-6">
-      <div className="flex flex-col gap-1">
-        <Heading size="7" weight="bold">
+    <Box className="flex flex-col gap-4 pb-6">
+      <Box className="flex flex-col gap-1">
+        <Typography variant="h4" fontWeight="fontWeightBold">
           {name}
-        </Heading>
+        </Typography>
         {description ? (
-          <Text size="2" color="gray">
+          <Typography variant="body2" color="text.secondary">
             {description}
-          </Text>
+          </Typography>
         ) : null}
-      </div>
+      </Box>
 
-      <div className="flex items-start gap-4">
-        <div className="flex-1">
+      <Box className="flex items-start gap-4">
+        <Box className="flex-1">
           <OutlineEditor topicId={topicId} outline={outline} />
-        </div>
+        </Box>
         <KnowledgePointManager topicId={topicId} hasOutline={!!outline} />
-      </div>
+      </Box>
 
-      <div className="flex items-center justify-between gap-4">
-        <TextField.Root placeholder="搜索题目" style={{ width: 360 }}>
-          <TextField.Slot>
-            <MagnifyingGlassIcon />
-          </TextField.Slot>
-        </TextField.Root>
-        <Button asChild>
-          <Link href="/">
-            <PlusIcon />
-            创建
-          </Link>
+      <Box className="flex items-center justify-between gap-4">
+        <TextField
+          placeholder="搜索题目"
+          variant="outlined"
+          size="small"
+          sx={{ width: 360 }}
+          InputProps={{
+            startAdornment: <Search color="action" />,
+          }}
+        />
+        <Button
+          component={Link}
+          href="/"
+          variant="contained"
+          startIcon={<Add />}
+        >
+          创建
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

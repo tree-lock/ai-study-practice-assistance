@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Flex } from "@radix-ui/themes";
+import { Box } from "@mui/material";
 import { useState } from "react";
 import { SidebarActions } from "./actions";
 import { SidebarTopicList } from "./topic-list";
@@ -26,16 +26,18 @@ export function Sidebar({ topics = [], userLabel }: SidebarProps) {
         collapsed ? "w-14 min-w-14" : "w-[250px] min-w-[250px]"
       }`}
     >
-      <Flex
-        direction="column"
-        justify="between"
-        align={collapsed ? "center" : "stretch"}
+      <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="space-between"
+        alignItems={collapsed ? "center" : "stretch"}
         className="h-full"
       >
-        <Flex
-          direction="column"
-          gap="6"
-          align={collapsed ? "center" : "stretch"}
+        <Box
+          display="flex"
+          flexDirection="column"
+          gap={2}
+          alignItems={collapsed ? "center" : "stretch"}
         >
           <SidebarUserInfo
             collapsed={collapsed}
@@ -46,9 +48,9 @@ export function Sidebar({ topics = [], userLabel }: SidebarProps) {
             onExpand={() => setCollapsed(false)}
           />
           <SidebarTopicList topics={topics} collapsed={collapsed} />
-        </Flex>
+        </Box>
         <SidebarFooter userLabel={userLabel} collapsed={collapsed} />
-      </Flex>
+      </Box>
     </Box>
   );
 }

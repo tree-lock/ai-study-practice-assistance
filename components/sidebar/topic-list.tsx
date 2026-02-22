@@ -1,6 +1,6 @@
 "use client";
 
-import { Flex, Text } from "@radix-ui/themes";
+import { Box, Typography } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TopicActionMenu } from "@/components/topic-action-menu";
@@ -24,11 +24,15 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
   }
 
   return (
-    <Flex direction="column" gap="2">
-      <Text as="p" size="2" weight="bold" className="pl-3 whitespace-nowrap">
+    <Box display="flex" flexDirection="column" gap={1}>
+      <Typography
+        variant="body2"
+        fontWeight="bold"
+        className="pl-3 py-1.5 whitespace-nowrap"
+      >
         题库
-      </Text>
-      <Flex direction="column">
+      </Typography>
+      <Box display="flex" flexDirection="column">
         {topics.map((topic) => {
           const isActive = pathname === `/topics/${topic.id}`;
           return (
@@ -44,9 +48,9 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
                 href={`/topics/${topic.id}`}
                 className="min-w-0 flex-1 py-1.5 pl-3 pr-2 text-[13px] text-gray-700 no-underline"
               >
-                <Text size="2" className="truncate">
+                <Typography variant="body2" className="truncate">
                   {topic.name}
-                </Text>
+                </Typography>
               </Link>
               <div
                 className={`transition-opacity ${
@@ -60,7 +64,7 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
             </div>
           );
         })}
-      </Flex>
-    </Flex>
+      </Box>
+    </Box>
   );
 }

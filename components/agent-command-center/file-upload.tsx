@@ -1,7 +1,7 @@
 "use client";
 
-import { Cross2Icon } from "@radix-ui/react-icons";
-import { Flex, IconButton, Text } from "@radix-ui/themes";
+import { Close } from "@mui/icons-material";
+import { Box, IconButton, Typography } from "@mui/material";
 import Image from "next/image";
 
 type UploadFileItem = {
@@ -21,17 +21,19 @@ export function FileUpload({ files, onRemoveFile }: FileUploadProps) {
   }
 
   return (
-    <Flex gap="2" wrap="wrap" mt="1">
+    <Box display="flex" gap={1} flexWrap="wrap" mt={0.5}>
       {files.map((item) => (
-        <Flex
+        <Box
           key={item.id}
-          direction="column"
-          gap="1"
+          display="flex"
+          flexDirection="column"
+          gap={0.5}
           className="w-[98px] overflow-hidden rounded-xl border border-[#d9dee8] bg-white"
         >
-          <Flex
-            align="start"
-            justify="end"
+          <Box
+            display="flex"
+            alignItems="start"
+            justifyContent="end"
             className="relative h-[72px] w-full bg-[#eef2f7]"
           >
             {item.previewUrl ? (
@@ -44,33 +46,37 @@ export function FileUpload({ files, onRemoveFile }: FileUploadProps) {
                 className="absolute inset-0 size-full object-cover"
               />
             ) : (
-              <Flex align="center" justify="center" className="size-full">
-                <Text size="1" color="gray">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                className="size-full"
+              >
+                <Typography variant="caption" color="text.secondary">
                   {item.file.name.split(".").pop()?.toUpperCase() ?? "FILE"}
-                </Text>
-              </Flex>
+                </Typography>
+              </Box>
             )}
             <IconButton
               type="button"
-              variant="solid"
-              color="gray"
-              size="1"
+              color="inherit"
+              size="small"
               aria-label="移除文件"
               onClick={() => onRemoveFile(item.id)}
               className="z-[1] m-1 bg-[rgba(17,24,39,0.65)] text-white"
             >
-              <Cross2Icon />
+              <Close sx={{ fontSize: 14 }} />
             </IconButton>
-          </Flex>
-          <Text
-            size="1"
+          </Box>
+          <Typography
+            variant="caption"
             className="overflow-hidden text-ellipsis whitespace-nowrap px-1.5 pb-1.5 pt-0"
             title={item.file.name}
           >
             {item.file.name}
-          </Text>
-        </Flex>
+          </Typography>
+        </Box>
       ))}
-    </Flex>
+    </Box>
   );
 }
