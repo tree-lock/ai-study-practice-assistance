@@ -1,5 +1,5 @@
-import { Add, Search } from "@mui/icons-material";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { MagnifyingGlassIcon, PlusIcon } from "@radix-ui/react-icons";
+import { Button, Heading, Text, TextField } from "@radix-ui/themes";
 import Link from "next/link";
 import { KnowledgePointManager } from "./knowledge-point-manager";
 import { OutlineEditor } from "./outline-editor";
@@ -18,44 +18,38 @@ export function TopicHeader({
   outline,
 }: TopicHeaderProps) {
   return (
-    <Box className="flex flex-col gap-4 pb-6">
-      <Box className="flex flex-col gap-1">
-        <Typography variant="h4" fontWeight="fontWeightBold">
+    <div className="flex flex-col gap-4 pb-6">
+      <div className="flex flex-col gap-1">
+        <Heading size="7" weight="bold">
           {name}
-        </Typography>
+        </Heading>
         {description ? (
-          <Typography variant="body2" color="text.secondary">
+          <Text size="2" color="gray">
             {description}
-          </Typography>
+          </Text>
         ) : null}
-      </Box>
+      </div>
 
-      <Box className="flex items-start gap-4">
-        <Box className="flex-1">
+      <div className="flex items-start gap-4">
+        <div className="flex-1">
           <OutlineEditor topicId={topicId} outline={outline} />
-        </Box>
+        </div>
         <KnowledgePointManager topicId={topicId} hasOutline={!!outline} />
-      </Box>
+      </div>
 
-      <Box className="flex items-center justify-between gap-4">
-        <TextField
-          placeholder="搜索题目"
-          variant="outlined"
-          size="small"
-          sx={{ width: 360 }}
-          InputProps={{
-            startAdornment: <Search color="action" />,
-          }}
-        />
-        <Button
-          component={Link}
-          href="/"
-          variant="contained"
-          startIcon={<Add />}
-        >
-          创建
+      <div className="flex items-center justify-between gap-4">
+        <TextField.Root placeholder="搜索题目" style={{ width: 360 }}>
+          <TextField.Slot>
+            <MagnifyingGlassIcon />
+          </TextField.Slot>
+        </TextField.Root>
+        <Button asChild>
+          <Link href="/">
+            <PlusIcon />
+            创建
+          </Link>
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

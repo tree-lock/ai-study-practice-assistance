@@ -1,20 +1,21 @@
 "use client";
 
-import { Add, AutoFixHigh, Close, Delete } from "@mui/icons-material";
 import {
-  Alert,
+  Cross2Icon,
+  MagicWandIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
+import {
+  AlertDialog,
   Badge,
-  Box,
   Button,
-  CircularProgress,
   Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   IconButton,
+  Spinner,
+  Text,
   TextField,
-  Typography,
-} from "@mui/material";
+} from "@radix-ui/themes";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import {
   addKnowledgePoint,
@@ -123,64 +124,62 @@ export function KnowledgePointManager({
 
   return (
     <>
-      <Button variant="outlined" size="small" onClick={() => setIsOpen(true)}>
+      <Button variant="soft" size="1" onClick={() => setIsOpen(true)}>
         知识点管理
       </Button>
 
-      <Dialog
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>知识点管理</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary">
+      <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog.Content maxWidth="480px">
+          <Dialog.Title>知识点管理</Dialog.Title>
+          <Dialog.Description size="2" color="gray">
             管理题库的知识点列表，题目只能从这些知识点中选择
-          </Typography>
+          </Dialog.Description>
 
           <div className="mt-4 flex flex-col gap-4">
             {!hasOutline && (
-              <Alert severity="warning" sx={{ fontSize: "0.875rem" }}>
-                请先添加题库大纲，才能使用 AI 生成知识点
-              </Alert>
+              <div className="rounded-md bg-amber-50 p-3">
+                <Text size="2" color="amber">
+                  请先添加题库大纲，才能使用 AI 生成知识点
+                </Text>
+              </div>
             )}
 
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <CircularProgress size={24} />
+                <Spinner size="2" />
               </div>
             ) : (
               <>
-                <Box className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-2">
                   {knowledgePoints.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary">
+                    <Text size="2" color="gray">
                       暂无知识点
-                    </Typography>
+                    </Text>
                   ) : (
                     knowledgePoints.map((kp) => (
                       <Badge
                         key={kp.id}
-                        color="primary"
-                        className="group"
-                        sx={{ cursor: "pointer" }}
+                        size="2"
+                        variant="soft"
+                        className="group flex items-center gap-1"
                       >
                         {kp.name}
-                        <IconButton
-                          size="small"
+                        <button
+                          type="button"
                           onClick={() => handleDelete(kp.id, kp.name)}
                           className="ml-1 opacity-0 transition-opacity group-hover:opacity-100"
+                          aria-label={`删除 ${kp.name}`}
                           disabled={isPending}
                         >
-                          <Close sx={{ fontSize: 12 }} />
-                        </IconButton>
+                          <Cross2Icon className="h-3 w-3" />
+                        </button>
                       </Badge>
                     ))
                   )}
-                </Box>
+                </div>
 
-                <Box className="flex items-center gap-2">
-                  <TextField
+                <div className="flex items-center gap-2">
+                  <TextField.Root
                     placeholder="输入知识点名称"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
@@ -191,91 +190,84 @@ export function KnowledgePointManager({
                       }
                     }}
                     disabled={isPending || isGenerating}
-                    fullWidth
-                    size="small"
+                    style={{ flex: 1 }}
                   />
                   <IconButton
+                    variant="soft"
                     onClick={handleAdd}
                     disabled={isPending || isGenerating || !newName.trim()}
                     aria-label="添加知识点"
-                    size="small"
                   >
-                    {isPending ? <CircularProgress size={20} /> : <Add />}
+                    {isPending ? <Spinner size="1" /> : <PlusIcon />}
                   </IconButton>
-                </Box>
+                </div>
 
                 {error && (
-                  <Typography variant="caption" color="error">
+                  <Text size="2" color="red">
                     {error}
-                  </Typography>
+                  </Text>
                 )}
 
-                <Typography variant="caption" color="text.secondary">
+                <Text size="1" color="gray">
                   知识点数量：{knowledgePoints.length}（建议 5-15 个）
-                </Typography>
+                </Text>
               </>
             )}
           </div>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: "space-between" }}>
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={handleGenerate}
-            disabled={!hasOutline || isPending || isGenerating}
-            startIcon={
-              isGenerating ? <CircularProgress size={20} /> : <AutoFixHigh />
-            }
-          >
-            AI 生成
-          </Button>
-          <Button
-            onClick={() => setIsOpen(false)}
-            variant="outlined"
-            color="inherit"
-          >
-            关闭
-          </Button>
-        </DialogActions>
-      </Dialog>
 
-      <Dialog
+          <div className="mt-4 flex justify-between gap-3">
+            <Button
+              variant="soft"
+              color="gray"
+              onClick={handleGenerate}
+              disabled={!hasOutline || isPending || isGenerating}
+            >
+              {isGenerating ? <Spinner size="1" /> : <MagicWandIcon />}
+              AI 生成
+            </Button>
+
+            <Dialog.Close>
+              <Button variant="soft" color="gray">
+                关闭
+              </Button>
+            </Dialog.Close>
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
+
+      <AlertDialog.Root
         open={deleteConfirm !== null}
-        onClose={() => setDeleteConfirm(null)}
-        maxWidth="sm"
-        fullWidth
+        onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
-        <DialogTitle>确认删除知识点</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2">
+        <AlertDialog.Content maxWidth="400px">
+          <AlertDialog.Title>确认删除知识点</AlertDialog.Title>
+          <AlertDialog.Description size="2">
             {deleteConfirm?.linkedCount && deleteConfirm.linkedCount > 0 ? (
               <>
-                知识点「{deleteConfirm?.name}」已被 {deleteConfirm?.linkedCount}{" "}
+                知识点「{deleteConfirm?.name}
+                」已被 {deleteConfirm?.linkedCount}{" "}
                 道题目关联，删除后将自动从这些题目中移除关联关系。
               </>
             ) : (
               <>确定要删除知识点「{deleteConfirm?.name}」吗？</>
             )}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setDeleteConfirm(null)}
-            variant="outlined"
-            color="inherit"
-          >
-            取消
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={confirmDelete}
-            startIcon={<Delete />}
-          >
-            删除
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AlertDialog.Description>
+
+          <div className="mt-4 flex justify-end gap-3">
+            <AlertDialog.Cancel>
+              <Button variant="soft" color="gray">
+                取消
+              </Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action>
+              <Button variant="solid" color="red" onClick={confirmDelete}>
+                <TrashIcon />
+                删除
+              </Button>
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
     </>
   );
 }

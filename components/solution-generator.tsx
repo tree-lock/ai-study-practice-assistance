@@ -1,14 +1,14 @@
 "use client";
 
-import { AutoFixHigh, Info } from "@mui/icons-material";
+import { InfoCircledIcon, MagicWandIcon } from "@radix-ui/react-icons";
 import {
-  Alert,
   Badge,
-  Box,
   Button,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
+  Callout,
+  Heading,
+  Spinner,
+  Text,
+} from "@radix-ui/themes";
 import { useState } from "react";
 import {
   generateSolution,
@@ -62,81 +62,84 @@ export function SolutionGenerator({
   const hasContent = answer?.content || answer?.explanation;
 
   return (
-    <Box className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       {knowledgePoints.length > 0 && (
-        <Box className="flex flex-wrap items-center gap-2">
-          <Typography variant="body2" color="text.secondary">
+        <div className="flex flex-wrap items-center gap-2">
+          <Text size="2" color="gray">
             知识点：
-          </Typography>
+          </Text>
           {knowledgePoints.map((kp) => (
-            <Badge key={kp.id} variant="standard" color="primary">
+            <Badge key={kp.id} variant="soft" size="1">
               {kp.name}
             </Badge>
           ))}
-        </Box>
+        </div>
       )}
 
       {hasContent ? (
-        <Box className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
           {answer?.content && (
-            <Box>
-              <Typography variant="h6" className="mb-2">
+            <div>
+              <Heading size="3" className="mb-2">
                 答案
-              </Typography>
-              <Box className="rounded-md bg-white p-3">
+              </Heading>
+              <div className="rounded-md bg-white p-3">
                 <MarkdownContent content={answer.content} />
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
 
           {answer?.explanation && (
-            <Box>
-              <Typography variant="h6" className="mb-2">
+            <div>
+              <Heading size="3" className="mb-2">
                 解析
-              </Typography>
-              <Box className="rounded-md bg-white p-3">
+              </Heading>
+              <div className="rounded-md bg-white p-3">
                 <MarkdownContent content={answer.explanation} />
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
-        </Box>
+        </div>
       ) : (
-        <Box className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-          <Typography variant="body2" color="text.secondary">
+        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+          <Text size="2" color="gray">
             暂无答案和解析
-          </Typography>
-        </Box>
+          </Text>
+        </div>
       )}
 
       {suggestions.length > 0 && (
-        <Alert severity="info" icon={<Info />} sx={{ fontSize: "0.875rem" }}>
-          {suggestions.map((s, i) => (
-            <span key={s}>
-              {s}
-              {i < suggestions.length - 1 ? "；" : ""}
-            </span>
-          ))}
-        </Alert>
+        <Callout.Root color="blue" size="1">
+          <Callout.Icon>
+            <InfoCircledIcon />
+          </Callout.Icon>
+          <Callout.Text>
+            {suggestions.map((s, i) => (
+              <span key={s}>
+                {s}
+                {i < suggestions.length - 1 ? "；" : ""}
+              </span>
+            ))}
+          </Callout.Text>
+        </Callout.Root>
       )}
 
       {error && (
-        <Typography variant="body2" color="error">
+        <Text size="2" color="red">
           {error}
-        </Typography>
+        </Text>
       )}
 
-      <Box className="flex gap-2">
+      <div className="flex gap-2">
         <Button
-          variant={hasContent ? "outlined" : "contained"}
+          variant={hasContent ? "soft" : "solid"}
           onClick={handleGenerate}
           disabled={isGenerating}
-          startIcon={
-            isGenerating ? <CircularProgress size={20} /> : <AutoFixHigh />
-          }
         >
+          {isGenerating ? <Spinner size="1" /> : <MagicWandIcon />}
           {hasContent ? "重新生成" : "AI 生成解析"}
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

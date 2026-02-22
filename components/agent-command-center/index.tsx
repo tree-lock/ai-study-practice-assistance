@@ -1,6 +1,6 @@
 "use client";
 
-import { Box } from "@mui/material";
+import { Flex } from "@radix-ui/themes";
 import { useRef, useState } from "react";
 import {
   analyzeQuestionAction,
@@ -152,12 +152,7 @@ export function AgentCommandCenter() {
   const shouldShowResultPanels = files.length > 0 || generateStatus !== "idle";
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      gap={2}
-      className="w-full max-w-[760px]"
-    >
+    <Flex direction="column" gap="5" className="w-full max-w-[760px]">
       <InputArea
         prompt={prompt}
         files={files}
@@ -172,10 +167,9 @@ export function AgentCommandCenter() {
         onGenerateClick={handleGenerateClick}
       />
       {shouldShowResultPanels ? (
-        <Box display="flex" flexDirection="column" gap={1.5} className="w-full">
-          <Box
-            display="flex"
-            flexDirection="column"
+        <Flex direction="column" gap="3" className="w-full">
+          <Flex
+            direction="column"
             className="overflow-hidden rounded-xl border border-[#e5eaf3] bg-white"
           >
             <QuestionPanel
@@ -249,9 +243,9 @@ export function AgentCommandCenter() {
                 }
               }}
             />
-          </Box>
-        </Box>
+          </Flex>
+        </Flex>
       ) : null}
-    </Box>
+    </Flex>
   );
 }

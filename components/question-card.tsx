@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Card, CardContent, Chip, Typography } from "@mui/material";
+import { Badge, Card, Flex, Text } from "@radix-ui/themes";
 import Link from "next/link";
 import type { TopicQuestion } from "@/app/actions/question";
 import { QuestionMarkdownContent } from "./agent-command-center/question-markdown-content";
@@ -26,33 +26,24 @@ export function QuestionCard({ question, topicId }: QuestionCardProps) {
       className="block no-underline"
     >
       <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
-        <CardContent>
-          <Box display="flex" flexDirection="column" gap={2}>
-            <Box>
-              <Chip
-                label={TYPE_LABEL[question.type]}
-                size="small"
-                color="default"
-              />
-            </Box>
-            <div className="line-clamp-3">
-              <QuestionMarkdownContent questionMarkdown={question.content} />
-            </div>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              className="mt-auto pt-2"
-            >
-              <Typography variant="caption" color="text.secondary">
-                {question.creator?.name ?? "匿名用户"}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                已做 0 次
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
+        <Flex direction="column" gap="2">
+          <div className="w-fit">
+            <Badge color="gray" variant="soft">
+              {TYPE_LABEL[question.type]}
+            </Badge>
+          </div>
+          <div className="line-clamp-3">
+            <QuestionMarkdownContent questionMarkdown={question.content} />
+          </div>
+          <Flex align="center" justify="between" className="mt-auto pt-4">
+            <Text size="1" color="gray">
+              {question.creator?.name ?? "匿名用户"}
+            </Text>
+            <Text size="1" color="gray">
+              已做 0 次
+            </Text>
+          </Flex>
+        </Flex>
       </Card>
     </Link>
   );

@@ -1,7 +1,9 @@
+import { Theme } from "@radix-ui/themes";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import MuiThemeProvider from "@/components/mui-provider";
+import { SWRProvider } from "@/components/swr-provider";
 import AppLayout from "./app-layout";
+import "@radix-ui/themes/styles.css";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,9 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <MuiThemeProvider>
-          <AppLayout>{children}</AppLayout>
-        </MuiThemeProvider>
+        <Theme appearance="light" accentColor="blue" grayColor="sand">
+          <SWRProvider>
+            <AppLayout>{children}</AppLayout>
+          </SWRProvider>
+        </Theme>
       </body>
     </html>
   );

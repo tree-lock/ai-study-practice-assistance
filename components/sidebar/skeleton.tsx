@@ -1,81 +1,71 @@
-import { Box, Skeleton, Typography } from "@mui/material";
+import { Box, Flex, Skeleton, Text } from "@radix-ui/themes";
 
 export function SidebarSkeleton() {
   return (
     <Box className="sticky top-0 h-screen w-[250px] min-w-[250px] py-3.5 px-2.5 bg-[#efeff1]">
-      <Box display="flex" flexDirection="column" gap={3}>
+      <Flex direction="column" gap="6">
         {/* UserInfo 区域 */}
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={1.5}>
-            <Skeleton variant="circular" width={40} height={40} />
+        <Flex align="center" justify="between">
+          <Flex align="center" gap="3">
+            <Skeleton width="40px" height="40px" className="rounded-full" />
             <Box>
-              <Skeleton width={80}>
-                <Typography variant="subtitle2" fontWeight="fontWeightBold">
+              <Skeleton>
+                <Text as="p" size="2" weight="bold">
                   AI 学习助教
-                </Typography>
+                </Text>
               </Skeleton>
-              <Skeleton width={60}>
-                <Typography variant="caption" color="text.secondary">
+              <Skeleton>
+                <Text as="p" size="1" color="gray">
                   欢迎使用
-                </Typography>
+                </Text>
               </Skeleton>
             </Box>
-          </Box>
-          <Skeleton variant="circular" width={28} height={28} />
-        </Box>
+          </Flex>
+          <Skeleton width="28px" height="28px" />
+        </Flex>
 
         {/* Actions 区域 */}
-        <Box display="flex" flexDirection="column" gap={0.5} className="pt-2">
-          <Box
-            display="flex"
-            alignItems="center"
-            gap={1}
-            className="pl-3 py-1.5"
-          >
-            <Skeleton variant="rectangular" width={15} height={15} />
-            <Skeleton width={60}>
-              <Typography variant="body2">新增题目</Typography>
+        <Flex direction="column" gap="1" className="pt-2">
+          <Flex align="center" gap="2" className="pl-3 py-1.5">
+            <Skeleton width="15px" height="15px" />
+            <Skeleton>
+              <Text size="2">新增题目</Text>
             </Skeleton>
-          </Box>
-          <Box
-            display="flex"
-            alignItems="center"
-            gap={1}
-            className="pl-3 py-1.5"
-          >
-            <Skeleton variant="rectangular" width={15} height={15} />
-            <Skeleton width={60}>
-              <Typography variant="body2">新建题库</Typography>
+          </Flex>
+          <Flex align="center" gap="2" className="pl-3 py-1.5">
+            <Skeleton width="15px" height="15px" />
+            <Skeleton>
+              <Text size="2">新建题库</Text>
             </Skeleton>
-          </Box>
-        </Box>
+          </Flex>
+        </Flex>
 
         {/* TopicList 区域 */}
-        <Box display="flex" flexDirection="column" gap={1}>
+        <Flex direction="column" gap="2">
           <Skeleton className="pl-3">
-            <Typography variant="subtitle2" fontWeight="fontWeightBold">
+            <Text as="p" size="2" weight="bold">
               题库
-            </Typography>
+            </Text>
           </Skeleton>
-          <Box display="flex" flexDirection="column" gap={0.5}>
-            <Box className="pl-3 py-1.5">
-              <Skeleton width={120}>
-                <Typography variant="body2">题库项</Typography>
+          <Flex direction="column" gap="1">
+            <Flex className="pl-3 py-1.5">
+              <Skeleton width="120px">
+                <Text size="2">题库项</Text>
               </Skeleton>
-            </Box>
-            <Box className="pl-3 py-1.5">
-              <Skeleton width={90}>
-                <Typography variant="body2">题库项</Typography>
+            </Flex>
+            <Flex className="pl-3 py-1.5">
+              <Skeleton width="90px">
+                <Text size="2">题库项</Text>
               </Skeleton>
-            </Box>
-            <Box className="pl-3 py-1.5">
-              <Skeleton width={140}>
-                <Typography variant="body2">题库项</Typography>
+            </Flex>
+            <Flex className="pl-3 py-1.5">
+              <Skeleton width="140px">
+                <Text size="2">题库项</Text>
               </Skeleton>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+            </Flex>
+          </Flex>
+        </Flex>
+      </Flex>
     </Box>
   );
 }

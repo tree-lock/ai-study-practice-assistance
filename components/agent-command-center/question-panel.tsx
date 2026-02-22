@@ -1,7 +1,12 @@
 "use client";
 
-import { Check, Close, Edit, Warning } from "@mui/icons-material";
-import { Alert, Badge, Box, Typography } from "@mui/material";
+import {
+  CheckIcon,
+  Cross2Icon,
+  ExclamationTriangleIcon,
+  Pencil2Icon,
+} from "@radix-ui/react-icons";
+import { Badge, Callout, Flex, Text } from "@radix-ui/themes";
 import { CatalogPanel } from "./catalog-panel";
 import { QuestionMarkdownContent } from "./question-markdown-content";
 import type { AnalysisResult, TopicOption } from "./types";
@@ -44,18 +49,20 @@ export function QuestionPanel({
   onConfirm,
 }: QuestionPanelProps) {
   return (
-    <Box display="flex" flexDirection="column" gap={1} className="py-3 px-3.5">
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Box display="flex" gap={1} alignItems="center">
-          <Typography variant="body2" fontWeight="fontWeightBold">
+    <Flex direction="column" gap="2" className="py-3 px-3.5">
+      <Flex justify="between" align="center">
+        <Flex gap="2" align="center">
+          <Text size="2" weight="bold">
             题目
-          </Typography>
+          </Text>
           {analysisResult?.questionTypeLabel ? (
-            <Badge color="primary">{analysisResult.questionTypeLabel}</Badge>
+            <Badge color="blue" size="1">
+              {analysisResult.questionTypeLabel}
+            </Badge>
           ) : null}
-        </Box>
+        </Flex>
         {generateStatus === "done" ? (
-          <Box display="flex" gap={1}>
+          <Flex gap="2">
             {isEditing ? (
               <>
                 <button
@@ -64,7 +71,7 @@ export function QuestionPanel({
                   aria-label="取消编辑题目"
                   className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-gray-300 bg-white p-0 text-gray-600"
                 >
-                  <Close sx={{ fontSize: 14 }} />
+                  <Cross2Icon />
                 </button>
                 <button
                   type="button"
@@ -72,7 +79,7 @@ export function QuestionPanel({
                   aria-label="保存题目编辑"
                   className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-blue-200 bg-blue-50 p-0 text-blue-700"
                 >
-                  <Check sx={{ fontSize: 14 }} />
+                  <CheckIcon />
                 </button>
               </>
             ) : (
@@ -82,38 +89,37 @@ export function QuestionPanel({
                 aria-label="编辑题目"
                 className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-gray-300 bg-white p-0 text-gray-600"
               >
-                <Edit sx={{ fontSize: 14 }} />
+                <Pencil2Icon />
               </button>
             )}
-          </Box>
+          </Flex>
         ) : null}
-      </Box>
+      </Flex>
       {generateStatus === "generating" ? (
-        <Typography variant="body2" color="text.secondary">
+        <Text size="2" color="gray">
           AI 正在分析题目...
-        </Typography>
+        </Text>
       ) : null}
       {generateStatus === "stopped" ? (
-        <Typography variant="body2" color="text.secondary">
+        <Text size="2" color="gray">
           已停止生成。你可以再次点击按钮重新分析。
-        </Typography>
+        </Text>
       ) : null}
       {generateStatus === "done" && questionMarkdown ? (
-        <Box display="flex" flexDirection="column" gap={2}>
+        <Flex direction="column" gap="3">
           {sourceLabel ? (
-            <Typography variant="caption" color="text.secondary">
-              来源：{sourceLabel}
-            </Typography>
+            <Text size="1" color="gray">
+              来源: {sourceLabel}
+            </Text>
           ) : null}
 
           {analysisResult?.notice ? (
-            <Alert
-              severity="warning"
-              icon={<Warning />}
-              sx={{ fontSize: "0.875rem" }}
-            >
-              {analysisResult.notice}
-            </Alert>
+            <Callout.Root color="amber" size="1">
+              <Callout.Icon>
+                <ExclamationTriangleIcon />
+              </Callout.Icon>
+              <Callout.Text>{analysisResult.notice}</Callout.Text>
+            </Callout.Root>
           ) : null}
 
           {isEditing ? (
@@ -141,8 +147,8 @@ export function QuestionPanel({
               onConfirm={onConfirm}
             />
           ) : null}
-        </Box>
+        </Flex>
       ) : null}
-    </Box>
+    </Flex>
   );
 }

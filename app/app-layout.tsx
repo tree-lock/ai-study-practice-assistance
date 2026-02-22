@@ -1,11 +1,11 @@
-import { Button, CircularProgress } from "@mui/material";
+import { Button } from "@radix-ui/themes";
 import { Suspense } from "react";
 import { getTopics } from "@/app/actions/topic";
+import { signIn, signOut } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { Sidebar } from "@/components/sidebar";
 import { SidebarSkeleton } from "@/components/sidebar/skeleton";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
-import { loginWithGoogle, logout } from "./auth-actions";
 
 const hasGoogleAuthConfig =
   Boolean(process.env.AUTH_GOOGLE_ID) &&
@@ -23,17 +23,30 @@ async function FloatingActions() {
   const userId = await getCurrentUserId();
   const isLoggedIn = Boolean(userId);
 
+  async function loginWithGoogle() {
+    "use server";
+    await signIn("google", { redirectTo: "/" });
+  }
+
+  async function logout() {
+    "use server";
+    await signOut({ redirectTo: "/" });
+  }
+
   return isLoggedIn ? (
     <form action={logout}>
-      <Button type="submit" color="inherit" sx={{ textTransform: "none" }}>
+      <Button
+        type="submit"
+        variant="ghost"
+        color="gray"
+        className="justify-start"
+      >
         退出登录
       </Button>
     </form>
   ) : hasGoogleAuthConfig ? (
     <form action={loginWithGoogle}>
-      <Button type="submit" variant="contained">
-        登录
-      </Button>
+      <Button type="submit">登录</Button>
     </form>
   ) : (
     <Button type="button" disabled>
@@ -64,14 +77,7 @@ export default function AppLayout({
       headerActions={headerActions}
       floatingActions={
         floatingActions ?? (
-          <Suspense
-            fallback={
-              <Button disabled>
-                <CircularProgress size={16} sx={{ mr: 1 }} />
-                加载中...
-              </Button>
-            }
-          >
+          <Suspense fallback={<Button disabled>加载中...</Button>}>
             <FloatingActions />
           </Suspense>
         )

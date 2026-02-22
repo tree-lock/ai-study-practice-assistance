@@ -1,7 +1,7 @@
 "use client";
 
-import { PostAdd as FilePlusIcon, Add as PlusIcon } from "@mui/icons-material";
-import { Box, TextField, Typography } from "@mui/material";
+import { FilePlusIcon, PlusIcon } from "@radix-ui/react-icons";
+import { Flex, Text, TextField } from "@radix-ui/themes";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +11,12 @@ type SidebarActionsProps = {
   collapsed: boolean;
   onExpand: () => void;
 };
+
+const actionItemClass =
+  "flex items-center gap-2 rounded-md py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300 cursor-pointer";
+
+const actionItemActiveClass =
+  "flex items-center gap-2 rounded-md bg-blue-200 py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors cursor-pointer";
 
 export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
@@ -48,14 +54,10 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   };
 
   return (
-    <Box display="flex" flexDirection="column" className="pt-2">
+    <Flex direction="column" className="pt-2">
       <Link
         href="/"
-        className={
-          isNewQuestionPage
-            ? "group flex items-center rounded-md bg-blue-200 py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors cursor-pointer"
-            : "group flex items-center rounded-md py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300 cursor-pointer"
-        }
+        className={isNewQuestionPage ? actionItemActiveClass : actionItemClass}
         onClick={(e) => {
           if (collapsed) {
             e.preventDefault();
@@ -64,12 +66,10 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
         }}
         aria-label="新增题目"
       >
-        <FilePlusIcon fontSize="small" />
-        {!collapsed && (
-          <Typography variant="body2" className="ml-2 truncate">
-            新增题目
-          </Typography>
-        )}
+        <FilePlusIcon />
+        <Text size="2" className={collapsed ? "hidden" : ""}>
+          新增题目
+        </Text>
       </Link>
 
       {isCreatingTopic && !collapsed ? (
@@ -87,8 +87,8 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
               }
             }}
           >
-            <TextField
-              size="small"
+            <TextField.Root
+              size="1"
               value={newTopicName}
               onChange={(e) => {
                 setNewTopicName(e.target.value);
@@ -102,19 +102,19 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
               placeholder="输入题库名称..."
               autoFocus
               disabled={isSubmitting}
-              fullWidth
+              style={{ width: "100%" }}
             />
           </form>
           {createError ? (
-            <Typography variant="caption" color="error" className="mt-1 block">
+            <Text size="1" color="red" className="mt-1 block">
               {createError}
-            </Typography>
+            </Text>
           ) : null}
         </div>
       ) : (
         <button
           type="button"
-          className="group flex items-center rounded-md py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300 cursor-pointer"
+          className={actionItemClass}
           onClick={() => {
             if (collapsed) {
               onExpand();
@@ -124,14 +124,12 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
           }}
           aria-label="新建题库"
         >
-          <PlusIcon fontSize="small" />
-          {!collapsed && (
-            <Typography variant="body2" className="ml-2 truncate">
-              新建题库
-            </Typography>
-          )}
+          <PlusIcon />
+          <Text size="2" className={collapsed ? "hidden" : ""}>
+            新建题库
+          </Text>
         </button>
       )}
-    </Box>
+    </Flex>
   );
 }

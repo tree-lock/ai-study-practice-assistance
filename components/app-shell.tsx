@@ -1,5 +1,5 @@
-import { Settings } from "@mui/icons-material";
-import { Box, IconButton, Typography } from "@mui/material";
+import { GearIcon } from "@radix-ui/react-icons";
+import { Box, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
 import { Sidebar } from "@/components/sidebar";
 
 type Topic = {
@@ -38,53 +38,47 @@ export function AppShell({
 
   return (
     <Box className="min-h-screen bg-[#f3f3f5]">
-      <Box display="flex">
+      <Flex>
         {sidebarContent}
 
         <Box className="flex-1 relative">
           <Box className="w-full">
             {floatingActions ? (
               <Box className="absolute top-5 right-5 z-10">
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <IconButton color="inherit" aria-label="设置" size="small">
-                    <Settings />
+                <Flex align="center" gap="2">
+                  <IconButton variant="ghost" color="gray" aria-label="设置">
+                    <GearIcon />
                   </IconButton>
                   {floatingActions}
-                </Box>
+                </Flex>
               </Box>
             ) : null}
 
             {title || subtitle || headerActions ? (
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="start"
-                gap={2}
-                mb={2.5}
-              >
+              <Flex justify="between" align="start" gap="3" mb="5">
                 <Box>
-                  {title ? <Typography variant="h3">{title}</Typography> : null}
+                  {title ? <Heading size="7">{title}</Heading> : null}
                   {subtitle ? (
-                    <Typography variant="body2" color="text.secondary" mt={0.5}>
+                    <Text as="p" size="2" color="gray" mt="1">
                       {subtitle}
-                    </Typography>
+                    </Text>
                   ) : null}
                 </Box>
-                <Box display="flex" alignItems="center" gap={1}>
+                <Flex align="center" gap="2">
                   <div className="p-px">
-                    <IconButton color="inherit" aria-label="设置" size="small">
-                      <Settings />
+                    <IconButton variant="ghost" color="gray" aria-label="设置">
+                      <GearIcon />
                     </IconButton>
                   </div>
                   {headerActions}
-                </Box>
-              </Box>
+                </Flex>
+              </Flex>
             ) : null}
 
             {children}
           </Box>
         </Box>
-      </Box>
+      </Flex>
     </Box>
   );
 }

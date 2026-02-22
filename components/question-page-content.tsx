@@ -1,14 +1,15 @@
 "use client";
 
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import {
   Box,
   Button,
   Card,
-  CardContent,
-  Divider,
-  Typography,
-} from "@mui/material";
+  Flex,
+  Heading,
+  Separator,
+  Text,
+} from "@radix-ui/themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -52,85 +53,70 @@ export function QuestionPageContent({
   if (!question) {
     return (
       <Card className="min-h-[calc(100vh-170px)]">
-        <CardContent>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            gap={2}
-            className="h-full py-9"
-          >
-            <Typography variant="h6">题目不存在或无权限访问</Typography>
-            <div className="p-px">
-              <Button
-                component={Link}
-                href={`/topics/${topicId}`}
-                color="inherit"
-                startIcon={<ArrowBack />}
-              >
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          gap="4"
+          className="h-full py-9"
+        >
+          <Heading size="4">题目不存在或无权限访问</Heading>
+          <div className="p-px">
+            <Button variant="ghost" color="gray" asChild>
+              <Link href={`/topics/${topicId}`}>
+                <ArrowLeftIcon />
                 返回题库
-              </Button>
-            </div>
-          </Box>
-        </CardContent>
+              </Link>
+            </Button>
+          </div>
+        </Flex>
       </Card>
     );
   }
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      gap={2}
-      className="min-h-[calc(100vh-170px)]"
-    >
+    <Flex direction="column" gap="4" className="min-h-[calc(100vh-170px)]">
       <div className="p-px w-fit">
-        <Button
-          component={Link}
-          href={`/topics/${topicId}`}
-          color="inherit"
-          startIcon={<ArrowBack />}
-        >
-          返回题库
+        <Button variant="ghost" color="gray" asChild>
+          <Link href={`/topics/${topicId}`}>
+            <ArrowLeftIcon />
+            返回题库
+          </Link>
         </Button>
       </div>
 
-      <Card sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <CardContent>
-          <Box className="prose prose-sm max-w-none py-4">
-            <QuestionMarkdownContent questionMarkdown={question.content} />
-          </Box>
+      <Card style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <Box className="prose prose-sm max-w-none py-4">
+          <QuestionMarkdownContent questionMarkdown={question.content} />
+        </Box>
 
-          <Divider sx={{ my: 2 }} />
+        <Separator size="4" className="my-4" />
 
-          <Typography variant="h6" className="mb-4">
-            答案与解析
-          </Typography>
+        <Heading size="4" className="mb-4">
+          答案与解析
+        </Heading>
 
-          <SolutionGenerator
-            questionId={questionId}
-            topicId={topicId}
-            answer={question.answer}
-            knowledgePoints={question.knowledgePoints}
-          />
+        <SolutionGenerator
+          questionId={questionId}
+          topicId={topicId}
+          answer={question.answer}
+          knowledgePoints={question.knowledgePoints}
+        />
 
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            className="mt-auto pt-4 border-t"
-          >
-            <Typography variant="caption" color="text.secondary">
-              创建者：{question.creator?.name ?? "匿名用户"}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              创建时间：
-              {new Date(question.createdAt).toLocaleDateString("zh-CN")}
-            </Typography>
-          </Box>
-        </CardContent>
+        <Flex
+          align="center"
+          justify="between"
+          className="mt-auto pt-4 border-t"
+        >
+          <Text size="1" color="gray">
+            创建者：{question.creator?.name ?? "匿名用户"}
+          </Text>
+          <Text size="1" color="gray">
+            创建时间：
+            {new Date(question.createdAt).toLocaleDateString("zh-CN")}
+          </Text>
+        </Flex>
       </Card>
-    </Box>
+    </Flex>
   );
 }

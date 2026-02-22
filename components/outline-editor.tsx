@@ -1,18 +1,14 @@
 "use client";
 
-import { AutoFixHigh, Edit } from "@mui/icons-material";
+import { MagicWandIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import {
-  Box,
   Button,
-  CircularProgress,
   Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   IconButton,
-  TextField,
-  Typography,
-} from "@mui/material";
+  Spinner,
+  Text,
+  TextArea,
+} from "@radix-ui/themes";
 import { useState, useTransition } from "react";
 import { generateTopicOutline, updateTopicOutline } from "@/app/actions/topic";
 import { updateTopicOutlineCache } from "@/lib/hooks/use-topic-data";
@@ -28,6 +24,14 @@ export function OutlineEditor({ topicId, outline }: OutlineEditorProps) {
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      setEditedOutline(outline ?? "");
+      setError(null);
+    }
+  };
 
   const handleSave = () => {
     if (!editedOutline.trim()) {
@@ -70,102 +74,83 @@ export function OutlineEditor({ topicId, outline }: OutlineEditorProps) {
   };
 
   return (
-    <Box className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2">
       {outline ? (
-        <Box display="flex" alignItems="start" gap={1}>
-          <Typography variant="body2" color="text.secondary" className="flex-1">
+        <div className="flex items-start gap-2">
+          <Text size="2" color="gray" className="flex-1">
             {outline}
-          </Typography>
+          </Text>
           <div className="p-px">
             <IconButton
-              color="inherit"
+              variant="ghost"
+              color="gray"
               onClick={() => setIsOpen(true)}
               aria-label="编辑大纲"
-              size="small"
             >
-              <Edit />
+              <Pencil1Icon />
             </IconButton>
           </div>
-        </Box>
+        </div>
       ) : (
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="body2" color="text.secondary">
+        <div className="flex items-center gap-2">
+          <Text size="2" color="gray">
             暂无大纲
-          </Typography>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => setIsOpen(true)}
-            startIcon={<Edit />}
-          >
+          </Text>
+          <Button variant="soft" size="1" onClick={() => setIsOpen(true)}>
+            <Pencil1Icon />
             添加大纲
           </Button>
-        </Box>
+        </div>
       )}
 
-      <Dialog
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>编辑题库大纲</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary">
+      <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
+        <Dialog.Content maxWidth="520px">
+          <Dialog.Title>编辑题库大纲</Dialog.Title>
+          <Dialog.Description size="2" color="gray">
             大纲是对题库内容的描述，用于生成知识点列表
-          </Typography>
+          </Dialog.Description>
 
-          <Box className="mt-4 flex flex-col gap-2">
-            <TextField
+          <div className="mt-4 flex flex-col gap-4">
+            <TextArea
               placeholder="请输入题库大纲..."
               value={editedOutline}
               onChange={(e) => setEditedOutline(e.target.value)}
-              multiline
               rows={6}
               disabled={isPending || isGenerating}
-              fullWidth
             />
 
             {error && (
-              <Typography variant="caption" color="error">
+              <Text size="2" color="red">
                 {error}
-              </Typography>
+              </Text>
             )}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: "space-between" }}>
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={handleGenerate}
-            disabled={isPending || isGenerating}
-            startIcon={
-              isGenerating ? <CircularProgress size={20} /> : <AutoFixHigh />
-            }
-          >
-            AI 生成
-          </Button>
+          </div>
 
-          <Box display="flex" gap={1}>
+          <div className="mt-4 flex justify-between gap-3">
             <Button
-              onClick={() => setIsOpen(false)}
-              variant="outlined"
-              color="inherit"
-              disabled={isPending}
-            >
-              取消
-            </Button>
-            <Button
-              onClick={handleSave}
-              variant="contained"
+              variant="soft"
+              color="gray"
+              onClick={handleGenerate}
               disabled={isPending || isGenerating}
             >
-              {isPending ? <CircularProgress size={20} /> : null}
-              保存
+              {isGenerating ? <Spinner size="1" /> : <MagicWandIcon />}
+              AI 生成
             </Button>
-          </Box>
-        </DialogActions>
-      </Dialog>
-    </Box>
+
+            <div className="flex gap-2">
+              <Dialog.Close>
+                <Button variant="soft" color="gray" disabled={isPending}>
+                  取消
+                </Button>
+              </Dialog.Close>
+              <Button onClick={handleSave} disabled={isPending || isGenerating}>
+                {isPending ? <Spinner size="1" /> : null}
+                保存
+              </Button>
+            </div>
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
+    </div>
   );
 }
