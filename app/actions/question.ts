@@ -3,20 +3,23 @@
 import { and, desc, eq } from "drizzle-orm";
 import { cacheTag, revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
+import { generateSolution as generateSolutionAI } from "@/lib/ai/question/solution";
+import {
+  QUESTION_TYPE_LABELS,
+  QUESTION_TYPES,
+  type QuestionType,
+} from "@/lib/ai/types";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 import { db } from "@/lib/db";
-import { questions, tags, topics, users } from "@/lib/db/schema";
-
-const QUESTION_TYPES = [
-  "choice",
-  "blank",
-  "subjective",
-  "application",
-  "proof",
-  "comprehensive",
-] as const;
-
-export type QuestionType = (typeof QUESTION_TYPES)[number];
+import {
+  answers,
+  questionKnowledgePoints,
+  questions,
+  tags,
+  topicKnowledgePoints,
+  topics,
+  users,
+} from "@/lib/db/schema";
 
 const createQuestionSchema = z
   .object({
@@ -249,4 +252,161 @@ export async function getQuestionById(
   }
 
   return fetchQuestionById(questionId, topicId);
+}
+
+export type QuestionAnswer = {
+  id: string;
+  content: string | null;
+  explanation: string | null;
+};
+
+export type QuestionKnowledgePoint = {
+  id: string;
+  name: string;
+};
+
+export type QuestionWithDetails = TopicQuestion & {
+  answer: QuestionAnswer | null;
+  knowledgePoints: QuestionKnowledgePoint[];
+};
+
+export async function getQuestionWithDetails(
+  questionId: string,
+  topicId: string,
+): Promise<QuestionWithDetails | null> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return null;
+  }
+
+  const accessible = await canAccessTopic(topicId, userId);
+  if (!accessible) {
+    return null;
+  }
+
+  const question = await fetchQuestionById(questionId, topicId);
+  if (!question) {
+    return null;
+  }
+
+  const [answerRows, kpRows] = await Promise.all([
+    db
+      .select({
+        id: answers.id,
+        content: answers.content,
+        explanation: answers.explanation,
+      })
+      .from(answers)
+      .where(eq(answers.questionId, questionId))
+      .limit(1),
+    db
+      .select({
+        id: topicKnowledgePoints.id,
+        name: topicKnowledgePoints.name,
+      })
+      .from(questionKnowledgePoints)
+      .innerJoin(
+        topicKnowledgePoints,
+        eq(questionKnowledgePoints.knowledgePointId, topicKnowledgePoints.id),
+      )
+      .where(eq(questionKnowledgePoints.questionId, questionId)),
+  ]);
+
+  return {
+    ...question,
+    answer: answerRows[0] ?? null,
+    knowledgePoints: kpRows,
+  };
+}
+
+export async function generateSolution(questionId: string, topicId: string) {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { error: "请先登录" };
+  }
+
+  const accessible = await canAccessTopic(topicId, userId);
+  if (!accessible) {
+    return { error: "题库不存在或无权限" };
+  }
+
+  const questionRows = await db
+    .select({
+      id: questions.id,
+      content: questions.content,
+      type: questions.type,
+    })
+    .from(questions)
+    .where(and(eq(questions.id, questionId), eq(questions.topicId, topicId)))
+    .limit(1);
+
+  if (questionRows.length === 0) {
+    return { error: "题目不存在" };
+  }
+
+  const question = questionRows[0];
+
+  const knowledgePointsRows = await db
+    .select({
+      id: topicKnowledgePoints.id,
+      name: topicKnowledgePoints.name,
+    })
+    .from(topicKnowledgePoints)
+    .where(eq(topicKnowledgePoints.topicId, topicId));
+
+  try {
+    const result = await generateSolutionAI(
+      question.content,
+      QUESTION_TYPE_LABELS[question.type] || question.type,
+      knowledgePointsRows,
+    );
+
+    const existingAnswer = await db
+      .select({ id: answers.id })
+      .from(answers)
+      .where(eq(answers.questionId, questionId))
+      .limit(1);
+
+    if (existingAnswer.length > 0) {
+      await db
+        .update(answers)
+        .set({
+          content: result.answer,
+          explanation: result.explanation,
+        })
+        .where(eq(answers.id, existingAnswer[0].id));
+    } else {
+      await db.insert(answers).values({
+        questionId,
+        content: result.answer,
+        explanation: result.explanation,
+      });
+    }
+
+    await db
+      .delete(questionKnowledgePoints)
+      .where(eq(questionKnowledgePoints.questionId, questionId));
+
+    if (result.matchedKnowledgePointIds.length > 0) {
+      await db.insert(questionKnowledgePoints).values(
+        result.matchedKnowledgePointIds.map((kpId) => ({
+          questionId,
+          knowledgePointId: kpId,
+        })),
+      );
+    }
+
+    revalidatePath(`/topics/${topicId}/questions/${questionId}`);
+
+    return {
+      success: true,
+      answer: result.answer,
+      explanation: result.explanation,
+      matchedKnowledgePointIds: result.matchedKnowledgePointIds,
+      suggestions: result.suggestions,
+    };
+  } catch (error) {
+    console.error("AI 生成解析失败:", error);
+    return { error: "AI 生成解析失败，请稍后重试" };
+  }
 }

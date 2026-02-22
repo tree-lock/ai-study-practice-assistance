@@ -1,14 +1,26 @@
 "use client";
 
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
-import { Badge, Box, Card, Flex, Heading, Text } from "@radix-ui/themes";
+import {
+  Badge,
+  Box,
+  Card,
+  Flex,
+  Heading,
+  Separator,
+  Text,
+} from "@radix-ui/themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getQuestionById, type TopicQuestion } from "@/app/actions/question";
+import {
+  getQuestionWithDetails,
+  type QuestionWithDetails,
+} from "@/app/actions/question";
 import { QuestionMarkdownContent } from "./agent-command-center/question-markdown-content";
 import { GhostButton } from "./ghost-button";
+import { SolutionGenerator } from "./solution-generator";
 
-const TYPE_LABEL: Record<TopicQuestion["type"], string> = {
+const TYPE_LABEL: Record<QuestionWithDetails["type"], string> = {
   choice: "选择题",
   blank: "填空题",
   subjective: "主观题",
@@ -26,13 +38,13 @@ export function QuestionPageContent({
   topicId,
   questionId,
 }: QuestionPageContentProps) {
-  const [question, setQuestion] = useState<TopicQuestion | null>(null);
+  const [question, setQuestion] = useState<QuestionWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchQuestion() {
       try {
-        const data = await getQuestionById(questionId, topicId);
+        const data = await getQuestionWithDetails(questionId, topicId);
         setQuestion(data);
       } catch (error) {
         console.error("Failed to fetch question:", error);
@@ -94,6 +106,19 @@ export function QuestionPageContent({
         <Box className="prose prose-sm max-w-none py-4">
           <QuestionMarkdownContent questionMarkdown={question.content} />
         </Box>
+
+        <Separator size="4" className="my-4" />
+
+        <Heading size="4" className="mb-4">
+          答案与解析
+        </Heading>
+
+        <SolutionGenerator
+          questionId={questionId}
+          topicId={topicId}
+          answer={question.answer}
+          knowledgePoints={question.knowledgePoints}
+        />
 
         <Flex
           align="center"

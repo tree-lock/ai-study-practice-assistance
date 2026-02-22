@@ -113,7 +113,8 @@ export const topics = pgTable("topics", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }), // Optional: if topics are user-specific
+  outline: text("outline"),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -134,6 +135,7 @@ export const questions = pgTable("questions", {
     onDelete: "set null",
   }),
 });
+// Legacy tags table (kept for backward compatibility)
 export const tags = pgTable("tags", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
@@ -143,6 +145,7 @@ export const tags = pgTable("tags", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Legacy question_tags table (kept for backward compatibility)
 export const questionTags = pgTable(
   "question_tags",
   {
@@ -154,6 +157,30 @@ export const questionTags = pgTable(
       .notNull(),
   },
   (t) => [primaryKey({ columns: [t.questionId, t.tagId] })],
+);
+
+// Knowledge Points - managed at topic level
+export const topicKnowledgePoints = pgTable("topic_knowledge_points", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  topicId: uuid("topic_id")
+    .references(() => topics.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Question-KnowledgePoint association
+export const questionKnowledgePoints = pgTable(
+  "question_knowledge_points",
+  {
+    questionId: uuid("question_id")
+      .references(() => questions.id, { onDelete: "cascade" })
+      .notNull(),
+    knowledgePointId: uuid("knowledge_point_id")
+      .references(() => topicKnowledgePoints.id, { onDelete: "cascade" })
+      .notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.questionId, t.knowledgePointId] })],
 );
 
 export const options = pgTable("options", {

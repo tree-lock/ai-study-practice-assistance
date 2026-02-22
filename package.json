@@ -9,7 +9,7 @@
     "start": "next start -p 8080",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check --write .",
+    "check": "biome check --write . && tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

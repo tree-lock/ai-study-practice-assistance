@@ -7,16 +7,10 @@ import {
   saveQuestionToCatalog,
 } from "@/app/actions/agent";
 import { getTopics } from "@/app/actions/topic";
-import { buildCatalogActions } from "./catalog-actions";
 import { InputArea } from "./input-area";
 import { QuestionPanel } from "./question-panel";
 import { textToMarkdown } from "./text-to-markdown";
-import type {
-  AnalysisResult,
-  CatalogActionOption,
-  TopicOption,
-  UploadFileItem,
-} from "./types";
+import type { AnalysisResult, TopicOption, UploadFileItem } from "./types";
 
 export function AgentCommandCenter() {
   const [prompt, setPrompt] = useState("");
@@ -27,19 +21,10 @@ export function AgentCommandCenter() {
     "idle" | "generating" | "done" | "stopped"
   >("idle");
   const [questionMarkdown, setQuestionMarkdown] = useState("");
-  const [catalogOptions, setCatalogOptions] = useState<
-    Array<CatalogActionOption>
-  >([]);
   const [existingCatalogCandidates, setExistingCatalogCandidates] = useState<
     Array<TopicOption>
   >([]);
-  const [selectedCatalogActionId, setSelectedCatalogActionId] = useState<
-    string | null
-  >(null);
-  const [selectedExistingCatalogId, setSelectedExistingCatalogId] = useState<
-    string | null
-  >(null);
-  const [newCatalogInput, setNewCatalogInput] = useState("");
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [questionDraft, setQuestionDraft] = useState("");
   const [sourceLabel, setSourceLabel] = useState<string | null>(null);
@@ -89,11 +74,8 @@ export function AgentCommandCenter() {
     }
     setGenerateStatus("generating");
     setQuestionMarkdown("");
-    setCatalogOptions([]);
     setExistingCatalogCandidates([]);
-    setSelectedCatalogActionId(null);
-    setSelectedExistingCatalogId(null);
-    setNewCatalogInput("");
+    setSelectedTopicId(null);
     setIsEditingQuestion(false);
     setQuestionDraft("");
     setSourceLabel(null);
@@ -117,21 +99,11 @@ export function AgentCommandCenter() {
           id: topic.id,
           name: topic.name,
         }));
-        const catalogOpts = buildCatalogActions(topicOptions);
-        const defaultOpt = catalogOpts[0];
-        const createOpt = catalogOpts.find((o) => o.type === "create-new");
 
         setSourceLabel("文字输入（AI 分析失败，使用本地转换）");
         setQuestionMarkdown(convertedMarkdown);
-        setCatalogOptions(catalogOpts);
         setExistingCatalogCandidates(topicOptions);
-        setSelectedCatalogActionId(defaultOpt?.id ?? null);
-        setSelectedExistingCatalogId(
-          defaultOpt?.type === "save-existing"
-            ? (topicOptions[0]?.id ?? null)
-            : null,
-        );
-        setNewCatalogInput(createOpt?.suggestion ?? "");
+        setSelectedTopicId(topicOptions[0]?.id ?? null);
         setQuestionDraft(convertedMarkdown);
         setGenerateStatus("done");
         return;
@@ -146,34 +118,18 @@ export function AgentCommandCenter() {
         name: topic.name,
       }));
 
-      const catalogOpts = buildCatalogActions(topicOptions);
-
-      let defaultActionId: string | null = null;
-      let defaultExistingId: string | null = null;
-      let defaultNewInput = "";
-
-      if (analysis.catalogRecommendation.action === "use-existing") {
-        const existingOpt = catalogOpts.find((o) => o.type === "save-existing");
-        defaultActionId = existingOpt?.id ?? null;
-        const recommendedTopic = topicOptions.find(
-          (t) =>
-            t.id === analysis.catalogRecommendation.topicId ||
-            t.name === analysis.catalogRecommendation.topicName,
-        );
-        defaultExistingId = recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
-      } else {
-        const createOpt = catalogOpts.find((o) => o.type === "create-new");
-        defaultActionId = createOpt?.id ?? null;
-        defaultNewInput = analysis.catalogRecommendation.topicName;
-      }
+      const recommendedTopic = topicOptions.find(
+        (t) =>
+          t.id === analysis.catalogRecommendation.topicId ||
+          t.name === analysis.catalogRecommendation.topicName,
+      );
+      const defaultTopicId =
+        recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
 
       setSourceLabel("AI 智能分析");
       setQuestionMarkdown(analysis.formattedContent);
-      setCatalogOptions(catalogOpts);
       setExistingCatalogCandidates(topicOptions);
-      setSelectedCatalogActionId(defaultActionId);
-      setSelectedExistingCatalogId(defaultExistingId);
-      setNewCatalogInput(defaultNewInput);
+      setSelectedTopicId(defaultTopicId);
       setQuestionDraft(analysis.formattedContent);
       setGenerateStatus("done");
     } catch (error) {
@@ -236,73 +192,41 @@ export function AgentCommandCenter() {
                 setQuestionMarkdown(questionDraft.trim());
                 setIsEditingQuestion(false);
               }}
-              catalogOptions={catalogOptions}
               existingCatalogCandidates={existingCatalogCandidates}
-              selectedCatalogActionId={selectedCatalogActionId}
-              selectedExistingCatalogId={selectedExistingCatalogId}
-              newCatalogInput={newCatalogInput}
+              selectedTopicId={selectedTopicId}
               isSaving={isSavingToTopic}
-              onSelectCatalogAction={(id) => {
-                setSelectedCatalogActionId(id);
+              onSelectTopic={(id) => {
+                setSelectedTopicId(id);
               }}
-              onSelectExistingCatalog={(id) => {
-                setSelectedExistingCatalogId(id);
-              }}
-              onNewCatalogInputChange={(value) => {
-                setNewCatalogInput(value);
-              }}
-              onConfirmCatalogAction={async () => {
-                const selectedOption =
-                  catalogOptions.find(
-                    (option) => option.id === selectedCatalogActionId,
-                  ) ?? null;
-                if (
-                  !selectedCatalogActionId ||
-                  !selectedOption ||
-                  !questionMarkdown.trim()
-                ) {
+              onConfirm={async () => {
+                if (!selectedTopicId || !questionMarkdown.trim()) {
                   return;
                 }
 
-                let topicName: string;
-                if (selectedOption.type === "save-existing") {
-                  const selectedTopic = existingCatalogCandidates.find(
-                    (topic) => topic.id === selectedExistingCatalogId,
-                  );
-                  if (!selectedTopic) {
-                    alert("请选择有效的题库");
-                    return;
-                  }
-                  topicName = selectedTopic.name;
-                } else {
-                  topicName = newCatalogInput.trim();
-                  if (!topicName) {
-                    alert("请输入题库名称");
-                    return;
-                  }
+                const selectedTopic = existingCatalogCandidates.find(
+                  (topic) => topic.id === selectedTopicId,
+                );
+                if (!selectedTopic) {
+                  alert("请选择有效的题库");
+                  return;
                 }
 
                 setIsSavingToTopic(true);
                 try {
                   const result = await saveQuestionToCatalog({
-                    catalogName: topicName,
+                    topicId: selectedTopicId,
                     questionContent: questionMarkdown.trim(),
                     source: sourceLabel || undefined,
-                    actionType: selectedOption.type,
                     questionType: analysisResult?.questionType,
-                    knowledgePoints: analysisResult?.knowledgePoints,
                   });
 
                   if (result.success) {
-                    alert(`题目已保存到题库"${topicName}"`);
+                    alert(`题目已保存到题库"${selectedTopic.name}"`);
                     setPrompt("");
                     setFiles([]);
                     setQuestionMarkdown("");
-                    setCatalogOptions([]);
                     setExistingCatalogCandidates([]);
-                    setSelectedCatalogActionId(null);
-                    setSelectedExistingCatalogId(null);
-                    setNewCatalogInput("");
+                    setSelectedTopicId(null);
                     setIsEditingQuestion(false);
                     setQuestionDraft("");
                     setSourceLabel(null);

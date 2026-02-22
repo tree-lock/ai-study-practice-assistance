@@ -66,6 +66,7 @@ export async function GET(
       id: topic.id,
       name: topic.name,
       description: topic.description,
+      outline: topic.outline,
     },
     questions: formattedQuestions,
     tags: tagRows,

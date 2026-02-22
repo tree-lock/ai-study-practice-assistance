@@ -18,7 +18,12 @@ export function TopicPageContent({ topicId }: TopicPageContentProps) {
 
   return (
     <>
-      <TopicHeader name={topic.name} description={topic.description} />
+      <TopicHeader
+        topicId={topicId}
+        name={topic.name}
+        description={topic.description}
+        outline={topic.outline}
+      />
       <div className="flex flex-col gap-4">
         <TopicTabs activeTab={activeTab} onTabChange={setActiveTab} />
         <TagFilter

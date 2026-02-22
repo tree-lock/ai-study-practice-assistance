@@ -4,6 +4,7 @@ import { Flex, Text } from "@radix-ui/themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GhostButton } from "@/components/ghost-button";
+import { TopicActionMenu } from "@/components/topic-action-menu";
 
 type Topic = {
   id: string;
@@ -30,17 +31,26 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
       </Text>
       <Flex direction="column">
         {topics.map((topic) => (
-          <GhostButton
+          <div
             key={topic.id}
-            layout="text"
-            isActive={pathname === `/topics/${topic.id}`}
-            asChild
-            className="pl-3"
+            className="group flex items-center justify-between pr-1"
           >
-            <Link href={`/topics/${topic.id}`}>
-              <Text size="2">{topic.name}</Text>
-            </Link>
-          </GhostButton>
+            <GhostButton
+              layout="text"
+              isActive={pathname === `/topics/${topic.id}`}
+              asChild
+              className="min-w-0 flex-1 pl-3"
+            >
+              <Link href={`/topics/${topic.id}`}>
+                <Text size="2" className="truncate">
+                  {topic.name}
+                </Text>
+              </Link>
+            </GhostButton>
+            <div className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100">
+              <TopicActionMenu topicId={topic.id} topicName={topic.name} />
+            </div>
+          </div>
         ))}
       </Flex>
     </Flex>

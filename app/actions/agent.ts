@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
@@ -9,7 +9,7 @@ import {
 } from "@/lib/ai/question-analyzer";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 import { db } from "@/lib/db";
-import { questions, questionTags, tags, topics } from "@/lib/db/schema";
+import { questions, topics } from "@/lib/db/schema";
 import { getTopics } from "./topic";
 
 type PlanStep = {
@@ -81,12 +81,10 @@ const QUESTION_TYPES = [
 ] as const;
 
 const saveToCatalogSchema = z.object({
-  catalogName: z.string().trim().min(1, "题库名称不能为空"),
+  topicId: z.string().uuid("题库参数不合法"),
   questionContent: z.string().trim().min(1, "题目内容不能为空"),
   source: z.string().trim().optional(),
-  actionType: z.enum(["save-existing", "create-new"]),
   questionType: z.enum(QUESTION_TYPES).optional(),
-  knowledgePoints: z.array(z.string().trim()).optional(),
 });
 
 type SaveToCatalogResult =
@@ -109,44 +107,20 @@ export async function saveQuestionToCatalog(
     };
   }
 
-  const {
-    catalogName,
-    questionContent,
-    source,
-    actionType,
-    questionType,
-    knowledgePoints,
-  } = parsed.data;
+  const { topicId, questionContent, source, questionType } = parsed.data;
 
   try {
-    let topicId: string;
+    const existingTopic = await db
+      .select({ id: topics.id })
+      .from(topics)
+      .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+      .limit(1);
 
-    if (actionType === "save-existing") {
-      const existingTopic = await db
-        .select({ id: topics.id })
-        .from(topics)
-        .where(eq(topics.name, catalogName))
-        .limit(1);
-
-      if (existingTopic.length === 0) {
-        return {
-          success: false,
-          error: "指定的题库不存在",
-        };
-      }
-
-      topicId = existingTopic[0].id;
-    } else {
-      const newTopic = await db
-        .insert(topics)
-        .values({
-          name: catalogName,
-          userId,
-          description: `自动创建的题库 - ${new Date().toLocaleDateString("zh-CN")}`,
-        })
-        .returning({ id: topics.id });
-
-      topicId = newTopic[0].id;
+    if (existingTopic.length === 0) {
+      return {
+        success: false,
+        error: "指定的题库不存在或无权限",
+      };
     }
 
     const newQuestion = await db
@@ -161,41 +135,6 @@ export async function saveQuestionToCatalog(
       .returning({ id: questions.id });
 
     const questionId = newQuestion[0].id;
-
-    if (knowledgePoints && knowledgePoints.length > 0) {
-      for (const pointName of knowledgePoints) {
-        const trimmedName = pointName.trim();
-        if (!trimmedName) continue;
-
-        const existingTag = await db
-          .select({ id: tags.id })
-          .from(tags)
-          .where(eq(tags.name, trimmedName))
-          .limit(1);
-
-        let tagId: string;
-        if (existingTag.length > 0) {
-          tagId = existingTag[0].id;
-        } else {
-          const newTag = await db
-            .insert(tags)
-            .values({
-              name: trimmedName,
-              topicId,
-            })
-            .returning({ id: tags.id });
-          tagId = newTag[0].id;
-        }
-
-        await db
-          .insert(questionTags)
-          .values({
-            questionId,
-            tagId,
-          })
-          .onConflictDoNothing();
-      }
-    }
 
     revalidatePath("/");
     revalidatePath(`/topics/${topicId}`);

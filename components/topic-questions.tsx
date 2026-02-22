@@ -16,22 +16,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   createQuestionsInTopic,
-  type QuestionType,
   type TopicQuestion,
 } from "@/app/actions/question";
+import { QUESTION_TYPE_LABELS, type QuestionType } from "@/lib/ai/types";
 
 type TopicQuestionsProps = {
   topicId: string;
   initialQuestions: Array<TopicQuestion>;
-};
-
-const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
-  choice: "选择题",
-  blank: "填空题",
-  subjective: "主观题",
-  application: "应用题",
-  proof: "证明题",
-  comprehensive: "综合题",
 };
 
 export function TopicQuestions({
@@ -200,7 +191,7 @@ export function TopicQuestions({
                   <Flex direction="column" gap="2">
                     <Flex align="center" gap="2">
                       <Badge color="blue">
-                        {QUESTION_TYPE_LABEL[question.type]}
+                        {QUESTION_TYPE_LABELS[question.type]}
                       </Badge>
                       {question.source ? (
                         <Badge color="gray">{question.source}</Badge>

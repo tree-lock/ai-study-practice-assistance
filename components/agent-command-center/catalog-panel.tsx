@@ -1,42 +1,30 @@
 "use client";
 
-import { CheckIcon } from "@radix-ui/react-icons";
-import { Flex, Select, TextField } from "@radix-ui/themes";
-import type { CatalogActionOption } from "./catalog-actions";
+import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { Callout, Flex, Select, Text } from "@radix-ui/themes";
 import type { TopicOption } from "./types";
 
 type CatalogPanelProps = {
-  catalogOptions: Array<CatalogActionOption>;
   existingCatalogCandidates: Array<TopicOption>;
-  selectedCatalogActionId: string | null;
-  selectedExistingCatalogId: string | null;
-  newCatalogInput: string;
+  selectedTopicId: string | null;
+  matchScore: number;
+  suggestedTopicName?: string;
   isSaving: boolean;
-  onSelectCatalogAction: (id: string) => void;
-  onSelectExistingCatalog: (id: string) => void;
-  onNewCatalogInputChange: (value: string) => void;
-  onConfirmCatalogAction: () => void;
+  onSelectTopic: (id: string) => void;
+  onConfirm: () => void;
 };
 
 export function CatalogPanel({
-  catalogOptions,
   existingCatalogCandidates,
-  selectedCatalogActionId,
-  selectedExistingCatalogId,
-  newCatalogInput,
+  selectedTopicId,
+  matchScore,
+  suggestedTopicName,
   isSaving,
-  onSelectCatalogAction,
-  onSelectExistingCatalog,
-  onNewCatalogInputChange,
-  onConfirmCatalogAction,
+  onSelectTopic,
+  onConfirm,
 }: CatalogPanelProps) {
-  const selectedCatalogOption =
-    catalogOptions.find((option) => option.id === selectedCatalogActionId) ??
-    null;
-  const effectiveCatalogValue =
-    selectedCatalogOption?.type === "save-existing"
-      ? selectedCatalogOption?.suggestion
-      : newCatalogInput;
+  const hasTopics = existingCatalogCandidates.length > 0;
+  const isLowMatch = matchScore > 0 && matchScore < 60;
 
   return (
     <Flex
@@ -44,35 +32,35 @@ export function CatalogPanel({
       gap="2"
       className="border-t border-[#eef2f7] pt-2.5"
     >
-      <Flex gap="2" align="center" className="w-full">
-        <Select.Root
-          value={selectedCatalogActionId ?? undefined}
-          onValueChange={onSelectCatalogAction}
-          size="2"
-        >
-          <Select.Trigger
-            aria-label="选择题库操作"
-            placeholder="选择题库操作"
-            className="min-w-[150px] shrink-0"
-          />
-          <Select.Content position="popper">
-            {catalogOptions.map((option) => (
-              <Select.Item key={option.id} value={option.id}>
-                {option.optionLabel}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
-        {selectedCatalogOption?.type === "save-existing" ? (
+      {isLowMatch && suggestedTopicName && (
+        <Callout.Root color="amber" size="1">
+          <Callout.Icon>
+            <ExclamationTriangleIcon />
+          </Callout.Icon>
+          <Callout.Text>
+            匹配度较低，建议新建题库：「{suggestedTopicName}」
+          </Callout.Text>
+        </Callout.Root>
+      )}
+
+      {!hasTopics ? (
+        <Text size="2" color="gray">
+          暂无题库，请先在侧边栏创建题库
+        </Text>
+      ) : (
+        <Flex gap="2" align="center" className="w-full">
+          <Text size="2" color="gray" className="shrink-0">
+            保存到：
+          </Text>
           <div className="min-w-0 flex-1">
             <Select.Root
-              value={selectedExistingCatalogId || undefined}
-              onValueChange={onSelectExistingCatalog}
+              value={selectedTopicId || undefined}
+              onValueChange={onSelectTopic}
               size="2"
             >
               <Select.Trigger
-                aria-label="选择已有题库"
-                placeholder="选择已有题库"
+                aria-label="选择题库"
+                placeholder="选择题库"
                 style={{ width: "100%" }}
               />
               <Select.Content position="popper">
@@ -84,42 +72,27 @@ export function CatalogPanel({
               </Select.Content>
             </Select.Root>
           </div>
-        ) : (
-          <div className="min-w-0 flex-1">
-            <TextField.Root
-              size="2"
-              aria-label="题库名称"
-              value={newCatalogInput}
-              onChange={(event) => onNewCatalogInputChange(event.target.value)}
-              placeholder="输入题库名称"
-              style={{ width: "100%" }}
-            />
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={onConfirmCatalogAction}
-          disabled={
-            isSaving ||
-            !selectedCatalogActionId ||
-            !effectiveCatalogValue.trim()
-          }
-          aria-label="确认题库方案"
-          className={`inline-flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-none text-white transition-all duration-150 ease-in-out ${
-            isSaving
-              ? "bg-blue-400 opacity-70"
-              : selectedCatalogActionId && effectiveCatalogValue.trim()
-                ? "bg-blue-600 opacity-100 shadow-[0_4px_10px_rgba(37,99,235,0.28)]"
-                : "bg-blue-300 opacity-70"
-          }`}
-        >
-          {isSaving ? (
-            <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          ) : (
-            <CheckIcon width={14} height={14} />
-          )}
-        </button>
-      </Flex>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isSaving || !selectedTopicId}
+            aria-label="确认保存"
+            className={`inline-flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-none text-white transition-all duration-150 ease-in-out ${
+              isSaving
+                ? "bg-blue-400 opacity-70"
+                : selectedTopicId
+                  ? "bg-blue-600 opacity-100 shadow-[0_4px_10px_rgba(37,99,235,0.28)]"
+                  : "bg-blue-300 opacity-70"
+            }`}
+          >
+            {isSaving ? (
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <CheckIcon width={14} height={14} />
+            )}
+          </button>
+        </Flex>
+      )}
     </Flex>
   );
 }

@@ -7,6 +7,7 @@ type TopicInfo = {
   id: string;
   name: string;
   description: string | null;
+  outline: string | null;
 };
 
 type TopicData = {
@@ -63,6 +64,26 @@ export function updateTopicQuestionsCache(
       return {
         ...current,
         questions: updater(current.questions),
+      };
+    },
+    false,
+  );
+}
+
+/**
+ * 更新题库大纲缓存
+ */
+export function updateTopicOutlineCache(topicId: string, outline: string) {
+  mutate(
+    `/api/topics/${topicId}`,
+    (current: TopicData | undefined) => {
+      if (!current) return current;
+      return {
+        ...current,
+        topic: {
+          ...current.topic,
+          outline,
+        },
       };
     },
     false,

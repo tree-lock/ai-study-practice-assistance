@@ -1,8 +1,12 @@
 "use client";
 
-import { CheckIcon, Cross2Icon, Pencil2Icon } from "@radix-ui/react-icons";
-import { Badge, Flex, Text } from "@radix-ui/themes";
-import type { CatalogActionOption } from "./catalog-actions";
+import {
+  CheckIcon,
+  Cross2Icon,
+  ExclamationTriangleIcon,
+  Pencil2Icon,
+} from "@radix-ui/react-icons";
+import { Badge, Callout, Flex, Text } from "@radix-ui/themes";
 import { CatalogPanel } from "./catalog-panel";
 import { QuestionMarkdownContent } from "./question-markdown-content";
 import type { AnalysisResult, TopicOption } from "./types";
@@ -20,16 +24,11 @@ type QuestionPanelProps = {
   onStartEdit: () => void;
   onCancelEdit: () => void;
   onSaveEdit: () => void;
-  catalogOptions: Array<CatalogActionOption>;
   existingCatalogCandidates: Array<TopicOption>;
-  selectedCatalogActionId: string | null;
-  selectedExistingCatalogId: string | null;
-  newCatalogInput: string;
+  selectedTopicId: string | null;
   isSaving: boolean;
-  onSelectCatalogAction: (id: string) => void;
-  onSelectExistingCatalog: (id: string) => void;
-  onNewCatalogInputChange: (value: string) => void;
-  onConfirmCatalogAction: () => void;
+  onSelectTopic: (id: string) => void;
+  onConfirm: () => void;
 };
 
 export function QuestionPanel({
@@ -43,16 +42,11 @@ export function QuestionPanel({
   onStartEdit,
   onCancelEdit,
   onSaveEdit,
-  catalogOptions,
   existingCatalogCandidates,
-  selectedCatalogActionId,
-  selectedExistingCatalogId,
-  newCatalogInput,
+  selectedTopicId,
   isSaving,
-  onSelectCatalogAction,
-  onSelectExistingCatalog,
-  onNewCatalogInputChange,
-  onConfirmCatalogAction,
+  onSelectTopic,
+  onConfirm,
 }: QuestionPanelProps) {
   return (
     <Flex direction="column" gap="2" className="py-3 px-3.5">
@@ -119,18 +113,13 @@ export function QuestionPanel({
             </Text>
           ) : null}
 
-          {analysisResult?.knowledgePoints &&
-          analysisResult.knowledgePoints.length > 0 ? (
-            <Flex gap="1" wrap="wrap" align="center">
-              <Text size="1" color="gray">
-                知识点:
-              </Text>
-              {analysisResult.knowledgePoints.map((point) => (
-                <Badge key={point} color="green" variant="soft" size="1">
-                  {point}
-                </Badge>
-              ))}
-            </Flex>
+          {analysisResult?.notice ? (
+            <Callout.Root color="amber" size="1">
+              <Callout.Icon>
+                <ExclamationTriangleIcon />
+              </Callout.Icon>
+              <Callout.Text>{analysisResult.notice}</Callout.Text>
+            </Callout.Root>
           ) : null}
 
           {isEditing ? (
@@ -143,33 +132,19 @@ export function QuestionPanel({
             <QuestionMarkdownContent questionMarkdown={questionMarkdown} />
           )}
 
-          {analysisResult?.catalogRecommendation?.reason ? (
-            <Flex
-              className="rounded-lg bg-blue-50 px-3 py-2"
-              direction="column"
-              gap="1"
-            >
-              <Text size="1" weight="medium" color="blue">
-                AI 推荐
-              </Text>
-              <Text size="2" color="gray">
-                {analysisResult.catalogRecommendation.reason}
-              </Text>
-            </Flex>
-          ) : null}
-
-          {!isEditing && catalogOptions.length > 0 ? (
+          {!isEditing ? (
             <CatalogPanel
-              catalogOptions={catalogOptions}
               existingCatalogCandidates={existingCatalogCandidates}
-              selectedCatalogActionId={selectedCatalogActionId}
-              selectedExistingCatalogId={selectedExistingCatalogId}
-              newCatalogInput={newCatalogInput}
+              selectedTopicId={selectedTopicId}
+              matchScore={
+                analysisResult?.catalogRecommendation?.matchScore ?? 0
+              }
+              suggestedTopicName={
+                analysisResult?.catalogRecommendation?.suggestedTopicName
+              }
               isSaving={isSaving}
-              onSelectCatalogAction={onSelectCatalogAction}
-              onSelectExistingCatalog={onSelectExistingCatalog}
-              onNewCatalogInputChange={onNewCatalogInputChange}
-              onConfirmCatalogAction={onConfirmCatalogAction}
+              onSelectTopic={onSelectTopic}
+              onConfirm={onConfirm}
             />
           ) : null}
         </Flex>

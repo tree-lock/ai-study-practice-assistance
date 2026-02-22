@@ -6,19 +6,9 @@ export type UploadFileItem = {
 
 export type GenerateStatus = "idle" | "generating" | "done" | "stopped";
 
-export type CatalogActionType = "save-existing" | "create-new";
-
 export type TopicOption = {
   id: string;
   name: string;
-};
-
-export type CatalogActionOption = {
-  id: string;
-  type: CatalogActionType;
-  optionLabel: string;
-  suggestion: string;
-  topicId?: string;
 };
 
 export type QuestionType =
@@ -30,16 +20,16 @@ export type QuestionType =
   | "comprehensive";
 
 export type CatalogRecommendation = {
-  action: "use-existing" | "create-new";
-  topicId?: string;
+  topicId: string;
   topicName: string;
-  reason: string;
+  matchScore: number;
+  suggestedTopicName?: string;
 };
 
 export type AnalysisResult = {
   formattedContent: string;
   questionType: QuestionType;
   questionTypeLabel: string;
-  knowledgePoints: string[];
   catalogRecommendation: CatalogRecommendation;
+  notice?: string;
 };
