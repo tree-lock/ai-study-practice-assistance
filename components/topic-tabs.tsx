@@ -47,10 +47,12 @@ export function TopicTabs({ activeTab, onTabChange }: TopicTabsProps) {
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
-          <Button variant="ghost" color="gray">
-            {currentSort?.label ?? "排序"}
-            <ChevronDownIcon />
-          </Button>
+          <div className="p-px">
+            <Button variant="ghost" color="gray">
+              {currentSort?.label ?? "排序"}
+              <ChevronDownIcon />
+            </Button>
+          </div>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           {SORT_OPTIONS.map((opt) => (

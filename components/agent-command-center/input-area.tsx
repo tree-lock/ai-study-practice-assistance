@@ -10,7 +10,6 @@ import {
 } from "@radix-ui/react-icons";
 import { Flex, IconButton } from "@radix-ui/themes";
 import { useCallback, useEffect, useRef } from "react";
-import { GhostButton } from "@/components/ghost-button";
 import { FileUpload } from "./file-upload";
 import type { UploadFileItem } from "./types";
 
@@ -134,14 +133,16 @@ export function InputArea({
           : "min-h-[140px] border border-[#e8ecf1] bg-[#fafbfc]"
       } ${isMaximized ? "min-h-[560px] max-h-[72vh]" : ""}`}
     >
-      <GhostButton
-        layout="icon"
-        aria-label={isMaximized ? "退出最大化" : "最大化输入框"}
-        onClick={() => onIsMaximizedChange(!isMaximized)}
-        className="absolute top-2.5 right-2.5"
-      >
-        {isMaximized ? <ExitFullScreenIcon /> : <EnterFullScreenIcon />}
-      </GhostButton>
+      <div className="absolute top-2.5 right-2.5 p-px">
+        <IconButton
+          variant="ghost"
+          color="gray"
+          aria-label={isMaximized ? "退出最大化" : "最大化输入框"}
+          onClick={() => onIsMaximizedChange(!isMaximized)}
+        >
+          {isMaximized ? <ExitFullScreenIcon /> : <EnterFullScreenIcon />}
+        </IconButton>
+      </div>
       <input
         ref={fileInputRef}
         type="file"

@@ -121,9 +121,11 @@ export const topics = pgTable("topics", {
 
 export const questions = pgTable("questions", {
   id: uuid("id").defaultRandom().primaryKey(),
-  topicId: uuid("topic_id").references(() => topics.id, {
-    onDelete: "set null",
-  }),
+  topicId: uuid("topic_id")
+    .notNull()
+    .references(() => topics.id, {
+      onDelete: "cascade",
+    }),
   content: text("content").notNull(), // Markdown/LaTeX
   type: questionTypeEnum("type").notNull(),
   difficulty: difficultyEnum("difficulty").default("medium"),

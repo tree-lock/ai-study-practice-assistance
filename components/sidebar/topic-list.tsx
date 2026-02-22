@@ -3,7 +3,6 @@
 import { Flex, Text } from "@radix-ui/themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GhostButton } from "@/components/ghost-button";
 import { TopicActionMenu } from "@/components/topic-action-menu";
 
 type Topic = {
@@ -30,28 +29,37 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
         题库
       </Text>
       <Flex direction="column">
-        {topics.map((topic) => (
-          <div
-            key={topic.id}
-            className="group flex items-center justify-between pr-1"
-          >
-            <GhostButton
-              layout="text"
-              isActive={pathname === `/topics/${topic.id}`}
-              asChild
-              className="min-w-0 flex-1 pl-3"
+        {topics.map((topic) => {
+          const isActive = pathname === `/topics/${topic.id}`;
+          return (
+            <div
+              key={topic.id}
+              className={`group flex items-center rounded-md transition-colors ${
+                isActive
+                  ? "bg-blue-200"
+                  : "bg-transparent hover:bg-gray-200 active:bg-gray-300"
+              }`}
             >
-              <Link href={`/topics/${topic.id}`}>
+              <Link
+                href={`/topics/${topic.id}`}
+                className="min-w-0 flex-1 py-1.5 pl-3 pr-2 text-[13px] text-gray-700 no-underline"
+              >
                 <Text size="2" className="truncate">
                   {topic.name}
                 </Text>
               </Link>
-            </GhostButton>
-            <div className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100">
-              <TopicActionMenu topicId={topic.id} topicName={topic.name} />
+              <div
+                className={`transition-opacity ${
+                  isActive
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100 group-has-[[data-state='open']]:opacity-100"
+                }`}
+              >
+                <TopicActionMenu topicId={topic.id} topicName={topic.name} />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </Flex>
     </Flex>
   );

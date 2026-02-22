@@ -1,11 +1,17 @@
 "use client";
 
 import { MagicWandIcon, Pencil1Icon } from "@radix-ui/react-icons";
-import { Button, Dialog, Spinner, Text, TextArea } from "@radix-ui/themes";
+import {
+  Button,
+  Dialog,
+  IconButton,
+  Spinner,
+  Text,
+  TextArea,
+} from "@radix-ui/themes";
 import { useState, useTransition } from "react";
 import { generateTopicOutline, updateTopicOutline } from "@/app/actions/topic";
 import { updateTopicOutlineCache } from "@/lib/hooks/use-topic-data";
-import { GhostButton } from "./ghost-button";
 
 type OutlineEditorProps = {
   topicId: string;
@@ -74,13 +80,16 @@ export function OutlineEditor({ topicId, outline }: OutlineEditorProps) {
           <Text size="2" color="gray" className="flex-1">
             {outline}
           </Text>
-          <GhostButton
-            layout="icon"
-            onClick={() => setIsOpen(true)}
-            aria-label="编辑大纲"
-          >
-            <Pencil1Icon />
-          </GhostButton>
+          <div className="p-px">
+            <IconButton
+              variant="ghost"
+              color="gray"
+              onClick={() => setIsOpen(true)}
+              aria-label="编辑大纲"
+            >
+              <Pencil1Icon />
+            </IconButton>
+          </div>
         </div>
       ) : (
         <div className="flex items-center gap-2">

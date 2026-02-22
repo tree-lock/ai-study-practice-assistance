@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  DotsHorizontalIcon,
+  DotsVerticalIcon,
   Pencil1Icon,
   TrashIcon,
 } from "@radix-ui/react-icons";
@@ -17,7 +17,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteTopic, updateTopic } from "@/app/actions/topic";
-import { GhostButton } from "./ghost-button";
+import { GhostIconButton } from "./ghost-icon-button";
 
 type TopicActionMenuProps = {
   topicId: string;
@@ -68,17 +68,15 @@ export function TopicActionMenu({ topicId, topicName }: TopicActionMenuProps) {
     });
   };
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <>
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger>
-          <GhostButton
-            layout="icon"
-            aria-label="题库操作"
-            onClick={(e) => e.preventDefault()}
-          >
-            <DotsHorizontalIcon />
-          </GhostButton>
+      <DropdownMenu.Root open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        <DropdownMenu.Trigger data-state={isMenuOpen ? "open" : "closed"}>
+          <GhostIconButton aria-label="题库操作">
+            <DotsVerticalIcon />
+          </GhostIconButton>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content size="1">
           <DropdownMenu.Item
@@ -148,7 +146,7 @@ export function TopicActionMenu({ topicId, topicName }: TopicActionMenuProps) {
           <AlertDialog.Title>确认删除题库</AlertDialog.Title>
           <AlertDialog.Description size="2">
             确定要删除题库「{topicName}
-            」吗？删除后，该题库下的题目将失去归属，但不会被删除。
+            」吗？删除后，该题库下的所有题目也将被删除，此操作不可恢复。
           </AlertDialog.Description>
 
           {error && (

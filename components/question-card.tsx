@@ -27,16 +27,11 @@ export function QuestionCard({ question, topicId }: QuestionCardProps) {
     >
       <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
         <Flex direction="column" gap="2">
-          <Flex align="center" gap="2">
+          <div className="w-fit">
             <Badge color="gray" variant="soft">
               {TYPE_LABEL[question.type]}
             </Badge>
-            {question.source ? (
-              <Badge color="blue" variant="soft">
-                {question.source}
-              </Badge>
-            ) : null}
-          </Flex>
+          </div>
           <div className="line-clamp-3">
             <QuestionMarkdownContent questionMarkdown={question.content} />
           </div>

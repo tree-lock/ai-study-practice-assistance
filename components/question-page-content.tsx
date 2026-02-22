@@ -2,8 +2,8 @@
 
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import {
-  Badge,
   Box,
+  Button,
   Card,
   Flex,
   Heading,
@@ -17,17 +17,7 @@ import {
   type QuestionWithDetails,
 } from "@/app/actions/question";
 import { QuestionMarkdownContent } from "./agent-command-center/question-markdown-content";
-import { GhostButton } from "./ghost-button";
 import { SolutionGenerator } from "./solution-generator";
-
-const TYPE_LABEL: Record<QuestionWithDetails["type"], string> = {
-  choice: "选择题",
-  blank: "填空题",
-  subjective: "主观题",
-  application: "应用题",
-  proof: "证明题",
-  comprehensive: "综合题",
-};
 
 type QuestionPageContentProps = {
   topicId: string;
@@ -71,12 +61,14 @@ export function QuestionPageContent({
           className="h-full py-9"
         >
           <Heading size="4">题目不存在或无权限访问</Heading>
-          <GhostButton layout="icon-text" asChild>
-            <Link href={`/topics/${topicId}`}>
-              <ArrowLeftIcon />
-              返回题库
-            </Link>
-          </GhostButton>
+          <div className="p-px">
+            <Button variant="ghost" color="gray" asChild>
+              <Link href={`/topics/${topicId}`}>
+                <ArrowLeftIcon />
+                返回题库
+              </Link>
+            </Button>
+          </div>
         </Flex>
       </Card>
     );
@@ -84,25 +76,16 @@ export function QuestionPageContent({
 
   return (
     <Flex direction="column" gap="4" className="min-h-[calc(100vh-170px)]">
-      <GhostButton layout="icon-text" asChild>
-        <Link href={`/topics/${topicId}`}>
-          <ArrowLeftIcon />
-          返回题库
-        </Link>
-      </GhostButton>
+      <div className="p-px w-fit">
+        <Button variant="ghost" color="gray" asChild>
+          <Link href={`/topics/${topicId}`}>
+            <ArrowLeftIcon />
+            返回题库
+          </Link>
+        </Button>
+      </div>
 
       <Card style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <Flex align="center" gap="2">
-          <Badge color="gray" variant="soft">
-            {TYPE_LABEL[question.type]}
-          </Badge>
-          {question.source ? (
-            <Badge color="blue" variant="soft">
-              {question.source}
-            </Badge>
-          ) : null}
-        </Flex>
-
         <Box className="prose prose-sm max-w-none py-4">
           <QuestionMarkdownContent questionMarkdown={question.content} />
         </Box>

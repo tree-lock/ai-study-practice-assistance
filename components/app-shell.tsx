@@ -1,6 +1,5 @@
 import { GearIcon } from "@radix-ui/react-icons";
-import { Box, Flex, Heading, Text } from "@radix-ui/themes";
-import { GhostButton } from "@/components/ghost-button";
+import { Box, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
 import { Sidebar } from "@/components/sidebar";
 
 type Topic = {
@@ -47,9 +46,9 @@ export function AppShell({
             {floatingActions ? (
               <Box className="absolute top-5 right-5 z-10">
                 <Flex align="center" gap="2">
-                  <GhostButton layout="icon" aria-label="设置">
+                  <IconButton variant="ghost" color="gray" aria-label="设置">
                     <GearIcon />
-                  </GhostButton>
+                  </IconButton>
                   {floatingActions}
                 </Flex>
               </Box>
@@ -66,9 +65,11 @@ export function AppShell({
                   ) : null}
                 </Box>
                 <Flex align="center" gap="2">
-                  <GhostButton layout="icon" aria-label="设置">
-                    <GearIcon />
-                  </GhostButton>
+                  <div className="p-px">
+                    <IconButton variant="ghost" color="gray" aria-label="设置">
+                      <GearIcon />
+                    </IconButton>
+                  </div>
                   {headerActions}
                 </Flex>
               </Flex>

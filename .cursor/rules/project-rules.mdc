@@ -37,8 +37,8 @@ alwaysApply: true
   - **Styling Best Practices**:
     - Use Tailwind CSS `className` when possible; prefer it over inline `style`.
     - Unless necessary, avoid using `margin`. Prefer `padding`, `flex + gap`, or other layout techniques to prevent margin collapse issues.
-  - **Ghost buttons**: Do NOT use Radix `IconButton` or `Button` with `variant="ghost"` — they apply negative margins that cause layout bugs. Use the custom `GhostButton` component from `@/components/ghost-button` instead (layout: "icon" | "icon-text" | "text").
-  - **Navigation**: Use Next.js `Link` for in-app navigation. Do NOT use `onClick={() => (window.location.href = "/path")}` — use `Link` (optionally with `GhostButton asChild`) for client-side navigation without full page reload.
+  - **Ghost buttons**: Radix `IconButton` and `Button` with `variant="ghost"` apply negative margins that can cause layout issues. For standalone icon buttons, wrap them in a container with `className="p-px"` to prevent margin collapse. Full-width buttons in flex containers (like sidebar actions) don't need this wrapper.
+  - **Navigation**: Use Next.js `Link` for in-app navigation. Do NOT use `onClick={() => (window.location.href = "/path")}` — use `Link` (optionally with `Button asChild`) for client-side navigation without full page reload.
   - **Radix UI Themes & className**:
     - Some Radix components apply `className` to a wrapper or have high-specificity CSS that overrides Tailwind utilities. For layout and sizing, use `style` when `className` does not produce the expected result.
     - Components known to require `style` for layout/sizing in this project:

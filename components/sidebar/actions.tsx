@@ -3,22 +3,30 @@
 import { FilePlusIcon, PlusIcon } from "@radix-ui/react-icons";
 import { Flex, Text, TextField } from "@radix-ui/themes";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createTopic } from "@/app/actions/topic";
-import { GhostButton } from "@/components/ghost-button";
 
 type SidebarActionsProps = {
   collapsed: boolean;
   onExpand: () => void;
 };
 
+const actionItemClass =
+  "flex items-center gap-2 rounded-md py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300 cursor-pointer";
+
+const actionItemActiveClass =
+  "flex items-center gap-2 rounded-md bg-blue-200 py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors cursor-pointer";
+
 export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
   const [newTopicName, setNewTopicName] = useState("");
   const [createError, setCreateError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isNewQuestionPage = pathname === "/";
 
   const handleCreateTopic = async () => {
     const name = newTopicName.trim();
@@ -47,32 +55,27 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
 
   return (
     <Flex direction="column" className="pt-2">
-      <GhostButton
-        asChild
-        layout="icon-text"
+      <Link
+        href="/"
+        className={isNewQuestionPage ? actionItemActiveClass : actionItemClass}
+        onClick={(e) => {
+          if (collapsed) {
+            e.preventDefault();
+            onExpand();
+          }
+        }}
         aria-label="新增题目"
-        className="pl-3"
       >
-        <Link
-          href="/"
-          className="text-inherit no-underline"
-          onClick={(e) => {
-            if (collapsed) {
-              e.preventDefault();
-              onExpand();
-            }
-          }}
-        >
-          <FilePlusIcon />
-          <Text size="2" className={collapsed ? "hidden" : ""}>
-            新增题目
-          </Text>
-        </Link>
-      </GhostButton>
+        <FilePlusIcon />
+        <Text size="2" className={collapsed ? "hidden" : ""}>
+          新增题目
+        </Text>
+      </Link>
 
       {isCreatingTopic && !collapsed ? (
-        <Flex direction="column" gap="1" className="px-2">
+        <div className="py-1 pl-3 pr-1">
           <form
+            className="w-full"
             onSubmit={(e) => {
               e.preventDefault();
               void handleCreateTopic();
@@ -85,7 +88,7 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
             }}
           >
             <TextField.Root
-              size="2"
+              size="1"
               value={newTopicName}
               onChange={(e) => {
                 setNewTopicName(e.target.value);
@@ -103,14 +106,15 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
             />
           </form>
           {createError ? (
-            <Text size="1" color="red">
+            <Text size="1" color="red" className="mt-1 block">
               {createError}
             </Text>
           ) : null}
-        </Flex>
+        </div>
       ) : (
-        <GhostButton
-          layout="icon-text"
+        <button
+          type="button"
+          className={actionItemClass}
           onClick={() => {
             if (collapsed) {
               onExpand();
@@ -119,13 +123,12 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
             }
           }}
           aria-label="新建题库"
-          className="pl-3"
         >
           <PlusIcon />
           <Text size="2" className={collapsed ? "hidden" : ""}>
             新建题库
           </Text>
-        </GhostButton>
+        </button>
       )}
     </Flex>
   );
