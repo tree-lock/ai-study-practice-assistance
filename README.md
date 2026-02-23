@@ -15,6 +15,7 @@
 
 ### AI 智能题目分析
 
+- **多模态导入**：支持文字、图片、PDF、Word、PPT、HTML 等，通过 [MinerU](https://mineru.net) 解析为 Markdown
 - **智能解析**：输入原始题目文本，AI 自动格式化为结构化 Markdown + LaTeX
 - **题型识别**：自动识别 6 种题型（选择题、填空题、主观题、应用题、证明题、综合题）
 - **知识点提取**：AI 自动提取 1-3 个知识点标签
@@ -36,7 +37,7 @@
 
 - [ ] 基础刷题界面（选择题答题交互）
 - [ ] 做题记录与学习状态追踪
-- [ ] 文件上传（S3/R2）与图片/PDF OCR 解析
+- [x] 图片/文档上传与 MinerU 解析（PDF、Word、PPT、图片、HTML）
 - [ ] AI 判题（填空题/主观题智能批改）
 - [ ] 艾宾浩斯复习算法调度
 - [ ] 错题变式生成
@@ -109,6 +110,10 @@ AUTH_GOOGLE_SECRET="..."
 
 # AI 模型 (MiniMax)
 MINIMAX_API_KEY="..."
+
+# MinerU 文档解析 (图片/PDF/Office 转 Markdown)
+# 在 https://mineru.net/apiManage 申请 Token
+MINERU_API_TOKEN="..."
 ```
 
 ### 4. 启动数据库

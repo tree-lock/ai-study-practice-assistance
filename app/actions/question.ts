@@ -28,10 +28,15 @@ const createQuestionSchema = z
     type: z.enum(QUESTION_TYPES).default("subjective"),
     source: z.string().trim().optional(),
     fileNames: z.array(z.string().trim().min(1)).default([]),
+    parsedContents: z.array(z.string().trim().min(1)).default([]),
   })
   .refine(
     (input) => {
-      return Boolean(input.content) || input.fileNames.length > 0;
+      return (
+        Boolean(input.content) ||
+        input.fileNames.length > 0 ||
+        input.parsedContents.length > 0
+      );
     },
     { message: "请填写题目内容，或至少上传一个文件" },
   );
@@ -142,6 +147,7 @@ export async function createQuestionsInTopic(input: {
   type?: QuestionType;
   source?: string;
   fileNames?: Array<string>;
+  parsedContents?: Array<string>;
 }) {
   const userId = await getCurrentUserId();
   if (!userId) {
@@ -151,6 +157,7 @@ export async function createQuestionsInTopic(input: {
   const parsed = createQuestionSchema.safeParse({
     ...input,
     fileNames: input.fileNames ?? [],
+    parsedContents: input.parsedContents ?? [],
   });
 
   if (!parsed.success) {
@@ -175,6 +182,16 @@ export async function createQuestionsInTopic(input: {
     rows.push({
       topicId: parsed.data.topicId,
       content: parsed.data.content,
+      type: parsed.data.type,
+      source: parsed.data.source,
+      creatorId: userId,
+    });
+  }
+
+  for (const content of parsed.data.parsedContents) {
+    rows.push({
+      topicId: parsed.data.topicId,
+      content,
       type: parsed.data.type,
       source: parsed.data.source,
       creatorId: userId,

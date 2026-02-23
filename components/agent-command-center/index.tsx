@@ -5,11 +5,36 @@ import {
   analyzeQuestionAction,
   saveQuestionToCatalog,
 } from "@/app/actions/agent";
+import {
+  getMineruExtractResult,
+  submitMineruExtract,
+} from "@/app/actions/mineru";
 import { getTopics } from "@/app/actions/topic";
 import { InputArea } from "./input-area";
 import { QuestionPanel } from "./question-panel";
 import { textToMarkdown } from "./text-to-markdown";
 import type { AnalysisResult, TopicOption, UploadFileItem } from "./types";
+
+const MINERU_EXTENSIONS = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".ppt",
+  ".pptx",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".html",
+];
+
+function isMineruFile(file: File): boolean {
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+  return MINERU_EXTENSIONS.includes(ext);
+}
+
+async function readPlainTextFile(file: File): Promise<string> {
+  return file.text();
+}
 
 export function AgentCommandCenter() {
   const [prompt, setPrompt] = useState("");
@@ -31,6 +56,9 @@ export function AgentCommandCenter() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
     null,
   );
+  const [parsePhase, setParsePhase] = useState<
+    "uploading" | "parsing" | "analyzing" | null
+  >(null);
   const generateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function toUploadItem(file: File): UploadFileItem {
@@ -79,27 +107,111 @@ export function AgentCommandCenter() {
     setQuestionDraft("");
     setSourceLabel(null);
     setAnalysisResult(null);
+    setParsePhase(null);
 
     const hasPromptText = prompt.trim().length > 0;
+    const hasFiles = files.length > 0;
 
-    if (!hasPromptText) {
+    if (!hasPromptText && !hasFiles) {
       setGenerateStatus("stopped");
       return;
     }
 
+    const parts: string[] = [];
+
     try {
-      const result = await analyzeQuestionAction({ rawContent: prompt.trim() });
+      if (hasFiles) {
+        const mineruItems = files.filter((item) => isMineruFile(item.file));
+        const plainItems = files.filter((item) => !isMineruFile(item.file));
+
+        for (const item of plainItems) {
+          setParsePhase("parsing");
+          const text = await readPlainTextFile(item.file);
+          if (text.trim()) {
+            parts.push(text);
+            console.log(`【文档解析】${item.file.name}:\n`, text);
+          }
+        }
+
+        if (mineruItems.length > 0) {
+          setParsePhase("uploading");
+          const formData = new FormData();
+          for (const item of mineruItems) {
+            formData.append("file", item.file);
+          }
+
+          const submitResult = await submitMineruExtract(formData);
+          if (!submitResult.success) {
+            setGenerateStatus("stopped");
+            setParsePhase(null);
+            alert(`解析失败：${submitResult.error}`);
+            return;
+          }
+
+          setParsePhase("parsing");
+          let batchDone = false;
+          let pollResult: Awaited<
+            ReturnType<typeof getMineruExtractResult>
+          > | null = null;
+
+          while (!batchDone) {
+            pollResult = await getMineruExtractResult(submitResult.batchId);
+            if (!pollResult.success && pollResult.state === "failed") {
+              setGenerateStatus("stopped");
+              setParsePhase(null);
+              alert(`解析失败：${pollResult.error}`);
+              return;
+            }
+            batchDone =
+              pollResult.state === "done" || pollResult.state === "failed";
+            if (!batchDone) {
+              await new Promise((r) => setTimeout(r, 2500));
+            }
+          }
+
+          if (
+            pollResult?.success &&
+            pollResult.state === "done" &&
+            pollResult.markdownContents?.length
+          ) {
+            for (let i = 0; i < pollResult.markdownContents.length; i += 1) {
+              const md = pollResult.markdownContents[i];
+              const fileName = mineruItems[i]?.file.name ?? `文件${i + 1}`;
+              console.log(`【MinerU 解析】${fileName}:\n`, md);
+            }
+            parts.push(...pollResult.markdownContents);
+          }
+        }
+
+        setParsePhase(null);
+      }
+
+      if (hasPromptText) {
+        parts.unshift(prompt.trim());
+      }
+
+      const rawContent = parts.join("\n\n---\n\n").trim();
+      console.log("【合并后的原始内容】:\n", rawContent);
+      if (!rawContent) {
+        setGenerateStatus("stopped");
+        alert("未能从文件或文字中提取到有效内容");
+        return;
+      }
+
+      setParsePhase("analyzing");
+      const result = await analyzeQuestionAction({ rawContent });
+      setParsePhase(null);
 
       if (!result.success) {
         console.error("AI 分析失败:", result.error);
-        const convertedMarkdown = textToMarkdown(prompt);
-        const topics = await getTopics();
-        const topicOptions: Array<TopicOption> = topics.map((topic) => ({
+        const convertedMarkdown = textToMarkdown(rawContent);
+        const topicsData = await getTopics();
+        const topicOptions: Array<TopicOption> = topicsData.map((topic) => ({
           id: topic.id,
           name: topic.name,
         }));
 
-        setSourceLabel("文字输入（AI 分析失败，使用本地转换）");
+        setSourceLabel("文字/文档输入（AI 分析失败，使用本地转换）");
         setQuestionMarkdown(convertedMarkdown);
         setExistingCatalogCandidates(topicOptions);
         setSelectedTopicId(topicOptions[0]?.id ?? null);
@@ -111,8 +223,8 @@ export function AgentCommandCenter() {
       const analysis = result.data;
       setAnalysisResult(analysis);
 
-      const topics = await getTopics();
-      const topicOptions: Array<TopicOption> = topics.map((topic) => ({
+      const topicsData = await getTopics();
+      const topicOptions: Array<TopicOption> = topicsData.map((topic) => ({
         id: topic.id,
         name: topic.name,
       }));
@@ -134,6 +246,7 @@ export function AgentCommandCenter() {
     } catch (error) {
       console.error("生成失败:", error);
       setGenerateStatus("stopped");
+      setParsePhase(null);
     }
   }
 
@@ -170,6 +283,7 @@ export function AgentCommandCenter() {
           <div className="flex flex-col overflow-hidden rounded-xl border border-[#e5eaf3] bg-white">
             <QuestionPanel
               generateStatus={generateStatus}
+              parsePhase={parsePhase}
               questionMarkdown={questionMarkdown}
               sourceLabel={sourceLabel}
               analysisResult={analysisResult}

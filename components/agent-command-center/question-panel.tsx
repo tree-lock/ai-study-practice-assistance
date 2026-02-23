@@ -12,6 +12,7 @@ type GenerateStatus = "idle" | "generating" | "done" | "stopped";
 
 type QuestionPanelProps = {
   generateStatus: GenerateStatus;
+  parsePhase: "uploading" | "parsing" | "analyzing" | null;
   questionMarkdown: string;
   sourceLabel: string | null;
   analysisResult: AnalysisResult | null;
@@ -30,6 +31,7 @@ type QuestionPanelProps = {
 
 export function QuestionPanel({
   generateStatus,
+  parsePhase,
   questionMarkdown,
   sourceLabel,
   analysisResult,
@@ -96,7 +98,15 @@ export function QuestionPanel({
         ) : null}
       </div>
       {generateStatus === "generating" ? (
-        <p className="text-sm text-muted-foreground">AI 正在分析题目...</p>
+        <p className="text-sm text-muted-foreground">
+          {parsePhase === "uploading"
+            ? "正在上传文档..."
+            : parsePhase === "parsing"
+              ? "正在解析文档..."
+              : parsePhase === "analyzing"
+                ? "AI 正在分析题目..."
+                : "AI 正在分析题目..."}
+        </p>
       ) : null}
       {generateStatus === "stopped" ? (
         <p className="text-sm text-muted-foreground">

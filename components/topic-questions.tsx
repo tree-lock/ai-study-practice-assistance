@@ -3,6 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  getMineruExtractResult,
+  submitMineruExtract,
+} from "@/app/actions/mineru";
+import {
   createQuestionsInTopic,
   type TopicQuestion,
 } from "@/app/actions/question";
@@ -19,6 +23,23 @@ import {
 } from "@/components/ui/select";
 import { QUESTION_TYPE_LABELS, type QuestionType } from "@/lib/ai/types";
 
+const MINERU_EXTENSIONS = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".ppt",
+  ".pptx",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".html",
+];
+
+function isMineruFile(file: File): boolean {
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+  return MINERU_EXTENSIONS.includes(ext);
+}
+
 type TopicQuestionsProps = {
   topicId: string;
   initialQuestions: Array<TopicQuestion>;
@@ -32,7 +53,7 @@ export function TopicQuestions({
   const [content, setContent] = useState("");
   const [source, setSource] = useState("");
   const [questionType, setQuestionType] = useState<QuestionType>("subjective");
-  const [files, setFiles] = useState<Array<string>>([]);
+  const [files, setFiles] = useState<Array<File>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -43,12 +64,81 @@ export function TopicQuestions({
     setSuccess("");
     setIsSubmitting(true);
 
+    const parsedContents: string[] = [];
+
+    if (files.length > 0) {
+      const mineruFiles = files.filter(isMineruFile);
+      const plainFiles = files.filter((f) => !isMineruFile(f));
+
+      for (const file of plainFiles) {
+        const text = await file.text();
+        if (text.trim()) {
+          parsedContents.push(text.trim());
+          console.log(`【文档解析】${file.name}:\n`, text);
+        }
+      }
+
+      if (mineruFiles.length > 0) {
+        const formData = new FormData();
+        for (const file of mineruFiles) {
+          formData.append("file", file);
+        }
+
+        const submitResult = await submitMineruExtract(formData);
+        if (!submitResult.success) {
+          setError(submitResult.error);
+          setIsSubmitting(false);
+          return;
+        }
+
+        let done = false;
+        let pollResult: Awaited<
+          ReturnType<typeof getMineruExtractResult>
+        > | null = null;
+
+        while (!done) {
+          pollResult = await getMineruExtractResult(submitResult.batchId);
+          if (!pollResult.success && pollResult.state === "failed") {
+            setError(pollResult.error);
+            setIsSubmitting(false);
+            return;
+          }
+          done = pollResult.state === "done" || pollResult.state === "failed";
+          if (!done) {
+            await new Promise((r) => setTimeout(r, 2500));
+          }
+        }
+
+        if (
+          pollResult?.success &&
+          pollResult.state === "done" &&
+          pollResult.markdownContents?.length
+        ) {
+          for (let i = 0; i < pollResult.markdownContents.length; i += 1) {
+            const md = pollResult.markdownContents[i];
+            const fileName = mineruFiles[i]?.name ?? `文件${i + 1}`;
+            console.log(`【MinerU 解析】${fileName}:\n`, md);
+          }
+          parsedContents.push(...pollResult.markdownContents);
+        }
+      }
+    }
+
+    const hasContent = content.trim().length > 0;
+    const hasParsed = parsedContents.length > 0;
+
+    if (!hasContent && !hasParsed) {
+      setError("请填写题目内容或上传至少一个可解析的文件");
+      setIsSubmitting(false);
+      return;
+    }
+
     const result = await createQuestionsInTopic({
       topicId,
-      content,
-      source,
+      content: hasContent ? content.trim() : undefined,
+      source: source.trim() || undefined,
       type: questionType,
-      fileNames: files,
+      parsedContents: hasParsed ? parsedContents : undefined,
     });
 
     if (!result.success) {
@@ -146,27 +236,29 @@ export function TopicQuestions({
                   htmlFor="topic-questions-files"
                   className="text-sm font-medium"
                 >
-                  上传图片/PDF（可多选）
+                  上传图片/文档（可多选）
                 </label>
                 <div className="mt-2">
                   <input
                     id="topic-questions-files"
                     type="file"
                     multiple
-                    accept="image/*,application/pdf"
+                    accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.html"
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const selected = Array.from(e.target.files ?? []).map(
-                        (file) => file.name,
-                      );
+                      const selected = Array.from(e.target.files ?? []);
                       setFiles(selected);
+                      e.target.value = "";
                     }}
                   />
                 </div>
                 {files.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {files.map((name) => (
-                      <Badge key={name} variant="secondary">
-                        {name}
+                    {files.map((file) => (
+                      <Badge
+                        key={`${file.name}-${file.lastModified}`}
+                        variant="secondary"
+                      >
+                        {file.name}
                       </Badge>
                     ))}
                   </div>
@@ -175,8 +267,7 @@ export function TopicQuestions({
 
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
-                  当前版本先落库题目和文件名占位，下一步可接入 OCR/PDF
-                  解析流水线。
+                  支持 PDF、Word、PPT、图片、HTML；通过 MinerU 解析为题目内容。
                 </p>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "上传中..." : "上传题目"}

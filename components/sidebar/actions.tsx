@@ -12,11 +12,15 @@ type SidebarActionsProps = {
   onExpand: () => void;
 };
 
-const actionItemClass =
-  "flex cursor-pointer items-center gap-2 rounded-md h-8 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300";
+const actionItemBaseClass =
+  "flex cursor-pointer items-center gap-2 rounded-md h-8 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300";
+
+const actionItemExpandedClass = "w-full pl-3 pr-1";
+
+const actionItemCollapsedClass = "justify-center px-2";
 
 const actionItemActiveClass =
-  "flex cursor-pointer items-center gap-2 rounded-md bg-blue-200 h-8 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors";
+  "flex cursor-pointer items-center gap-2 rounded-md bg-blue-200 h-8 w-full pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors";
 
 export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
@@ -54,10 +58,16 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   };
 
   return (
-    <div className="flex flex-col pt-2">
+    <div className="flex min-w-0 flex-col pt-2">
       <Link
         href="/"
-        className={isNewQuestionPage ? actionItemActiveClass : actionItemClass}
+        className={
+          collapsed
+            ? `${actionItemBaseClass} ${actionItemCollapsedClass} ${isNewQuestionPage ? "bg-blue-200" : ""}`
+            : isNewQuestionPage
+              ? actionItemActiveClass
+              : `${actionItemBaseClass} ${actionItemExpandedClass}`
+        }
         onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
           if (collapsed) {
             e.preventDefault();
@@ -66,8 +76,10 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
         }}
         aria-label="新增题目"
       >
-        <FilePlus className="size-4" />
-        <span className={collapsed ? "hidden" : ""}>新增题目</span>
+        <FilePlus className="size-4 shrink-0" />
+        <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
+          新增题目
+        </span>
       </Link>
 
       {isCreatingTopic && !collapsed ? (
@@ -109,7 +121,11 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
       ) : (
         <button
           type="button"
-          className={actionItemClass}
+          className={
+            collapsed
+              ? `${actionItemBaseClass} ${actionItemCollapsedClass}`
+              : `${actionItemBaseClass} ${actionItemExpandedClass}`
+          }
           onClick={() => {
             if (collapsed) {
               onExpand();
@@ -119,8 +135,10 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
           }}
           aria-label="新建题库"
         >
-          <Plus className="size-4" />
-          <span className={collapsed ? "hidden" : ""}>新建题库</span>
+          <Plus className="size-4 shrink-0" />
+          <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
+            新建题库
+          </span>
         </button>
       )}
     </div>

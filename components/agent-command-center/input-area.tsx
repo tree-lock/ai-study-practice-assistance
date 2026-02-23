@@ -154,7 +154,7 @@ export function InputArea({
         ref={fileInputRef}
         type="file"
         multiple
-        accept="image/*,.pdf,.txt,.md"
+        accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.html"
         className="sr-only"
         aria-hidden
         onChange={(e) => {
