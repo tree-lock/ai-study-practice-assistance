@@ -41,6 +41,8 @@ export type AnalysisResult = {
 /** 单题独立面板数据，每道题拥有独立的 notice、类型、内容、推荐目录 */
 export type QuestionPanelItem = {
   id: string;
+  /** 该题原始文本，供重新识别使用；历史数据可能无此字段 */
+  questionRaw?: string;
   notice?: string;
   questionType: string;
   questionTypeLabel: string;

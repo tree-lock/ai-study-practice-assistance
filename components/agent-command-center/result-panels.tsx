@@ -18,6 +18,7 @@ type ResultPanelsProps = {
   editingPanelId: string | null;
   questionDraft: string;
   savingPanelId: string | null;
+  reRecognizingPanelIds: Set<string>;
 
   // 回调函数
   onDraftChange: (value: string) => void;
@@ -26,6 +27,8 @@ type ResultPanelsProps = {
   onSaveEdit: (panelId: string) => void;
   onSelectTopic: (panelId: string, topicId: string | null) => void;
   onConfirm: (panel: QuestionPanelItem) => Promise<void>;
+  onQuestionTypeChange: (panelId: string, type: string, label: string) => void;
+  onReRecognize: (panelId: string) => void;
 };
 
 export function ResultPanels({
@@ -38,12 +41,15 @@ export function ResultPanels({
   editingPanelId,
   questionDraft,
   savingPanelId,
+  reRecognizingPanelIds,
   onDraftChange,
   onStartEdit,
   onCancelEdit,
   onSaveEdit,
   onSelectTopic,
   onConfirm,
+  onQuestionTypeChange,
+  onReRecognize,
 }: ResultPanelsProps) {
   return (
     <div className="flex w-full flex-col gap-3">
@@ -70,8 +76,15 @@ export function ResultPanels({
               (generateStatus !== "generating" && questionPanels.length > 0)
             }
             notice={panel.notice}
+            questionType={panel.questionType}
             questionTypeLabel={panel.questionTypeLabel}
             formattedContent={panel.formattedContent}
+            questionRaw={panel.questionRaw}
+            onQuestionTypeChange={(type, label) =>
+              onQuestionTypeChange(panel.id, type, label)
+            }
+            onReRecognize={() => onReRecognize(panel.id)}
+            isReRecognizing={reRecognizingPanelIds.has(panel.id)}
             catalogRecommendation={panel.catalogRecommendation}
             existingCatalogCandidates={existingCatalogCandidates}
             selectedTopicId={panel.selectedTopicId}
@@ -101,6 +114,7 @@ export function ResultPanels({
             generateStatus={generateStatus}
             parsePhase={parsePhase}
             isActivePanel
+            questionType="subjective"
             questionTypeLabel="主观题"
             formattedContent=""
             catalogRecommendation={{

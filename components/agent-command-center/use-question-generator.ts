@@ -258,6 +258,7 @@ export function useQuestionGenerator({
 
         const newPanel: QuestionPanelItem = {
           id: crypto.randomUUID(),
+          questionRaw,
           notice: qNotice,
           questionType,
           questionTypeLabel,

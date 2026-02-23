@@ -39,11 +39,14 @@ export function AgentCommandCenter() {
     questionDraft,
     setQuestionDraft,
     savingPanelId,
+    reRecognizingPanelIds,
     handleEditStart,
     handleEditCancel,
     handleEditSave,
     handleTopicSelect,
     handleConfirm,
+    handleReRecognize,
+    handleQuestionTypeChange,
   } = usePanelsManager({
     onInvalidateTopicCache: (topicId) => invalidateTopicCache(topicId),
     onNavigate: (path) => router.push(path),
@@ -98,12 +101,15 @@ export function AgentCommandCenter() {
           editingPanelId={editingPanelId}
           questionDraft={questionDraft}
           savingPanelId={savingPanelId}
+          reRecognizingPanelIds={reRecognizingPanelIds}
           onDraftChange={setQuestionDraft}
           onStartEdit={handleEditStart}
           onCancelEdit={handleEditCancel}
           onSaveEdit={handleEditSave}
           onSelectTopic={handleTopicSelect}
           onConfirm={handleConfirm}
+          onQuestionTypeChange={handleQuestionTypeChange}
+          onReRecognize={handleReRecognize}
         />
       )}
     </div>

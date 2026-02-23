@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { saveQuestionToCatalog } from "@/app/actions/agent";
+import { analyzeQuestionStepFormat } from "@/app/actions/agent-steps";
 import type { QuestionPanelItem, TopicOption } from "./types";
 
 type UsePanelsManagerProps = {
@@ -22,6 +23,9 @@ export function usePanelsManager({
   const [editingPanelId, setEditingPanelId] = useState<string | null>(null);
   const [questionDraft, setQuestionDraft] = useState("");
   const [savingPanelId, setSavingPanelId] = useState<string | null>(null);
+  const [reRecognizingPanelIds, setReRecognizingPanelIds] = useState<
+    Set<string>
+  >(new Set());
 
   function updatePanelTopic(id: string, topicId: string | null) {
     setQuestionPanels((prev) =>
@@ -33,6 +37,54 @@ export function usePanelsManager({
     setQuestionPanels((prev) =>
       prev.map((p) => (p.id === id ? { ...p, formattedContent } : p)),
     );
+  }
+
+  function updatePanelQuestionType(
+    id: string,
+    questionType: string,
+    questionTypeLabel: string,
+  ) {
+    setQuestionPanels((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, questionType, questionTypeLabel } : p,
+      ),
+    );
+  }
+
+  async function handleReRecognize(panelId: string) {
+    const panel = questionPanels.find((p) => p.id === panelId);
+    const raw = panel?.questionRaw?.trim();
+    if (!panel || !raw) return;
+
+    setReRecognizingPanelIds((prev) => new Set(prev).add(panelId));
+    try {
+      const result = await analyzeQuestionStepFormat({
+        questionRaw: raw,
+        questionType: panel.questionType,
+      });
+      if (result.success) {
+        updatePanelContent(panelId, result.formattedContent);
+      } else {
+        alert(`重新识别失败：${result.error}`);
+      }
+    } catch (error) {
+      console.error("重新识别失败:", error);
+      alert("重新识别失败，请稍后重试");
+    } finally {
+      setReRecognizingPanelIds((prev) => {
+        const next = new Set(prev);
+        next.delete(panelId);
+        return next;
+      });
+    }
+  }
+
+  function handleQuestionTypeChange(
+    panelId: string,
+    questionType: string,
+    questionTypeLabel: string,
+  ) {
+    updatePanelQuestionType(panelId, questionType, questionTypeLabel);
   }
 
   function handleEditStart(panelId: string) {
@@ -121,6 +173,7 @@ export function usePanelsManager({
     questionDraft,
     setQuestionDraft,
     savingPanelId,
+    reRecognizingPanelIds,
     updatePanelTopic,
     updatePanelContent,
     handleEditStart,
@@ -128,5 +181,7 @@ export function usePanelsManager({
     handleEditSave,
     handleTopicSelect,
     handleConfirm,
+    handleReRecognize,
+    handleQuestionTypeChange,
   };
 }

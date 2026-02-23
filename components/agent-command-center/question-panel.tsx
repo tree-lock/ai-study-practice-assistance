@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, Pencil, TriangleAlert, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Check, Pencil, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
+import { QUESTION_TYPE_LABELS } from "@/lib/ai/types";
 import { CatalogPanel } from "./catalog-panel";
 import { QuestionMarkdownContent } from "./question-markdown-content";
+import { QuestionTypeSelector } from "./question-type-selector";
 import type { CatalogRecommendation, TopicOption } from "./types";
 
 type GenerateStatus = "idle" | "generating" | "done" | "stopped";
@@ -28,6 +29,7 @@ type QuestionPanelProps = {
   parsePhase: QuestionPanelParsePhase | null;
   isActivePanel: boolean;
   notice?: string;
+  questionType: string;
   questionTypeLabel: string;
   formattedContent: string;
   catalogRecommendation: CatalogRecommendation;
@@ -42,6 +44,11 @@ type QuestionPanelProps = {
   onSelectTopic: (id: string) => void;
   onConfirm: () => void;
   isSaving: boolean;
+  /** 用于决定是否显示重新识别按钮；历史数据可能无此字段 */
+  questionRaw?: string;
+  onQuestionTypeChange?: (type: string, label: string) => void;
+  onReRecognize?: () => void;
+  isReRecognizing?: boolean;
 };
 
 const PARSE_PHASE_LABELS: Record<
@@ -65,6 +72,7 @@ export function QuestionPanel({
   parsePhase,
   isActivePanel,
   notice,
+  questionType,
   questionTypeLabel,
   formattedContent,
   catalogRecommendation,
@@ -79,6 +87,10 @@ export function QuestionPanel({
   onSelectTopic,
   onConfirm,
   isSaving,
+  questionRaw,
+  onQuestionTypeChange,
+  onReRecognize,
+  isReRecognizing = false,
 }: QuestionPanelProps) {
   const title =
     totalQuestions > 1
@@ -117,12 +129,46 @@ export function QuestionPanel({
           ) : null}
 
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <Badge variant="secondary" className="text-xs">
-                {questionTypeLabel}
-              </Badge>
+            <div className="flex h-8 items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                {onQuestionTypeChange ? (
+                  <QuestionTypeSelector
+                    value={questionType}
+                    onValueChange={(v) => {
+                      const label =
+                        QUESTION_TYPE_LABELS[
+                          v as keyof typeof QUESTION_TYPE_LABELS
+                        ] ?? v;
+                      onQuestionTypeChange(v, label);
+                    }}
+                    disabled={generateStatus !== "done"}
+                    className="h-8 w-[100px] shrink-0"
+                  />
+                ) : (
+                  <span className="truncate text-sm text-muted-foreground">
+                    {questionTypeLabel}
+                  </span>
+                )}
+                {generateStatus === "done" &&
+                questionRaw?.trim() &&
+                onReRecognize ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={onReRecognize}
+                    disabled={isReRecognizing}
+                    aria-label="重新识别题目"
+                    className="size-8 shrink-0"
+                  >
+                    <RefreshCw
+                      className={`size-4 ${isReRecognizing ? "animate-spin" : ""}`}
+                    />
+                  </Button>
+                ) : null}
+              </div>
               {generateStatus === "done" ? (
-                <div className="flex gap-2">
+                <div className="flex shrink-0 gap-2">
                   {isEditing ? (
                     <>
                       <Button
