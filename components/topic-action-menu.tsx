@@ -94,11 +94,12 @@ export function TopicActionMenu({ topicId, topicName }: TopicActionMenuProps) {
             size="icon"
             aria-label="题库操作"
             data-state={isMenuOpen ? "open" : "closed"}
+            className="size-6 rounded-full"
           >
-            <MoreVertical />
+            <MoreVertical className="size-3.5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="start">
           <DropdownMenuItem
             onSelect={(e: Event) => {
               e.preventDefault();
@@ -126,7 +127,7 @@ export function TopicActionMenu({ topicId, topicName }: TopicActionMenuProps) {
       </DropdownMenu>
 
       <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>
-        <DialogContent className="max-w-[400px]" showClose>
+        <DialogContent className="max-w-[400px]" showCloseButton>
           <DialogHeader>
             <DialogTitle>重命名题库</DialogTitle>
             <DialogDescription>修改题库名称</DialogDescription>

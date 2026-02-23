@@ -101,7 +101,7 @@ export function OutlineEditor({ topicId, outline }: OutlineEditorProps) {
       )}
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-[520px]" showClose>
+        <DialogContent className="max-w-[520px]" showCloseButton>
           <DialogHeader>
             <DialogTitle>编辑题库大纲</DialogTitle>
             <DialogDescription>

@@ -13,10 +13,10 @@ type SidebarActionsProps = {
 };
 
 const actionItemClass =
-  "flex cursor-pointer items-center gap-2 rounded-md py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300";
+  "flex cursor-pointer items-center gap-2 rounded-md h-8 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300";
 
 const actionItemActiveClass =
-  "flex cursor-pointer items-center gap-2 rounded-md bg-blue-200 py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors";
+  "flex cursor-pointer items-center gap-2 rounded-md bg-blue-200 h-8 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors";
 
 export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
@@ -71,9 +71,9 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
       </Link>
 
       {isCreatingTopic && !collapsed ? (
-        <div className="py-1 pl-3 pr-1">
+        <div className="flex flex-col h-8 gap-1">
           <form
-            className="w-full"
+            className="w-full h-full"
             onSubmit={(e) => {
               e.preventDefault();
               void handleCreateTopic();
@@ -99,11 +99,11 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
               placeholder="输入题库名称..."
               autoFocus
               disabled={isSubmitting}
-              className="w-full"
+              className="h-full min-h-0 px-2 text-[13px] leading-none"
             />
           </form>
           {createError ? (
-            <p className="mt-1 block text-xs text-destructive">{createError}</p>
+            <p className="block text-xs text-destructive">{createError}</p>
           ) : null}
         </div>
       ) : (

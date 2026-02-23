@@ -8,7 +8,7 @@ import {
   type QuestionWithDetails,
 } from "@/app/actions/question";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { QuestionMarkdownContent } from "./agent-command-center/question-markdown-content";
 import { SolutionGenerator } from "./solution-generator";
 
@@ -74,8 +74,8 @@ export function QuestionPageContent({
       </div>
 
       <Card className="flex flex-1 flex-col">
-        <CardContent className="flex flex-col pt-6">
-          <div className="prose prose-sm max-w-none py-4">
+        <CardContent className="flex flex-col">
+          <div className="prose prose-sm max-w-none pt-2">
             <QuestionMarkdownContent questionMarkdown={question.content} />
           </div>
 
@@ -89,17 +89,16 @@ export function QuestionPageContent({
             answer={question.answer}
             knowledgePoints={question.knowledgePoints}
           />
-
-          <div className="mt-auto flex items-center justify-between border-t pt-4">
-            <p className="text-xs text-muted-foreground">
-              创建者：{question.creator?.name ?? "匿名用户"}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              创建时间：
-              {new Date(question.createdAt).toLocaleDateString("zh-CN")}
-            </p>
-          </div>
         </CardContent>
+        <CardFooter className="mt-auto flex items-center justify-between border-t pt-2">
+          <p className="text-xs text-muted-foreground">
+            创建者：{question.creator?.name ?? "匿名用户"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            创建时间：
+            {new Date(question.createdAt).toLocaleDateString("zh-CN")}
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );

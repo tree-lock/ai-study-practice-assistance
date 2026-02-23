@@ -44,10 +44,10 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
                 <span className="truncate text-sm">{topic.name}</span>
               </Link>
               <div
-                className={`transition-opacity ${
+                className={`flex items-center pr-1.5 transition-opacity ${
                   isActive
                     ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100 group-has-[[data-state=open]]:opacity-100"
+                    : "opacity-0 group-hover:opacity-100 group-has-data-[state=open]:opacity-100"
                 }`}
               >
                 <TopicActionMenu topicId={topic.id} topicName={topic.name} />

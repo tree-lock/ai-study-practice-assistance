@@ -35,7 +35,7 @@ async function FloatingActions() {
 
   return isLoggedIn ? (
     <form action={logout}>
-      <Button type="submit" variant="ghost" className="justify-start">
+      <Button type="submit" variant="default" className="justify-start">
         退出登录
       </Button>
     </form>

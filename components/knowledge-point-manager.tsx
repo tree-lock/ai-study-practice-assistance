@@ -165,7 +165,7 @@ export function KnowledgePointManager({
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-[480px]" showClose>
+        <DialogContent className="max-w-[480px]" showCloseButton>
           <DialogHeader>
             <DialogTitle>知识点管理</DialogTitle>
             <DialogDescription>
