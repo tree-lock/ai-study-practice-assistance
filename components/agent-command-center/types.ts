@@ -1,3 +1,5 @@
+import type { QuestionType } from "@/lib/ai/types";
+
 export type UploadFileItem = {
   id: string;
   file: File;
@@ -11,13 +13,7 @@ export type TopicOption = {
   name: string;
 };
 
-export type QuestionType =
-  | "choice"
-  | "blank"
-  | "subjective"
-  | "application"
-  | "proof"
-  | "comprehensive";
+export type { QuestionType };
 
 export type CatalogRecommendation = {
   topicId: string;

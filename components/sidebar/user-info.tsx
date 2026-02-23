@@ -1,10 +1,7 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  HomeIcon,
-} from "@radix-ui/react-icons";
-import { Avatar, Box, Flex, IconButton, Text } from "@radix-ui/themes";
+import { ChevronLeft, ChevronRight, Home } from "lucide-react";
 import Link from "next/link";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 export function SidebarUserInfo({
   collapsed,
@@ -15,39 +12,41 @@ export function SidebarUserInfo({
 }) {
   if (collapsed) {
     return (
-      <div className="p-px">
-        <IconButton
-          variant="ghost"
-          color="gray"
-          onClick={onToggleCollapse}
-          aria-label="展开侧边栏"
-        >
-          <ChevronRightIcon />
-        </IconButton>
-      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onToggleCollapse}
+        aria-label="展开侧边栏"
+      >
+        <ChevronRight />
+      </Button>
     );
   }
 
   return (
-    <Flex align="center" justify="between">
-      <div className="p-px">
-        <IconButton variant="ghost" color="gray" asChild aria-label="返回首页">
-          <Link href="/">
-            <HomeIcon />
-          </Link>
-        </IconButton>
-      </div>
-      <div className="p-px">
-        <IconButton
-          variant="ghost"
-          color="gray"
-          onClick={onToggleCollapse}
-          aria-label="收起侧边栏"
-        >
-          <ChevronLeftIcon />
-        </IconButton>
-      </div>
-    </Flex>
+    <div className="flex items-center justify-between">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        asChild
+        aria-label="返回首页"
+      >
+        <Link href="/">
+          <Home />
+        </Link>
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onToggleCollapse}
+        aria-label="收起侧边栏"
+      >
+        <ChevronLeft />
+      </Button>
+    </div>
   );
 }
 
@@ -59,18 +58,18 @@ export function SidebarFooter({
   collapsed: boolean;
 }) {
   return (
-    <Flex align="center" gap="3" className="whitespace-nowrap">
-      <Avatar fallback="AI" radius="full" />
+    <div className="flex items-center gap-3 whitespace-nowrap">
+      <Avatar>
+        <AvatarFallback>AI</AvatarFallback>
+      </Avatar>
       {!collapsed ? (
-        <Box>
-          <Text as="p" size="2" weight="bold">
-            AI 学习助教
-          </Text>
-          <Text as="p" size="1" color="gray">
+        <div>
+          <p className="text-sm font-bold">AI 学习助教</p>
+          <p className="text-xs text-muted-foreground">
             {userLabel ?? "欢迎使用"}
-          </Text>
-        </Box>
+          </p>
+        </div>
       ) : null}
-    </Flex>
+    </div>
   );
 }

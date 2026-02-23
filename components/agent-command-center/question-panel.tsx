@@ -1,12 +1,9 @@
 "use client";
 
-import {
-  CheckIcon,
-  Cross2Icon,
-  ExclamationTriangleIcon,
-  Pencil2Icon,
-} from "@radix-ui/react-icons";
-import { Badge, Callout, Flex, Text } from "@radix-ui/themes";
+import { Check, Pencil, TriangleAlert, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
 import { CatalogPanel } from "./catalog-panel";
 import { QuestionMarkdownContent } from "./question-markdown-content";
 import type { AnalysisResult, TopicOption } from "./types";
@@ -49,83 +46,82 @@ export function QuestionPanel({
   onConfirm,
 }: QuestionPanelProps) {
   return (
-    <Flex direction="column" gap="2" className="py-3 px-3.5">
-      <Flex justify="between" align="center">
-        <Flex gap="2" align="center">
-          <Text size="2" weight="bold">
-            题目
-          </Text>
+    <div className="flex flex-col gap-2 px-3.5 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold">题目</span>
           {analysisResult?.questionTypeLabel ? (
-            <Badge color="blue" size="1">
+            <Badge variant="secondary" className="text-xs">
               {analysisResult.questionTypeLabel}
             </Badge>
           ) : null}
-        </Flex>
+        </div>
         {generateStatus === "done" ? (
-          <Flex gap="2">
+          <div className="flex gap-2">
             {isEditing ? (
               <>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="icon"
                   onClick={onCancelEdit}
                   aria-label="取消编辑题目"
-                  className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-gray-300 bg-white p-0 text-gray-600"
+                  className="size-[26px] border-gray-300 bg-white hover:bg-gray-50"
                 >
-                  <Cross2Icon />
-                </button>
-                <button
+                  <X className="size-4" />
+                </Button>
+                <Button
                   type="button"
+                  size="icon"
                   onClick={onSaveEdit}
                   aria-label="保存题目编辑"
-                  className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-blue-200 bg-blue-50 p-0 text-blue-700"
+                  className="size-[26px] border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
                 >
-                  <CheckIcon />
-                </button>
+                  <Check className="size-4" />
+                </Button>
               </>
             ) : (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="icon"
                 onClick={onStartEdit}
                 aria-label="编辑题目"
-                className="inline-flex h-[22px] w-[26px] items-center justify-center rounded-md border border-gray-300 bg-white p-0 text-gray-600"
+                className="size-[26px] border-gray-300 bg-white hover:bg-gray-50"
               >
-                <Pencil2Icon />
-              </button>
+                <Pencil className="size-4" />
+              </Button>
             )}
-          </Flex>
+          </div>
         ) : null}
-      </Flex>
+      </div>
       {generateStatus === "generating" ? (
-        <Text size="2" color="gray">
-          AI 正在分析题目...
-        </Text>
+        <p className="text-sm text-muted-foreground">AI 正在分析题目...</p>
       ) : null}
       {generateStatus === "stopped" ? (
-        <Text size="2" color="gray">
+        <p className="text-sm text-muted-foreground">
           已停止生成。你可以再次点击按钮重新分析。
-        </Text>
+        </p>
       ) : null}
       {generateStatus === "done" && questionMarkdown ? (
-        <Flex direction="column" gap="3">
+        <div className="flex flex-col gap-3">
           {sourceLabel ? (
-            <Text size="1" color="gray">
-              来源: {sourceLabel}
-            </Text>
+            <p className="text-xs text-muted-foreground">来源: {sourceLabel}</p>
           ) : null}
 
           {analysisResult?.notice ? (
-            <Callout.Root color="amber" size="1">
-              <Callout.Icon>
-                <ExclamationTriangleIcon />
-              </Callout.Icon>
-              <Callout.Text>{analysisResult.notice}</Callout.Text>
-            </Callout.Root>
+            <Callout
+              variant="amber"
+              icon={<TriangleAlert className="size-4" />}
+            >
+              {analysisResult.notice}
+            </Callout>
           ) : null}
 
           {isEditing ? (
             <textarea
               value={draftValue}
-              onChange={(event) => onDraftChange(event.target.value)}
+              onChange={(e) => onDraftChange(e.target.value)}
               className="min-h-[120px] w-full resize-y rounded-lg border border-[#dbe1ea] px-2.5 py-2 font-inherit leading-relaxed"
             />
           ) : (
@@ -147,8 +143,8 @@ export function QuestionPanel({
               onConfirm={onConfirm}
             />
           ) : null}
-        </Flex>
+        </div>
       ) : null}
-    </Flex>
+    </div>
   );
 }

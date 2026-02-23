@@ -1,23 +1,37 @@
 "use client";
 
-import {
-  DotsVerticalIcon,
-  Pencil1Icon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
-import {
-  AlertDialog,
-  Button,
-  Dialog,
-  DropdownMenu,
-  Spinner,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteTopic, updateTopic } from "@/app/actions/topic";
-import { GhostIconButton } from "./ghost-icon-button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
 type TopicActionMenuProps = {
   topicId: string;
@@ -72,109 +86,118 @@ export function TopicActionMenu({ topicId, topicName }: TopicActionMenuProps) {
 
   return (
     <>
-      <DropdownMenu.Root open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <DropdownMenu.Trigger data-state={isMenuOpen ? "open" : "closed"}>
-          <GhostIconButton aria-label="题库操作">
-            <DotsVerticalIcon />
-          </GhostIconButton>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content size="1">
-          <DropdownMenu.Item
-            onClick={(e) => {
+      <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="题库操作"
+            data-state={isMenuOpen ? "open" : "closed"}
+          >
+            <MoreVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onSelect={(e: Event) => {
               e.preventDefault();
               setNewName(topicName);
               setError(null);
               setIsRenameOpen(true);
             }}
           >
-            <Pencil1Icon />
+            <Pencil className="size-4" />
             重命名
-          </DropdownMenu.Item>
-          <DropdownMenu.Separator />
-          <DropdownMenu.Item
-            color="red"
-            onClick={(e) => {
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive"
+            onSelect={(e: Event) => {
               e.preventDefault();
               setError(null);
               setIsDeleteOpen(true);
             }}
           >
-            <TrashIcon />
+            <Trash2 className="size-4" />
             删除
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <Dialog.Root open={isRenameOpen} onOpenChange={setIsRenameOpen}>
-        <Dialog.Content maxWidth="400px">
-          <Dialog.Title>重命名题库</Dialog.Title>
-          <Dialog.Description size="2" color="gray">
-            修改题库名称
-          </Dialog.Description>
+      <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>
+        <DialogContent className="max-w-[400px]" showClose>
+          <DialogHeader>
+            <DialogTitle>重命名题库</DialogTitle>
+            <DialogDescription>修改题库名称</DialogDescription>
+          </DialogHeader>
 
           <div className="mt-4 flex flex-col gap-3">
-            <TextField.Root
+            <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="输入新的题库名称"
               disabled={isPending}
             />
 
-            {error && (
-              <Text size="2" color="red">
-                {error}
-              </Text>
-            )}
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </div>
 
-          <div className="mt-4 flex justify-end gap-3">
-            <Dialog.Close>
-              <Button variant="soft" color="gray" disabled={isPending}>
-                取消
-              </Button>
-            </Dialog.Close>
-            <Button onClick={handleRename} disabled={isPending}>
-              {isPending ? <Spinner size="1" /> : null}
+          <DialogFooter className="mt-4 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => setIsRenameOpen(false)}
+            >
+              取消
+            </Button>
+            <Button type="button" onClick={handleRename} disabled={isPending}>
+              {isPending ? <Spinner className="size-4" /> : null}
               确认
             </Button>
-          </div>
-        </Dialog.Content>
-      </Dialog.Root>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <AlertDialog.Root open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <AlertDialog.Content maxWidth="400px">
-          <AlertDialog.Title>确认删除题库</AlertDialog.Title>
-          <AlertDialog.Description size="2">
-            确定要删除题库「{topicName}
-            」吗？删除后，该题库下的所有题目也将被删除，此操作不可恢复。
-          </AlertDialog.Description>
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent className="max-w-[400px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除题库</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要删除题库「{topicName}
+              」吗？删除后，该题库下的所有题目也将被删除，此操作不可恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-          {error && (
-            <Text size="2" color="red" className="mt-2 block">
-              {error}
-            </Text>
-          )}
+          {error ? (
+            <p className="mt-2 block text-sm text-destructive">{error}</p>
+          ) : null}
 
-          <div className="mt-4 flex justify-end gap-3">
-            <AlertDialog.Cancel>
-              <Button variant="soft" color="gray" disabled={isPending}>
+          <AlertDialogFooter className="mt-4 gap-3">
+            <AlertDialogCancel asChild>
+              <Button type="button" variant="outline" disabled={isPending}>
                 取消
               </Button>
-            </AlertDialog.Cancel>
-            <AlertDialog.Action>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
               <Button
-                variant="solid"
-                color="red"
+                type="button"
+                variant="destructive"
                 onClick={handleDelete}
                 disabled={isPending}
               >
-                {isPending ? <Spinner size="1" /> : <TrashIcon />}
+                {isPending ? (
+                  <Spinner className="size-4" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
                 删除
               </Button>
-            </AlertDialog.Action>
-          </div>
-        </AlertDialog.Content>
-      </AlertDialog.Root>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

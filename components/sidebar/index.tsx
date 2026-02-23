@@ -1,6 +1,5 @@
 "use client";
 
-import { Box, Flex } from "@radix-ui/themes";
 import { useState } from "react";
 import { SidebarActions } from "./actions";
 import { SidebarTopicList } from "./topic-list";
@@ -21,21 +20,18 @@ export function Sidebar({ topics = [], userLabel }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <Box
-      className={`sticky top-0 h-screen py-3.5 px-2.5 bg-[#efeff1] transition-all duration-200 ease-in-out overflow-hidden ${
-        collapsed ? "w-14 min-w-14" : "w-[250px] min-w-[250px]"
+    <div
+      className={`sticky top-0 h-screen overflow-hidden px-2.5 py-3.5 transition-all duration-200 ease-in-out ${
+        collapsed
+          ? "w-14 min-w-14 bg-[#efeff1]"
+          : "min-w-[250px] w-[250px] bg-[#efeff1]"
       }`}
     >
-      <Flex
-        direction="column"
-        justify="between"
-        align={collapsed ? "center" : "stretch"}
-        className="h-full"
+      <div
+        className={`flex h-full flex-col ${collapsed ? "items-center justify-between" : "items-stretch justify-between"}`}
       >
-        <Flex
-          direction="column"
-          gap="6"
-          align={collapsed ? "center" : "stretch"}
+        <div
+          className={`flex flex-col gap-6 ${collapsed ? "items-center" : "items-stretch"}`}
         >
           <SidebarUserInfo
             collapsed={collapsed}
@@ -46,9 +42,9 @@ export function Sidebar({ topics = [], userLabel }: SidebarProps) {
             onExpand={() => setCollapsed(false)}
           />
           <SidebarTopicList topics={topics} collapsed={collapsed} />
-        </Flex>
+        </div>
         <SidebarFooter userLabel={userLabel} collapsed={collapsed} />
-      </Flex>
-    </Box>
+      </div>
+    </div>
   );
 }

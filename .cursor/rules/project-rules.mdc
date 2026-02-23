@@ -29,16 +29,15 @@ alwaysApply: true
   - **NO non-null assertions** (`!`). Use optional chaining (`?.`) or explicit null checks.
   - **NO `any` type**: Define proper interfaces or types.
   - **NO `as any` assertions**: Prohibited unless explicitly requested by user, no type-safe alternative exists, and justified with comments. See `.cursor/rules/no-any-assertions.mdc`.
-  - **Button UX**: Buttons should prefer icons over text whenever semantics are clear. If a text button is required, keep wording minimal. Use MUI `IconButton` for icon-only buttons and `Button` for text buttons.
+  - **Button UX**: Buttons should prefer icons over text whenever semantics are clear. If a text button is required, keep wording minimal. Use `Button` from `@/components/ui/button` with `size="icon"` for icon-only buttons.
   - **Accessibility**:
     - Always associate `<label>` with inputs using `htmlFor` + `id` or nesting.
     - Always specify `type` for `<button>` (button, submit, reset).
     - Icon-only buttons must include meaningful `aria-label`.
-  - **UI Library**: MUI (Material-UI)
-    - Use MUI components from `@mui/material` for consistent UI/UX.
-    - Import MUI components with named imports (e.g., `import { Button, IconButton } from "@mui/material"`).
-    - Prefer MUI's `sx` prop for styling when Tailwind classes are insufficient.
-    - Use MUI's icon components from `@mui/icons-material` for icons.
+  - **UI Library**: Tailwind CSS + shadcn/ui
+    - Use components from `@/components/ui` (Button, Input, Card, Dialog, etc.) for consistent UI/UX.
+    - Interactive components (Dropdown, Dialog, Select, Tabs) use Radix Primitives under the hood, styled with Tailwind.
+    - Use `lucide-react` for icons.
   - **Styling Best Practices**:
     - Use Tailwind CSS `className` when possible; prefer it over inline `style`.
     - Unless necessary, avoid using `margin`. Prefer `padding`, `flex + gap`, or other layout techniques to prevent margin collapse issues.

@@ -1,6 +1,7 @@
-import { MagnifyingGlassIcon, PlusIcon } from "@radix-ui/react-icons";
-import { Button, Heading, Text, TextField } from "@radix-ui/themes";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { KnowledgePointManager } from "./knowledge-point-manager";
 import { OutlineEditor } from "./outline-editor";
 
@@ -20,13 +21,9 @@ export function TopicHeader({
   return (
     <div className="flex flex-col gap-4 pb-6">
       <div className="flex flex-col gap-1">
-        <Heading size="7" weight="bold">
-          {name}
-        </Heading>
+        <h1 className="text-2xl font-bold tracking-tight">{name}</h1>
         {description ? (
-          <Text size="2" color="gray">
-            {description}
-          </Text>
+          <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
 
@@ -38,14 +35,13 @@ export function TopicHeader({
       </div>
 
       <div className="flex items-center justify-between gap-4">
-        <TextField.Root placeholder="搜索题目" style={{ width: 360 }}>
-          <TextField.Slot>
-            <MagnifyingGlassIcon />
-          </TextField.Slot>
-        </TextField.Root>
+        <div className="relative w-[360px]">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="搜索题目" className="pl-9" />
+        </div>
         <Button asChild>
           <Link href="/">
-            <PlusIcon />
+            <Plus className="size-4" />
             创建
           </Link>
         </Button>

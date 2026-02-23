@@ -1,6 +1,5 @@
 "use client";
 
-import { Flex } from "@radix-ui/themes";
 import { useRef, useState } from "react";
 import {
   analyzeQuestionAction,
@@ -152,7 +151,7 @@ export function AgentCommandCenter() {
   const shouldShowResultPanels = files.length > 0 || generateStatus !== "idle";
 
   return (
-    <Flex direction="column" gap="5" className="w-full max-w-[760px]">
+    <div className="flex w-full max-w-[760px] flex-col gap-5">
       <InputArea
         prompt={prompt}
         files={files}
@@ -167,11 +166,8 @@ export function AgentCommandCenter() {
         onGenerateClick={handleGenerateClick}
       />
       {shouldShowResultPanels ? (
-        <Flex direction="column" gap="3" className="w-full">
-          <Flex
-            direction="column"
-            className="overflow-hidden rounded-xl border border-[#e5eaf3] bg-white"
-          >
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex flex-col overflow-hidden rounded-xl border border-[#e5eaf3] bg-white">
             <QuestionPanel
               generateStatus={generateStatus}
               questionMarkdown={questionMarkdown}
@@ -211,11 +207,18 @@ export function AgentCommandCenter() {
                   return;
                 }
 
+                // 验证题目内容在保存前没有为空
+                const trimmedContent = questionMarkdown.trim();
+                if (!trimmedContent) {
+                  alert("题目内容不能为空");
+                  return;
+                }
+
                 setIsSavingToTopic(true);
                 try {
                   const result = await saveQuestionToCatalog({
                     topicId: selectedTopicId,
-                    questionContent: questionMarkdown.trim(),
+                    questionContent: trimmedContent,
                     source: sourceLabel || undefined,
                     questionType: analysisResult?.questionType,
                   });
@@ -243,9 +246,9 @@ export function AgentCommandCenter() {
                 }
               }}
             />
-          </Flex>
-        </Flex>
+          </div>
+        </div>
       ) : null}
-    </Flex>
+    </div>
   );
 }

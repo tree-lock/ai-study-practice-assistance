@@ -1,8 +1,8 @@
 "use client";
 
-import { Cross2Icon } from "@radix-ui/react-icons";
-import { Flex, IconButton, Text } from "@radix-ui/themes";
+import { X } from "lucide-react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 type UploadFileItem = {
   id: string;
@@ -21,19 +21,13 @@ export function FileUpload({ files, onRemoveFile }: FileUploadProps) {
   }
 
   return (
-    <Flex gap="2" wrap="wrap" mt="1">
+    <div className="mt-1 flex flex-wrap gap-2">
       {files.map((item) => (
-        <Flex
+        <div
           key={item.id}
-          direction="column"
-          gap="1"
-          className="w-[98px] overflow-hidden rounded-xl border border-[#d9dee8] bg-white"
+          className="flex w-[98px] flex-col gap-1 overflow-hidden rounded-xl border border-[#d9dee8] bg-white"
         >
-          <Flex
-            align="start"
-            justify="end"
-            className="relative h-[72px] w-full bg-[#eef2f7]"
-          >
+          <div className="relative flex h-[72px] w-full items-end justify-end bg-[#eef2f7]">
             {item.previewUrl ? (
               <Image
                 src={item.previewUrl}
@@ -44,33 +38,30 @@ export function FileUpload({ files, onRemoveFile }: FileUploadProps) {
                 className="absolute inset-0 size-full object-cover"
               />
             ) : (
-              <Flex align="center" justify="center" className="size-full">
-                <Text size="1" color="gray">
+              <div className="flex size-full items-center justify-center">
+                <span className="text-xs text-muted-foreground">
                   {item.file.name.split(".").pop()?.toUpperCase() ?? "FILE"}
-                </Text>
-              </Flex>
+                </span>
+              </div>
             )}
-            <IconButton
+            <Button
               type="button"
-              variant="solid"
-              color="gray"
-              size="1"
+              size="icon"
               aria-label="移除文件"
               onClick={() => onRemoveFile(item.id)}
-              className="z-[1] m-1 bg-[rgba(17,24,39,0.65)] text-white"
+              className="z-[1] m-1 size-7 bg-[rgba(17,24,39,0.65)] text-white hover:bg-[rgba(17,24,39,0.8)]"
             >
-              <Cross2Icon />
-            </IconButton>
-          </Flex>
-          <Text
-            size="1"
-            className="overflow-hidden text-ellipsis whitespace-nowrap px-1.5 pb-1.5 pt-0"
+              <X className="size-4" />
+            </Button>
+          </div>
+          <p
+            className="overflow-hidden text-ellipsis whitespace-nowrap px-1.5 pb-1.5 pt-0 text-xs"
             title={item.file.name}
           >
             {item.file.name}
-          </Text>
-        </Flex>
+          </p>
+        </div>
       ))}
-    </Flex>
+    </div>
   );
 }

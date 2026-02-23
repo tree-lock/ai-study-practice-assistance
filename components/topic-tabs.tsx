@@ -1,8 +1,15 @@
 "use client";
 
-import { ChevronDownIcon } from "@radix-ui/react-icons";
-import { Button, DropdownMenu, Tabs } from "@radix-ui/themes";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TAB_OPTIONS = [
   { value: "all", label: "所有题", disabled: false },
@@ -31,40 +38,38 @@ export function TopicTabs({ activeTab, onTabChange }: TopicTabsProps) {
 
   return (
     <div className="flex items-center justify-between">
-      <Tabs.Root value={activeTab} onValueChange={onTabChange}>
-        <Tabs.List>
+      <Tabs value={activeTab} onValueChange={onTabChange}>
+        <TabsList>
           {TAB_OPTIONS.map((tab) => (
-            <Tabs.Trigger
+            <TabsTrigger
               key={tab.value}
               value={tab.value}
               disabled={tab.disabled}
             >
               {tab.label}
-            </Tabs.Trigger>
+            </TabsTrigger>
           ))}
-        </Tabs.List>
-      </Tabs.Root>
+        </TabsList>
+      </Tabs>
 
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger>
-          <div className="p-px">
-            <Button variant="ghost" color="gray">
-              {currentSort?.label ?? "排序"}
-              <ChevronDownIcon />
-            </Button>
-          </div>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="ghost" size="sm">
+            {currentSort?.label ?? "排序"}
+            <ChevronDown className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
           {SORT_OPTIONS.map((opt) => (
-            <DropdownMenu.Item
+            <DropdownMenuItem
               key={opt.value}
               onSelect={() => setSortBy(opt.value)}
             >
               {opt.label}
-            </DropdownMenu.Item>
+            </DropdownMenuItem>
           ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

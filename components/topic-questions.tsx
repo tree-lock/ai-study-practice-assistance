@@ -1,23 +1,22 @@
 "use client";
 
-import {
-  Badge,
-  Box,
-  Button,
-  Card,
-  Flex,
-  Heading,
-  Select,
-  Text,
-  TextArea,
-  TextField,
-} from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   createQuestionsInTopic,
   type TopicQuestion,
 } from "@/app/actions/question";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { QUESTION_TYPE_LABELS, type QuestionType } from "@/lib/ai/types";
 
 type TopicQuestionsProps = {
@@ -67,144 +66,163 @@ export function TopicQuestions({
   }
 
   return (
-    <Flex direction="column" gap="4">
+    <div className="flex flex-col gap-4">
       <Card className="border-none bg-white shadow-none">
-        <form onSubmit={handleSubmit}>
-          <Flex direction="column" gap="4">
-            <Heading size="4">上传题目到当前题库</Heading>
+        <CardContent className="pt-6">
+          <form onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-4">
+              <h2 className="text-lg font-semibold">上传题目到当前题库</h2>
 
-            <Box>
-              <Text as="label" size="2" weight="medium">
-                题目文本（可选）
-              </Text>
-              <Box mt="2">
-                <TextArea
-                  placeholder="可直接粘贴题干；如果只上传图片/PDF，这里可以留空"
-                  value={content}
-                  onChange={(event) => setContent(event.target.value)}
-                />
-              </Box>
-            </Box>
-
-            <Flex gap="4" wrap="wrap">
-              <Box className="min-w-[180px]">
-                <Text as="label" size="2" weight="medium">
-                  题目类型
-                </Text>
-                <Box mt="2">
-                  <Select.Root
-                    value={questionType}
-                    onValueChange={(value) =>
-                      setQuestionType(value as QuestionType)
+              <div>
+                <label
+                  htmlFor="topic-questions-content"
+                  className="text-sm font-medium"
+                >
+                  题目文本（可选）
+                </label>
+                <div className="mt-2">
+                  <textarea
+                    id="topic-questions-content"
+                    placeholder="可直接粘贴题干；如果只上传图片/PDF，这里可以留空"
+                    value={content}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setContent(e.target.value)
                     }
-                  >
-                    <Select.Trigger />
-                    <Select.Content>
-                      <Select.Item value="choice">选择题</Select.Item>
-                      <Select.Item value="blank">填空题</Select.Item>
-                      <Select.Item value="subjective">主观题</Select.Item>
-                    </Select.Content>
-                  </Select.Root>
-                </Box>
-              </Box>
-
-              <Box className="min-w-[240px] flex-1">
-                <Text as="label" size="2" weight="medium">
-                  题目来源（可选）
-                </Text>
-                <Box mt="2">
-                  <TextField.Root
-                    placeholder="例如：2025 考研数学一"
-                    value={source}
-                    onChange={(event) => setSource(event.target.value)}
+                    className="w-full rounded-md border border-input px-3 py-2 text-sm"
+                    rows={4}
                   />
-                </Box>
-              </Box>
-            </Flex>
+                </div>
+              </div>
 
-            <Box>
-              <Text as="label" size="2" weight="medium">
-                上传图片/PDF（可多选）
-              </Text>
-              <Box mt="2">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,application/pdf"
-                  onChange={(event) => {
-                    const selected = Array.from(event.target.files ?? []).map(
-                      (file) => file.name,
-                    );
-                    setFiles(selected);
-                  }}
-                />
-              </Box>
-              {files.length > 0 ? (
-                <Flex gap="2" wrap="wrap" mt="2">
-                  {files.map((name) => (
-                    <Badge key={name} color="gray">
-                      {name}
-                    </Badge>
-                  ))}
-                </Flex>
+              <div className="flex flex-wrap gap-4">
+                <div className="min-w-[180px]">
+                  <label
+                    htmlFor="topic-questions-type"
+                    className="text-sm font-medium"
+                  >
+                    题目类型
+                  </label>
+                  <div className="mt-2">
+                    <Select
+                      value={questionType}
+                      onValueChange={(value: string) =>
+                        setQuestionType(value as QuestionType)
+                      }
+                    >
+                      <SelectTrigger id="topic-questions-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="choice">选择题</SelectItem>
+                        <SelectItem value="blank">填空题</SelectItem>
+                        <SelectItem value="subjective">主观题</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="min-w-[240px] flex-1">
+                  <label
+                    htmlFor="topic-questions-source"
+                    className="text-sm font-medium"
+                  >
+                    题目来源（可选）
+                  </label>
+                  <div className="mt-2">
+                    <Input
+                      id="topic-questions-source"
+                      placeholder="例如：2025 考研数学一"
+                      value={source}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setSource(e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="topic-questions-files"
+                  className="text-sm font-medium"
+                >
+                  上传图片/PDF（可多选）
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="topic-questions-files"
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const selected = Array.from(e.target.files ?? []).map(
+                        (file) => file.name,
+                      );
+                      setFiles(selected);
+                    }}
+                  />
+                </div>
+                {files.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {files.map((name) => (
+                      <Badge key={name} variant="secondary">
+                        {name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  当前版本先落库题目和文件名占位，下一步可接入 OCR/PDF
+                  解析流水线。
+                </p>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "上传中..." : "上传题目"}
+                </Button>
+              </div>
+
+              {error ? (
+                <p className="text-sm text-destructive">{error}</p>
               ) : null}
-            </Box>
-
-            <Flex align="center" justify="between">
-              <Text size="1" color="gray">
-                当前版本先落库题目和文件名占位，下一步可接入 OCR/PDF
-                解析流水线。
-              </Text>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "上传中..." : "上传题目"}
-              </Button>
-            </Flex>
-
-            {error ? (
-              <Text size="2" color="red">
-                {error}
-              </Text>
-            ) : null}
-            {success ? (
-              <Text size="2" color="green">
-                {success}
-              </Text>
-            ) : null}
-          </Flex>
-        </form>
+              {success ? (
+                <p className="text-sm text-green-600">{success}</p>
+              ) : null}
+            </div>
+          </form>
+        </CardContent>
       </Card>
 
       <Card className="border-none bg-white shadow-none">
-        <Flex direction="column" gap="3">
-          <Heading size="4">本题库题目</Heading>
+        <CardContent className="flex flex-col gap-3 pt-6">
+          <h2 className="text-lg font-semibold">本题库题目</h2>
           {initialQuestions.length === 0 ? (
-            <Text size="2" color="gray">
+            <p className="text-sm text-muted-foreground">
               还没有题目，先上传第一道题吧。
-            </Text>
+            </p>
           ) : (
-            <Flex direction="column" gap="2">
+            <div className="flex flex-col gap-2">
               {initialQuestions.map((question) => (
                 <Card
                   key={question.id}
                   className="border-none bg-[#f7f7f8] shadow-none"
                 >
-                  <Flex direction="column" gap="2">
-                    <Flex align="center" gap="2">
-                      <Badge color="blue">
-                        {QUESTION_TYPE_LABELS[question.type]}
-                      </Badge>
+                  <CardContent className="flex flex-col gap-2 pt-4">
+                    <div className="flex items-center gap-2">
+                      <Badge>{QUESTION_TYPE_LABELS[question.type]}</Badge>
                       {question.source ? (
-                        <Badge color="gray">{question.source}</Badge>
+                        <Badge variant="secondary">{question.source}</Badge>
                       ) : null}
-                    </Flex>
-                    <Text size="2">{question.content}</Text>
-                  </Flex>
+                    </div>
+                    <p className="text-sm">{question.content}</p>
+                  </CardContent>
                 </Card>
               ))}
-            </Flex>
+            </div>
           )}
-        </Flex>
+        </CardContent>
       </Card>
-    </Flex>
+    </div>
   );
 }

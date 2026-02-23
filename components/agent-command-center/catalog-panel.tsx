@@ -1,7 +1,14 @@
 "use client";
 
-import { CheckIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { Callout, Flex, Select, Text } from "@radix-ui/themes";
+import { Check, TriangleAlert } from "lucide-react";
+import { Callout } from "@/components/ui/callout";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { TopicOption } from "./types";
 
 type CatalogPanelProps = {
@@ -27,50 +34,38 @@ export function CatalogPanel({
   const isLowMatch = matchScore > 0 && matchScore < 60;
 
   return (
-    <Flex
-      direction="column"
-      gap="2"
-      className="border-t border-[#eef2f7] pt-2.5"
-    >
+    <div className="flex w-full flex-col gap-2 border-t border-[#eef2f7] pt-2.5">
       {isLowMatch && suggestedTopicName && (
-        <Callout.Root color="amber" size="1">
-          <Callout.Icon>
-            <ExclamationTriangleIcon />
-          </Callout.Icon>
-          <Callout.Text>
-            匹配度较低，建议新建题库：「{suggestedTopicName}」
-          </Callout.Text>
-        </Callout.Root>
+        <Callout variant="amber" icon={<TriangleAlert className="size-4" />}>
+          匹配度较低，建议新建题库：「{suggestedTopicName}」
+        </Callout>
       )}
 
       {!hasTopics ? (
-        <Text size="2" color="gray">
+        <p className="text-sm text-muted-foreground">
           暂无题库，请先在侧边栏创建题库
-        </Text>
+        </p>
       ) : (
-        <Flex gap="2" align="center" className="w-full">
-          <Text size="2" color="gray" className="shrink-0">
+        <div className="flex w-full items-center gap-2">
+          <span className="shrink-0 text-sm text-muted-foreground">
             保存到：
-          </Text>
+          </span>
           <div className="min-w-0 flex-1">
-            <Select.Root
-              value={selectedTopicId || undefined}
+            <Select
+              value={selectedTopicId ?? undefined}
               onValueChange={onSelectTopic}
-              size="2"
             >
-              <Select.Trigger
-                aria-label="选择题库"
-                placeholder="选择题库"
-                style={{ width: "100%" }}
-              />
-              <Select.Content position="popper">
+              <SelectTrigger aria-label="选择题库" className="w-full">
+                <SelectValue placeholder="选择题库" />
+              </SelectTrigger>
+              <SelectContent position="popper">
                 {existingCatalogCandidates.map((topic) => (
-                  <Select.Item key={topic.id} value={topic.id}>
+                  <SelectItem key={topic.id} value={topic.id}>
                     {topic.name}
-                  </Select.Item>
+                  </SelectItem>
                 ))}
-              </Select.Content>
-            </Select.Root>
+              </SelectContent>
+            </Select>
           </div>
           <button
             type="button"
@@ -86,13 +81,13 @@ export function CatalogPanel({
             }`}
           >
             {isSaving ? (
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <div className="size-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
             ) : (
-              <CheckIcon width={14} height={14} />
+              <Check className="size-3.5" />
             )}
           </button>
-        </Flex>
+        </div>
       )}
-    </Flex>
+    </div>
   );
 }

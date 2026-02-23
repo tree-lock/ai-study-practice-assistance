@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  ArrowUpIcon,
-  Cross2Icon,
-  EnterFullScreenIcon,
-  ExitFullScreenIcon,
-  MixerHorizontalIcon,
-  PlusIcon,
-} from "@radix-ui/react-icons";
-import { Flex, IconButton } from "@radix-ui/themes";
+  ArrowUp,
+  Maximize2,
+  Minimize2,
+  Plus,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { FileUpload } from "./file-upload";
 import type { UploadFileItem } from "./types";
 
@@ -80,9 +80,16 @@ export function InputArea({
 
   useEffect(() => {
     return () => {
-      for (const file of filesRef.current) {
-        if (file.previewUrl) {
-          URL.revokeObjectURL(file.previewUrl);
+      // Cleanup all object URLs on unmount
+      if (filesRef.current) {
+        for (const file of filesRef.current) {
+          if (file.previewUrl) {
+            try {
+              URL.revokeObjectURL(file.previewUrl);
+            } catch {
+              // Ignore errors during cleanup
+            }
+          }
         }
       }
     };
@@ -120,28 +127,28 @@ export function InputArea({
     generateStatus !== "generating" && !canStartGenerate;
 
   return (
-    <Flex
-      direction="column"
-      gap="2"
+    <section
+      aria-label="上传题目输入区"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative rounded-2xl px-4 py-3.5 transition-[background,border] duration-150 ${
+      className={`relative flex min-h-[140px] flex-col gap-2 rounded-2xl px-4 py-3.5 transition-[background,border] duration-150 ${
         isDragging
-          ? "min-h-[140px] border-2 border-dashed border-blue-500 bg-[#f0f4f8]"
-          : "min-h-[140px] border border-[#e8ecf1] bg-[#fafbfc]"
+          ? "border-2 border-dashed border-blue-500 bg-[#f0f4f8]"
+          : "border border-[#e8ecf1] bg-[#fafbfc]"
       } ${isMaximized ? "min-h-[560px] max-h-[72vh]" : ""}`}
     >
-      <div className="absolute top-2.5 right-2.5 p-px">
-        <IconButton
+      <div className="absolute right-2.5 top-2.5 p-px">
+        <Button
+          type="button"
           variant="ghost"
-          color="gray"
+          size="icon"
           aria-label={isMaximized ? "退出最大化" : "最大化输入框"}
           onClick={() => onIsMaximizedChange(!isMaximized)}
         >
-          {isMaximized ? <ExitFullScreenIcon /> : <EnterFullScreenIcon />}
-        </IconButton>
+          {isMaximized ? <Minimize2 /> : <Maximize2 />}
+        </Button>
       </div>
       <input
         ref={fileInputRef}
@@ -166,35 +173,35 @@ export function InputArea({
         }}
         onInput={adjustTextareaHeight}
         rows={1}
-        className="w-full min-h-0 max-h-none overflow-y-auto border-none bg-transparent p-0 font-inherit leading-normal outline-none resize-none"
+        className="max-h-none min-h-0 w-full resize-none overflow-y-auto border-none bg-transparent p-0 font-inherit leading-normal outline-none"
         style={{
           minHeight: MIN_TEXTAREA_HEIGHT,
           maxHeight: MAX_TEXTAREA_HEIGHT,
         }}
       />
       <FileUpload files={files} onRemoveFile={onRemoveFile} />
-      <Flex justify="between" align="center" className="mt-auto">
-        <Flex gap="1">
-          <IconButton
+      <div className="mt-auto flex items-center justify-between">
+        <div className="flex gap-1">
+          <Button
             type="button"
-            variant="soft"
-            color="gray"
-            size="1"
+            variant="secondary"
+            size="icon"
+            className="size-8"
             aria-label="添加文件"
             onClick={() => fileInputRef.current?.click()}
           >
-            <PlusIcon />
-          </IconButton>
-          <IconButton
+            <Plus className="size-4" />
+          </Button>
+          <Button
             type="button"
-            variant="soft"
-            color="gray"
-            size="1"
+            variant="secondary"
+            size="icon"
+            className="size-8"
             aria-label="选项"
           >
-            <MixerHorizontalIcon />
-          </IconButton>
-        </Flex>
+            <SlidersHorizontal className="size-4" />
+          </Button>
+        </div>
         <button
           type="button"
           aria-label={
@@ -202,7 +209,7 @@ export function InputArea({
           }
           disabled={generateButtonDisabled}
           onClick={onGenerateClick}
-          className={`inline-flex h-7 w-7 items-center justify-center rounded-full border-none text-white transition-all duration-200 ease-in-out ${
+          className={`inline-flex size-7 items-center justify-center rounded-full border-none text-white transition-all duration-200 ease-in-out ${
             generateButtonDisabled
               ? "bg-gray-400 opacity-72"
               : generateStatus === "generating"
@@ -211,12 +218,12 @@ export function InputArea({
           }`}
         >
           {generateStatus === "generating" ? (
-            <Cross2Icon width={14} height={14} />
+            <X className="size-3.5" />
           ) : (
-            <ArrowUpIcon width={14} height={14} />
+            <ArrowUp className="size-3.5" />
           )}
         </button>
-      </Flex>
-    </Flex>
+      </div>
+    </section>
   );
 }

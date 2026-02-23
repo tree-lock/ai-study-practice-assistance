@@ -53,7 +53,7 @@
 | **验证** | [Zod](https://zod.dev) |
 | **认证** | [Auth.js (NextAuth v5)](https://authjs.dev) |
 | **AI 模型** | MiniMax (MiniMax-M2.5) |
-| **UI 组件** | [Radix Themes](https://www.radix-ui.com/themes) + [Tailwind CSS](https://tailwindcss.com) |
+| **UI 组件** | [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)（基于 Radix Primitives） |
 | **Markdown** | react-markdown + remark-math + rehype-katex |
 | **代码规范** | [Biome](https://biomejs.dev) |
 

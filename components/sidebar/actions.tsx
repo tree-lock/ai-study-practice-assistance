@@ -1,11 +1,11 @@
 "use client";
 
-import { FilePlusIcon, PlusIcon } from "@radix-ui/react-icons";
-import { Flex, Text, TextField } from "@radix-ui/themes";
+import { FilePlus, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createTopic } from "@/app/actions/topic";
+import { Input } from "@/components/ui/input";
 
 type SidebarActionsProps = {
   collapsed: boolean;
@@ -13,10 +13,10 @@ type SidebarActionsProps = {
 };
 
 const actionItemClass =
-  "flex items-center gap-2 rounded-md py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300 cursor-pointer";
+  "flex cursor-pointer items-center gap-2 rounded-md py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300";
 
 const actionItemActiveClass =
-  "flex items-center gap-2 rounded-md bg-blue-200 py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors cursor-pointer";
+  "flex cursor-pointer items-center gap-2 rounded-md bg-blue-200 py-1.5 pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors";
 
 export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
@@ -54,11 +54,11 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   };
 
   return (
-    <Flex direction="column" className="pt-2">
+    <div className="flex flex-col pt-2">
       <Link
         href="/"
         className={isNewQuestionPage ? actionItemActiveClass : actionItemClass}
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
           if (collapsed) {
             e.preventDefault();
             onExpand();
@@ -66,10 +66,8 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
         }}
         aria-label="新增题目"
       >
-        <FilePlusIcon />
-        <Text size="2" className={collapsed ? "hidden" : ""}>
-          新增题目
-        </Text>
+        <FilePlus className="size-4" />
+        <span className={collapsed ? "hidden" : ""}>新增题目</span>
       </Link>
 
       {isCreatingTopic && !collapsed ? (
@@ -80,17 +78,16 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
               e.preventDefault();
               void handleCreateTopic();
             }}
-            onKeyDown={(e) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLFormElement>) => {
               if (e.key === "Escape") {
                 e.preventDefault();
                 handleCancelCreate();
               }
             }}
           >
-            <TextField.Root
-              size="1"
+            <Input
               value={newTopicName}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setNewTopicName(e.target.value);
                 setCreateError("");
               }}
@@ -102,13 +99,11 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
               placeholder="输入题库名称..."
               autoFocus
               disabled={isSubmitting}
-              style={{ width: "100%" }}
+              className="w-full"
             />
           </form>
           {createError ? (
-            <Text size="1" color="red" className="mt-1 block">
-              {createError}
-            </Text>
+            <p className="mt-1 block text-xs text-destructive">{createError}</p>
           ) : null}
         </div>
       ) : (
@@ -124,12 +119,10 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
           }}
           aria-label="新建题库"
         >
-          <PlusIcon />
-          <Text size="2" className={collapsed ? "hidden" : ""}>
-            新建题库
-          </Text>
+          <Plus className="size-4" />
+          <span className={collapsed ? "hidden" : ""}>新建题库</span>
         </button>
       )}
-    </Flex>
+    </div>
   );
 }

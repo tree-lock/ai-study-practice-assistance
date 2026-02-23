@@ -1,6 +1,5 @@
 "use client";
 
-import { Flex, Text } from "@radix-ui/themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TopicActionMenu } from "@/components/topic-action-menu";
@@ -24,11 +23,9 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
   }
 
   return (
-    <Flex direction="column" gap="2">
-      <Text as="p" size="2" weight="bold" className="pl-3 whitespace-nowrap">
-        题库
-      </Text>
-      <Flex direction="column">
+    <div className="flex flex-col gap-2">
+      <p className="whitespace-nowrap pl-3 text-sm font-bold">题库</p>
+      <div className="flex flex-col">
         {topics.map((topic) => {
           const isActive = pathname === `/topics/${topic.id}`;
           return (
@@ -44,15 +41,13 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
                 href={`/topics/${topic.id}`}
                 className="min-w-0 flex-1 py-1.5 pl-3 pr-2 text-[13px] text-gray-700 no-underline"
               >
-                <Text size="2" className="truncate">
-                  {topic.name}
-                </Text>
+                <span className="truncate text-sm">{topic.name}</span>
               </Link>
               <div
                 className={`transition-opacity ${
                   isActive
                     ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100 group-has-[[data-state='open']]:opacity-100"
+                    : "opacity-0 group-hover:opacity-100 group-has-[[data-state=open]]:opacity-100"
                 }`}
               >
                 <TopicActionMenu topicId={topic.id} topicName={topic.name} />
@@ -60,7 +55,7 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
             </div>
           );
         })}
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   );
 }

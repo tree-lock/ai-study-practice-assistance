@@ -1,10 +1,10 @@
-import { Button } from "@radix-ui/themes";
 import { Suspense } from "react";
 import { getTopics } from "@/app/actions/topic";
 import { signIn, signOut } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { Sidebar } from "@/components/sidebar";
 import { SidebarSkeleton } from "@/components/sidebar/skeleton";
+import { Button } from "@/components/ui/button";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 
 const hasGoogleAuthConfig =
@@ -35,12 +35,7 @@ async function FloatingActions() {
 
   return isLoggedIn ? (
     <form action={logout}>
-      <Button
-        type="submit"
-        variant="ghost"
-        color="gray"
-        className="justify-start"
-      >
+      <Button type="submit" variant="ghost" className="justify-start">
         退出登录
       </Button>
     </form>

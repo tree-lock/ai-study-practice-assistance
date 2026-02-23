@@ -1,16 +1,18 @@
 "use client";
 
-import { MagicWandIcon, Pencil1Icon } from "@radix-ui/react-icons";
-import {
-  Button,
-  Dialog,
-  IconButton,
-  Spinner,
-  Text,
-  TextArea,
-} from "@radix-ui/themes";
+import { Pencil, Wand2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { generateTopicOutline, updateTopicOutline } from "@/app/actions/topic";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { updateTopicOutlineCache } from "@/lib/hooks/use-topic-data";
 
 type OutlineEditorProps = {
@@ -77,80 +79,87 @@ export function OutlineEditor({ topicId, outline }: OutlineEditorProps) {
     <div className="flex flex-col gap-2">
       {outline ? (
         <div className="flex items-start gap-2">
-          <Text size="2" color="gray" className="flex-1">
-            {outline}
-          </Text>
-          <div className="p-px">
-            <IconButton
-              variant="ghost"
-              color="gray"
-              onClick={() => setIsOpen(true)}
-              aria-label="编辑大纲"
-            >
-              <Pencil1Icon />
-            </IconButton>
-          </div>
+          <p className="flex-1 text-sm text-muted-foreground">{outline}</p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(true)}
+            aria-label="编辑大纲"
+          >
+            <Pencil className="size-4" />
+          </Button>
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <Text size="2" color="gray">
-            暂无大纲
-          </Text>
-          <Button variant="soft" size="1" onClick={() => setIsOpen(true)}>
-            <Pencil1Icon />
+          <p className="text-sm text-muted-foreground">暂无大纲</p>
+          <Button variant="secondary" size="sm" onClick={() => setIsOpen(true)}>
+            <Pencil className="size-4" />
             添加大纲
           </Button>
         </div>
       )}
 
-      <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
-        <Dialog.Content maxWidth="520px">
-          <Dialog.Title>编辑题库大纲</Dialog.Title>
-          <Dialog.Description size="2" color="gray">
-            大纲是对题库内容的描述，用于生成知识点列表
-          </Dialog.Description>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-[520px]" showClose>
+          <DialogHeader>
+            <DialogTitle>编辑题库大纲</DialogTitle>
+            <DialogDescription>
+              大纲是对题库内容的描述，用于生成知识点列表
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="mt-4 flex flex-col gap-4">
-            <TextArea
+            <textarea
               placeholder="请输入题库大纲..."
               value={editedOutline}
-              onChange={(e) => setEditedOutline(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setEditedOutline(e.target.value)
+              }
               rows={6}
               disabled={isPending || isGenerating}
+              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
             />
 
-            {error && (
-              <Text size="2" color="red">
-                {error}
-              </Text>
-            )}
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </div>
 
-          <div className="mt-4 flex justify-between gap-3">
+          <DialogFooter className="mt-4 justify-between gap-3">
             <Button
-              variant="soft"
-              color="gray"
+              type="button"
+              variant="secondary"
               onClick={handleGenerate}
               disabled={isPending || isGenerating}
             >
-              {isGenerating ? <Spinner size="1" /> : <MagicWandIcon />}
+              {isGenerating ? (
+                <Spinner className="size-4" />
+              ) : (
+                <Wand2 className="size-4" />
+              )}
               AI 生成
             </Button>
 
             <div className="flex gap-2">
-              <Dialog.Close>
-                <Button variant="soft" color="gray" disabled={isPending}>
-                  取消
-                </Button>
-              </Dialog.Close>
-              <Button onClick={handleSave} disabled={isPending || isGenerating}>
-                {isPending ? <Spinner size="1" /> : null}
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPending}
+                onClick={() => setIsOpen(false)}
+              >
+                取消
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSave}
+                disabled={isPending || isGenerating}
+              >
+                {isPending ? <Spinner className="size-4" /> : null}
                 保存
               </Button>
             </div>
-          </div>
-        </Dialog.Content>
-      </Dialog.Root>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

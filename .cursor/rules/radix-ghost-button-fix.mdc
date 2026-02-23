@@ -1,10 +1,12 @@
 ---
-description: Fix UI overlap issues caused by Radix Ghost Button negative margins
+description: "[已弃用] 项目已迁移至 Tailwind + shadcn/ui，不再使用 Radix Themes。图标按钮请使用 @/components/ui/button 的 variant=ghost size=icon。"
 globs: "**/*.tsx"
-alwaysApply: true
+alwaysApply: false
 ---
 
-# Radix Ghost Button UI 重叠问题修复指南
+# [已弃用] Radix Ghost Button UI 重叠问题修复指南
+
+**本项目已弃用 Radix Themes，改用 Tailwind CSS + shadcn/ui。** 以下内容仅作历史参考。
 
 ## 问题识别
 

@@ -1,6 +1,6 @@
-import { GearIcon } from "@radix-ui/react-icons";
-import { Box, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
+import { Settings } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
+import { Button } from "@/components/ui/button";
 
 type Topic = {
   id: string;
@@ -37,48 +37,60 @@ export function AppShell({
   );
 
   return (
-    <Box className="min-h-screen bg-[#f3f3f5]">
-      <Flex>
+    <div className="min-h-screen bg-[#f3f3f5]">
+      <div className="flex">
         {sidebarContent}
 
-        <Box className="flex-1 relative">
-          <Box className="w-full">
+        <div className="relative flex-1">
+          <div className="w-full">
             {floatingActions ? (
-              <Box className="absolute top-5 right-5 z-10">
-                <Flex align="center" gap="2">
-                  <IconButton variant="ghost" color="gray" aria-label="设置">
-                    <GearIcon />
-                  </IconButton>
+              <div className="absolute right-5 top-5 z-10">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="设置"
+                  >
+                    <Settings />
+                  </Button>
                   {floatingActions}
-                </Flex>
-              </Box>
+                </div>
+              </div>
             ) : null}
 
             {title || subtitle || headerActions ? (
-              <Flex justify="between" align="start" gap="3" mb="5">
-                <Box>
-                  {title ? <Heading size="7">{title}</Heading> : null}
-                  {subtitle ? (
-                    <Text as="p" size="2" color="gray" mt="1">
-                      {subtitle}
-                    </Text>
+              <div className="mb-5 flex items-start justify-between gap-3">
+                <div>
+                  {title ? (
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                      {title}
+                    </h1>
                   ) : null}
-                </Box>
-                <Flex align="center" gap="2">
-                  <div className="p-px">
-                    <IconButton variant="ghost" color="gray" aria-label="设置">
-                      <GearIcon />
-                    </IconButton>
-                  </div>
+                  {subtitle ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {subtitle}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="设置"
+                  >
+                    <Settings />
+                  </Button>
                   {headerActions}
-                </Flex>
-              </Flex>
+                </div>
+              </div>
             ) : null}
 
             {children}
-          </Box>
-        </Box>
-      </Flex>
-    </Box>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

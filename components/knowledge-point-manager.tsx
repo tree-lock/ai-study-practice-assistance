@@ -1,21 +1,6 @@
 "use client";
 
-import {
-  Cross2Icon,
-  MagicWandIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
-import {
-  AlertDialog,
-  Badge,
-  Button,
-  Dialog,
-  IconButton,
-  Spinner,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
+import { Plus, Trash2, Wand2, X } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import {
   addKnowledgePoint,
@@ -25,6 +10,28 @@ import {
   getTopicKnowledgePoints,
   type KnowledgePoint,
 } from "@/app/actions/topic";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
 type KnowledgePointManagerProps = {
   topicId: string;
@@ -50,20 +57,49 @@ export function KnowledgePointManager({
 
   const loadKnowledgePoints = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const result = await getTopicKnowledgePoints(topicId);
       setKnowledgePoints(result);
+    } catch (err) {
+      console.error("加载知识点失败:", err);
+      setError("加载知识点失败");
     } finally {
       setIsLoading(false);
     }
   }, [topicId]);
 
   useEffect(() => {
-    if (isOpen) {
-      loadKnowledgePoints();
-      setError(null);
+    if (!isOpen) return;
+
+    let ignored = false;
+    setError(null);
+
+    async function load() {
+      setIsLoading(true);
+      try {
+        const result = await getTopicKnowledgePoints(topicId);
+        if (!ignored) {
+          setKnowledgePoints(result);
+          setError(null);
+        }
+      } catch (err) {
+        if (!ignored) {
+          console.error("加载知识点失败:", err);
+          setError("加载知识点失败");
+        }
+      } finally {
+        if (!ignored) {
+          setIsLoading(false);
+        }
+      }
     }
-  }, [isOpen, loadKnowledgePoints]);
+    load();
+
+    return () => {
+      ignored = true;
+    };
+  }, [isOpen, topicId]);
 
   const handleAdd = () => {
     if (!newName.trim()) {
@@ -124,43 +160,42 @@ export function KnowledgePointManager({
 
   return (
     <>
-      <Button variant="soft" size="1" onClick={() => setIsOpen(true)}>
+      <Button variant="secondary" size="sm" onClick={() => setIsOpen(true)}>
         知识点管理
       </Button>
 
-      <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
-        <Dialog.Content maxWidth="480px">
-          <Dialog.Title>知识点管理</Dialog.Title>
-          <Dialog.Description size="2" color="gray">
-            管理题库的知识点列表，题目只能从这些知识点中选择
-          </Dialog.Description>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-[480px]" showClose>
+          <DialogHeader>
+            <DialogTitle>知识点管理</DialogTitle>
+            <DialogDescription>
+              管理题库的知识点列表，题目只能从这些知识点中选择
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="mt-4 flex flex-col gap-4">
             {!hasOutline && (
               <div className="rounded-md bg-amber-50 p-3">
-                <Text size="2" color="amber">
+                <p className="text-sm text-amber-800">
                   请先添加题库大纲，才能使用 AI 生成知识点
-                </Text>
+                </p>
               </div>
             )}
 
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Spinner size="2" />
+                <Spinner className="size-8" />
               </div>
             ) : (
               <>
                 <div className="flex flex-wrap gap-2">
                   {knowledgePoints.length === 0 ? (
-                    <Text size="2" color="gray">
-                      暂无知识点
-                    </Text>
+                    <p className="text-sm text-muted-foreground">暂无知识点</p>
                   ) : (
                     knowledgePoints.map((kp) => (
                       <Badge
                         key={kp.id}
-                        size="2"
-                        variant="soft"
+                        variant="secondary"
                         className="group flex items-center gap-1"
                       >
                         {kp.name}
@@ -171,7 +206,7 @@ export function KnowledgePointManager({
                           aria-label={`删除 ${kp.name}`}
                           disabled={isPending}
                         >
-                          <Cross2Icon className="h-3 w-3" />
+                          <X className="size-3" />
                         </button>
                       </Badge>
                     ))
@@ -179,95 +214,112 @@ export function KnowledgePointManager({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <TextField.Root
+                  <Input
                     placeholder="输入知识点名称"
                     value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    onKeyDown={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewName(e.target.value)
+                    }
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         handleAdd();
                       }
                     }}
                     disabled={isPending || isGenerating}
-                    style={{ flex: 1 }}
+                    className="flex-1"
                   />
-                  <IconButton
-                    variant="soft"
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
                     onClick={handleAdd}
                     disabled={isPending || isGenerating || !newName.trim()}
                     aria-label="添加知识点"
                   >
-                    {isPending ? <Spinner size="1" /> : <PlusIcon />}
-                  </IconButton>
+                    {isPending ? (
+                      <Spinner className="size-4" />
+                    ) : (
+                      <Plus className="size-4" />
+                    )}
+                  </Button>
                 </div>
 
-                {error && (
-                  <Text size="2" color="red">
-                    {error}
-                  </Text>
-                )}
+                {error ? (
+                  <p className="text-sm text-destructive">{error}</p>
+                ) : null}
 
-                <Text size="1" color="gray">
+                <p className="text-xs text-muted-foreground">
                   知识点数量：{knowledgePoints.length}（建议 5-15 个）
-                </Text>
+                </p>
               </>
             )}
           </div>
 
-          <div className="mt-4 flex justify-between gap-3">
+          <DialogFooter className="mt-4 justify-between gap-3">
             <Button
-              variant="soft"
-              color="gray"
+              type="button"
+              variant="secondary"
               onClick={handleGenerate}
               disabled={!hasOutline || isPending || isGenerating}
             >
-              {isGenerating ? <Spinner size="1" /> : <MagicWandIcon />}
+              {isGenerating ? (
+                <Spinner className="size-4" />
+              ) : (
+                <Wand2 className="size-4" />
+              )}
               AI 生成
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+            >
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-            <Dialog.Close>
-              <Button variant="soft" color="gray">
-                关闭
-              </Button>
-            </Dialog.Close>
-          </div>
-        </Dialog.Content>
-      </Dialog.Root>
-
-      <AlertDialog.Root
+      <AlertDialog
         open={deleteConfirm !== null}
-        onOpenChange={(open) => !open && setDeleteConfirm(null)}
+        onOpenChange={(open: boolean) => !open && setDeleteConfirm(null)}
       >
-        <AlertDialog.Content maxWidth="400px">
-          <AlertDialog.Title>确认删除知识点</AlertDialog.Title>
-          <AlertDialog.Description size="2">
-            {deleteConfirm?.linkedCount && deleteConfirm.linkedCount > 0 ? (
-              <>
-                知识点「{deleteConfirm?.name}
-                」已被 {deleteConfirm?.linkedCount}{" "}
-                道题目关联，删除后将自动从这些题目中移除关联关系。
-              </>
-            ) : (
-              <>确定要删除知识点「{deleteConfirm?.name}」吗？</>
-            )}
-          </AlertDialog.Description>
+        <AlertDialogContent className="max-w-[400px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除知识点</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm?.linkedCount && deleteConfirm.linkedCount > 0 ? (
+                <>
+                  知识点「{deleteConfirm?.name}
+                  」已被 {deleteConfirm?.linkedCount}{" "}
+                  道题目关联，删除后将自动从这些题目中移除关联关系。
+                </>
+              ) : (
+                <>确定要删除知识点「{deleteConfirm?.name}」吗？</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-          <div className="mt-4 flex justify-end gap-3">
-            <AlertDialog.Cancel>
-              <Button variant="soft" color="gray">
+          <AlertDialogFooter className="mt-4 gap-3">
+            <AlertDialogCancel asChild>
+              <Button type="button" variant="outline">
                 取消
               </Button>
-            </AlertDialog.Cancel>
-            <AlertDialog.Action>
-              <Button variant="solid" color="red" onClick={confirmDelete}>
-                <TrashIcon />
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDelete}
+              >
+                <Trash2 className="size-4" />
                 删除
               </Button>
-            </AlertDialog.Action>
-          </div>
-        </AlertDialog.Content>
-      </AlertDialog.Root>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

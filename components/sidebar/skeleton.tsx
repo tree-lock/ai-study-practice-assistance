@@ -1,71 +1,46 @@
-import { Box, Flex, Skeleton, Text } from "@radix-ui/themes";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function SidebarSkeleton() {
   return (
-    <Box className="sticky top-0 h-screen w-[250px] min-w-[250px] py-3.5 px-2.5 bg-[#efeff1]">
-      <Flex direction="column" gap="6">
-        {/* UserInfo 区域 */}
-        <Flex align="center" justify="between">
-          <Flex align="center" gap="3">
-            <Skeleton width="40px" height="40px" className="rounded-full" />
-            <Box>
-              <Skeleton>
-                <Text as="p" size="2" weight="bold">
-                  AI 学习助教
-                </Text>
-              </Skeleton>
-              <Skeleton>
-                <Text as="p" size="1" color="gray">
-                  欢迎使用
-                </Text>
-              </Skeleton>
-            </Box>
-          </Flex>
-          <Skeleton width="28px" height="28px" />
-        </Flex>
+    <div className="sticky top-0 h-screen w-[250px] min-w-[250px] bg-[#efeff1] px-2.5 py-3.5">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 rounded-full" />
+            <div>
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="mt-1 h-3 w-16" />
+            </div>
+          </div>
+          <Skeleton className="size-7" />
+        </div>
 
-        {/* Actions 区域 */}
-        <Flex direction="column" gap="1" className="pt-2">
-          <Flex align="center" gap="2" className="pl-3 py-1.5">
-            <Skeleton width="15px" height="15px" />
-            <Skeleton>
-              <Text size="2">新增题目</Text>
-            </Skeleton>
-          </Flex>
-          <Flex align="center" gap="2" className="pl-3 py-1.5">
-            <Skeleton width="15px" height="15px" />
-            <Skeleton>
-              <Text size="2">新建题库</Text>
-            </Skeleton>
-          </Flex>
-        </Flex>
+        <div className="flex flex-col gap-1 pt-2">
+          <div className="flex items-center gap-2 py-1.5 pl-3">
+            <Skeleton className="size-[15px]" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <div className="flex items-center gap-2 py-1.5 pl-3">
+            <Skeleton className="size-[15px]" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </div>
 
-        {/* TopicList 区域 */}
-        <Flex direction="column" gap="2">
-          <Skeleton className="pl-3">
-            <Text as="p" size="2" weight="bold">
-              题库
-            </Text>
-          </Skeleton>
-          <Flex direction="column" gap="1">
-            <Flex className="pl-3 py-1.5">
-              <Skeleton width="120px">
-                <Text size="2">题库项</Text>
-              </Skeleton>
-            </Flex>
-            <Flex className="pl-3 py-1.5">
-              <Skeleton width="90px">
-                <Text size="2">题库项</Text>
-              </Skeleton>
-            </Flex>
-            <Flex className="pl-3 py-1.5">
-              <Skeleton width="140px">
-                <Text size="2">题库项</Text>
-              </Skeleton>
-            </Flex>
-          </Flex>
-        </Flex>
-      </Flex>
-    </Box>
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-4 w-12 pl-3" />
+          <div className="flex flex-col gap-1">
+            <div className="py-1.5 pl-3">
+              <Skeleton className="h-4 w-[120px]" />
+            </div>
+            <div className="py-1.5 pl-3">
+              <Skeleton className="h-4 w-[90px]" />
+            </div>
+            <div className="py-1.5 pl-3">
+              <Skeleton className="h-4 w-[140px]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
