@@ -17,7 +17,7 @@ type TopicData = {
 };
 
 async function fetcher(url: string): Promise<TopicData> {
-  const res = await fetch(url);
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(error.error || "Failed to fetch");

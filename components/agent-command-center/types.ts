@@ -1,9 +1,13 @@
 import type { QuestionType } from "@/lib/ai/types";
 
+export type ImageRotationDegrees = 0 | 90 | 180 | 270;
+
 export type UploadFileItem = {
   id: string;
   file: File;
   previewUrl: string | null;
+  /** 图片旋转角度，仅对图片类型有效；提交识别时通过 Canvas 应用旋转后上传 */
+  rotationDegrees: ImageRotationDegrees;
 };
 
 export type GenerateStatus = "idle" | "generating" | "done" | "stopped";

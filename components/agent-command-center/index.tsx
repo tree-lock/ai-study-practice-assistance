@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   analyzeQuestionAction,
@@ -10,10 +11,17 @@ import {
   submitMineruExtract,
 } from "@/app/actions/mineru";
 import { getTopics } from "@/app/actions/topic";
+import { invalidateTopicCache } from "@/lib/hooks/use-topic-data";
+import { rotateImageToFile } from "@/lib/rotate-image";
 import { InputArea } from "./input-area";
 import { QuestionPanel } from "./question-panel";
 import { textToMarkdown } from "./text-to-markdown";
-import type { AnalysisResult, TopicOption, UploadFileItem } from "./types";
+import type {
+  AnalysisResult,
+  ImageRotationDegrees,
+  TopicOption,
+  UploadFileItem,
+} from "./types";
 
 const MINERU_EXTENSIONS = [
   ".pdf",
@@ -37,6 +45,7 @@ async function readPlainTextFile(file: File): Promise<string> {
 }
 
 export function AgentCommandCenter() {
+  const router = useRouter();
   const [prompt, setPrompt] = useState("");
   const [files, setFiles] = useState<UploadFileItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -68,7 +77,16 @@ export function AgentCommandCenter() {
       previewUrl: file.type.startsWith("image/")
         ? URL.createObjectURL(file)
         : null,
+      rotationDegrees: 0,
     };
+  }
+
+  function updateFileRotation(id: string, degrees: ImageRotationDegrees) {
+    setFiles((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, rotationDegrees: degrees } : item,
+      ),
+    );
   }
 
   function addFiles(newFiles: FileList | File[]) {
@@ -137,7 +155,12 @@ export function AgentCommandCenter() {
           setParsePhase("uploading");
           const formData = new FormData();
           for (const item of mineruItems) {
-            formData.append("file", item.file);
+            const isImage = item.file.type.startsWith("image/");
+            const needsRotation = isImage && item.rotationDegrees !== 0;
+            const fileToAppend = needsRotation
+              ? await rotateImageToFile(item.file, item.rotationDegrees)
+              : item.file;
+            formData.append("file", fileToAppend);
           }
 
           const submitResult = await submitMineruExtract(formData);
@@ -276,6 +299,7 @@ export function AgentCommandCenter() {
         onDragStateChange={setIsDragging}
         onAddFiles={addFiles}
         onRemoveFile={removeFile}
+        onRotationChange={updateFileRotation}
         onGenerateClick={handleGenerateClick}
       />
       {shouldShowResultPanels ? (
@@ -338,7 +362,7 @@ export function AgentCommandCenter() {
                   });
 
                   if (result.success) {
-                    alert(`题目已保存到题库"${selectedTopic.name}"`);
+                    invalidateTopicCache(result.topicId);
                     setPrompt("");
                     setFiles([]);
                     setQuestionMarkdown("");
@@ -349,6 +373,7 @@ export function AgentCommandCenter() {
                     setSourceLabel(null);
                     setAnalysisResult(null);
                     setGenerateStatus("idle");
+                    router.push(`/topics/${result.topicId}`);
                   } else {
                     alert(`保存失败：${result.error}`);
                   }

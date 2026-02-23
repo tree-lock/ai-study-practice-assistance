@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "./file-upload";
-import type { UploadFileItem } from "./types";
+import type { ImageRotationDegrees, UploadFileItem } from "./types";
 
 type InputAreaProps = {
   prompt: string;
@@ -24,6 +24,7 @@ type InputAreaProps = {
   onDragStateChange: (isDragging: boolean) => void;
   onAddFiles: (newFiles: FileList | File[]) => void;
   onRemoveFile: (id: string) => void;
+  onRotationChange: (id: string, degrees: ImageRotationDegrees) => void;
   onGenerateClick: () => void;
 };
 
@@ -38,6 +39,7 @@ export function InputArea({
   onDragStateChange,
   onAddFiles,
   onRemoveFile,
+  onRotationChange,
   onGenerateClick,
 }: InputAreaProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -179,7 +181,11 @@ export function InputArea({
           maxHeight: MAX_TEXTAREA_HEIGHT,
         }}
       />
-      <FileUpload files={files} onRemoveFile={onRemoveFile} />
+      <FileUpload
+        files={files}
+        onRemoveFile={onRemoveFile}
+        onRotationChange={onRotationChange}
+      />
       <div className="mt-auto flex items-center justify-between">
         <div className="flex gap-1">
           <Button
