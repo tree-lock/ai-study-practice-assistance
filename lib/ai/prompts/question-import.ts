@@ -28,7 +28,7 @@ export function buildQuestionImportPrompt(
 ## 格式化规则
 
 ### 通用规则
-- **多题处理**：如果用户输入包含多道题目，只保留并格式化第一道题目，忽略其余题目
+- **多题处理**：如果用户输入包含多道题目，请逐道识别、拆分并格式化，返回全部题目（每道题作为 questions 数组中的一个元素）
 - 删除题目前的科目名称（如"高等数学"、"线性代数"等）
 - 删除题目前的题号（如"162"、"第3题"、"74."等）
 - 删除题目后的"答题区"、图片链接等无关内容
@@ -55,9 +55,13 @@ ${topicListStr}
 你必须以纯 JSON 格式返回，不要包含任何其他文字。JSON 结构如下：
 
 {
-  "formattedContent": "格式化后的题目内容（Markdown + LaTeX）",
-  "questionType": "choice|blank|subjective|application|proof|comprehensive",
-  "questionTypeLabel": "中文类型名称",
+  "questions": [
+    {
+      "formattedContent": "格式化后的题目内容（Markdown + LaTeX）",
+      "questionType": "choice|blank|subjective|application|proof|comprehensive",
+      "questionTypeLabel": "中文类型名称"
+    }
+  ],
   "catalogRecommendation": {
     "topicId": "必须填写一个已有题库的 ID",
     "topicName": "选择的题库名称",
@@ -67,11 +71,13 @@ ${topicListStr}
   "notice": "可选字段，仅在需要提醒用户时返回"
 }
 
+注意：questions 是数组，单道题目时返回包含 1 个元素的数组，多道题目时返回多个元素。
+
 ## notice 字段使用规则（重要）
 
 notice 是可选字段，**大多数情况下不需要返回**。仅在以下情况时返回：
 
-1. **输入包含多道题目**：提示用户"检测到多道题目，已仅保留第一题"
+1. **输入包含多道题目**：可提示用户"检测到多道题目，已全部解析"（仅在实际解析了多题时）
 2. **题目内容不完整或模糊**：如题目被截断、缺少关键信息，提示用户检查
 3. **题目类型识别不确定**：如题目特征不明显，难以准确判断类型时提示
 

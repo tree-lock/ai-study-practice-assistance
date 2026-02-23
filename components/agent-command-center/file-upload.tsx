@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -55,7 +56,7 @@ export function FileUpload({
             key={item.id}
             className="flex w-[98px] flex-col gap-1 overflow-hidden rounded-xl border border-[#d9dee8] bg-white"
           >
-            <div className="relative flex h-[72px] w-full items-end justify-end bg-[#eef2f7]">
+            <div className="relative flex h-[72px] w-full items-end justify-end overflow-hidden bg-[#eef2f7]">
               {item.previewUrl ? (
                 <button
                   type="button"
@@ -109,6 +110,9 @@ export function FileUpload({
             <DialogTitle className="truncate">
               {previewItem?.file.name ?? ""}
             </DialogTitle>
+            <DialogDescription>
+              若图片为横屏，请使用下方按钮旋转为竖屏后再提交识别。
+            </DialogDescription>
           </DialogHeader>
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-auto">
             {previewItem?.previewUrl ? (

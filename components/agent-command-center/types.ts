@@ -26,10 +26,14 @@ export type CatalogRecommendation = {
   suggestedTopicName?: string;
 };
 
-export type AnalysisResult = {
+export type SingleQuestionItem = {
   formattedContent: string;
   questionType: QuestionType;
   questionTypeLabel: string;
+};
+
+export type AnalysisResult = {
+  questions: SingleQuestionItem[];
   catalogRecommendation: CatalogRecommendation;
   notice?: string;
 };

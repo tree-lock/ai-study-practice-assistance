@@ -167,7 +167,7 @@ export function InputArea({
       />
       <textarea
         ref={textareaRef}
-        placeholder="上传题目，文字、图片或文档 (可拖拽文件到此处)"
+        placeholder="上传题目，文字、图片或文档 (可拖拽)。横屏图片请旋转为竖屏"
         value={prompt}
         onChange={(e) => {
           onPromptChange(e.target.value);

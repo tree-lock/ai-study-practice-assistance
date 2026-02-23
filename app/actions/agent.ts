@@ -91,6 +91,80 @@ type SaveToCatalogResult =
   | { success: true; topicId: string; questionId: string }
   | { success: false; error: string };
 
+const saveQuestionsToCatalogSchema = z.object({
+  topicId: z.string().uuid("题库参数不合法"),
+  questions: z
+    .array(
+      z.object({
+        content: z.string().trim().min(1, "题目内容不能为空"),
+        questionType: z.enum(QUESTION_TYPES).optional(),
+      }),
+    )
+    .min(1, "至少需要一道题目"),
+  source: z.string().trim().optional(),
+});
+
+type SaveQuestionsToCatalogResult =
+  | { success: true; topicId: string; questionIds: string[] }
+  | { success: false; error: string };
+
+export async function saveQuestionsToCatalog(
+  input: z.infer<typeof saveQuestionsToCatalogSchema>,
+): Promise<SaveQuestionsToCatalogResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, error: "请先登录后再保存题目" };
+  }
+
+  const parsed = saveQuestionsToCatalogSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "输入不合法",
+    };
+  }
+
+  const { topicId, questions: questionItems, source } = parsed.data;
+
+  try {
+    const existingTopic = await db
+      .select({ id: topics.id })
+      .from(topics)
+      .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+      .limit(1);
+
+    if (existingTopic.length === 0) {
+      return {
+        success: false,
+        error: "指定的题库不存在或无权限",
+      };
+    }
+
+    const rows = questionItems.map((q) => ({
+      topicId,
+      content: q.content,
+      type: q.questionType ?? "subjective",
+      source: source || undefined,
+      creatorId: userId,
+    }));
+
+    const inserted = await db
+      .insert(questions)
+      .values(rows)
+      .returning({ id: questions.id });
+
+    const questionIds = inserted.map((r) => r.id);
+
+    revalidatePath("/");
+    revalidatePath(`/topics/${topicId}`);
+
+    return { success: true, topicId, questionIds };
+  } catch (error) {
+    console.error("批量保存题目到题库失败:", error);
+    return { success: false, error: "保存失败，请稍后重试" };
+  }
+}
+
 export async function saveQuestionToCatalog(
   input: z.infer<typeof saveToCatalogSchema>,
 ): Promise<SaveToCatalogResult> {

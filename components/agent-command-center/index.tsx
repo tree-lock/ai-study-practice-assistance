@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   analyzeQuestionAction,
-  saveQuestionToCatalog,
+  saveQuestionsToCatalog,
 } from "@/app/actions/agent";
 import {
   getMineruExtractResult,
@@ -22,6 +22,13 @@ import type {
   TopicOption,
   UploadFileItem,
 } from "./types";
+
+type QuestionItem = {
+  id: string;
+  formattedContent: string;
+  questionType: string;
+  questionTypeLabel: string;
+};
 
 const MINERU_EXTENSIONS = [
   ".pdf",
@@ -53,12 +60,13 @@ export function AgentCommandCenter() {
   const [generateStatus, setGenerateStatus] = useState<
     "idle" | "generating" | "done" | "stopped"
   >("idle");
-  const [questionMarkdown, setQuestionMarkdown] = useState("");
+  const [questions, setQuestions] = useState<QuestionItem[]>([]);
   const [existingCatalogCandidates, setExistingCatalogCandidates] = useState<
     Array<TopicOption>
   >([]);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(-1);
   const [questionDraft, setQuestionDraft] = useState("");
   const [sourceLabel, setSourceLabel] = useState<string | null>(null);
   const [isSavingToTopic, setIsSavingToTopic] = useState(false);
@@ -118,7 +126,7 @@ export function AgentCommandCenter() {
       clearTimeout(generateTimerRef.current);
     }
     setGenerateStatus("generating");
-    setQuestionMarkdown("");
+    setQuestions([]);
     setExistingCatalogCandidates([]);
     setSelectedTopicId(null);
     setIsEditingQuestion(false);
@@ -235,7 +243,14 @@ export function AgentCommandCenter() {
         }));
 
         setSourceLabel("文字/文档输入（AI 分析失败，使用本地转换）");
-        setQuestionMarkdown(convertedMarkdown);
+        setQuestions([
+          {
+            id: crypto.randomUUID(),
+            formattedContent: convertedMarkdown,
+            questionType: "subjective",
+            questionTypeLabel: "主观题",
+          },
+        ]);
         setExistingCatalogCandidates(topicOptions);
         setSelectedTopicId(topicOptions[0]?.id ?? null);
         setQuestionDraft(convertedMarkdown);
@@ -261,10 +276,19 @@ export function AgentCommandCenter() {
         recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
 
       setSourceLabel("AI 智能分析");
-      setQuestionMarkdown(analysis.formattedContent);
+      setQuestions(
+        analysis.questions.map((q) => ({
+          ...q,
+          id: crypto.randomUUID(),
+        })),
+      );
       setExistingCatalogCandidates(topicOptions);
       setSelectedTopicId(defaultTopicId);
-      setQuestionDraft(analysis.formattedContent);
+      setQuestionDraft(
+        analysis.questions.length === 1
+          ? analysis.questions[0].formattedContent
+          : "",
+      );
       setGenerateStatus("done");
     } catch (error) {
       console.error("生成失败:", error);
@@ -284,7 +308,8 @@ export function AgentCommandCenter() {
     startGenerating();
   }
 
-  const shouldShowResultPanels = files.length > 0 || generateStatus !== "idle";
+  const shouldShowResultPanels =
+    files.length > 0 || prompt.trim().length > 0 || generateStatus !== "idle";
 
   return (
     <div className="flex w-full max-w-[760px] flex-col gap-5">
@@ -308,22 +333,36 @@ export function AgentCommandCenter() {
             <QuestionPanel
               generateStatus={generateStatus}
               parsePhase={parsePhase}
-              questionMarkdown={questionMarkdown}
+              questions={questions}
               sourceLabel={sourceLabel}
               analysisResult={analysisResult}
               isEditing={isEditingQuestion}
+              editingIndex={editingIndex}
               draftValue={questionDraft}
               onDraftChange={setQuestionDraft}
-              onStartEdit={() => {
-                setQuestionDraft(questionMarkdown);
-                setIsEditingQuestion(true);
+              onStartEdit={(index) => {
+                const q = questions[index];
+                if (q) {
+                  setQuestionDraft(q.formattedContent);
+                  setEditingIndex(index);
+                  setIsEditingQuestion(true);
+                }
               }}
               onCancelEdit={() => {
-                setQuestionDraft(questionMarkdown);
+                setEditingIndex(-1);
                 setIsEditingQuestion(false);
               }}
-              onSaveEdit={() => {
-                setQuestionMarkdown(questionDraft.trim());
+              onSaveEdit={(index) => {
+                const next = [...questions];
+                const target = next[index];
+                if (target) {
+                  next[index] = {
+                    ...target,
+                    formattedContent: questionDraft.trim(),
+                  };
+                  setQuestions(next);
+                }
+                setEditingIndex(-1);
                 setIsEditingQuestion(false);
               }}
               existingCatalogCandidates={existingCatalogCandidates}
@@ -333,7 +372,7 @@ export function AgentCommandCenter() {
                 setSelectedTopicId(id);
               }}
               onConfirm={async () => {
-                if (!selectedTopicId || !questionMarkdown.trim()) {
+                if (!selectedTopicId || questions.length === 0) {
                   return;
                 }
 
@@ -345,30 +384,40 @@ export function AgentCommandCenter() {
                   return;
                 }
 
-                // 验证题目内容在保存前没有为空
-                const trimmedContent = questionMarkdown.trim();
-                if (!trimmedContent) {
+                const validQuestions = questions.filter(
+                  (q) => q.formattedContent.trim().length > 0,
+                );
+                if (validQuestions.length === 0) {
                   alert("题目内容不能为空");
                   return;
                 }
 
                 setIsSavingToTopic(true);
                 try {
-                  const result = await saveQuestionToCatalog({
+                  const result = await saveQuestionsToCatalog({
                     topicId: selectedTopicId,
-                    questionContent: trimmedContent,
+                    questions: validQuestions.map((q) => ({
+                      content: q.formattedContent.trim(),
+                      questionType: q.questionType as
+                        | "choice"
+                        | "blank"
+                        | "subjective"
+                        | "application"
+                        | "proof"
+                        | "comprehensive",
+                    })),
                     source: sourceLabel || undefined,
-                    questionType: analysisResult?.questionType,
                   });
 
                   if (result.success) {
                     invalidateTopicCache(result.topicId);
                     setPrompt("");
                     setFiles([]);
-                    setQuestionMarkdown("");
+                    setQuestions([]);
                     setExistingCatalogCandidates([]);
                     setSelectedTopicId(null);
                     setIsEditingQuestion(false);
+                    setEditingIndex(-1);
                     setQuestionDraft("");
                     setSourceLabel(null);
                     setAnalysisResult(null);
