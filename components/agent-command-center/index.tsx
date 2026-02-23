@@ -1,312 +1,72 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
-import {
-  analyzeQuestionAction,
-  saveQuestionsToCatalog,
-} from "@/app/actions/agent";
-import {
-  getMineruExtractResult,
-  submitMineruExtract,
-} from "@/app/actions/mineru";
-import { getTopics } from "@/app/actions/topic";
 import { invalidateTopicCache } from "@/lib/hooks/use-topic-data";
-import { rotateImageToFile } from "@/lib/rotate-image";
 import { InputArea } from "./input-area";
-import { QuestionPanel } from "./question-panel";
-import { textToMarkdown } from "./text-to-markdown";
-import type {
-  AnalysisResult,
-  ImageRotationDegrees,
-  TopicOption,
-  UploadFileItem,
-} from "./types";
-
-type QuestionItem = {
-  id: string;
-  formattedContent: string;
-  questionType: string;
-  questionTypeLabel: string;
-};
-
-const MINERU_EXTENSIONS = [
-  ".pdf",
-  ".doc",
-  ".docx",
-  ".ppt",
-  ".pptx",
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".html",
-];
-
-function isMineruFile(file: File): boolean {
-  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
-  return MINERU_EXTENSIONS.includes(ext);
-}
-
-async function readPlainTextFile(file: File): Promise<string> {
-  return file.text();
-}
+import { ResultPanels } from "./result-panels";
+import type { QuestionPanelItem, TopicOption } from "./types";
+import { useCore } from "./use-core";
+import { usePanelsManager } from "./use-panels-manager";
+import { useQuestionGenerator } from "./use-question-generator";
 
 export function AgentCommandCenter() {
   const router = useRouter();
-  const [prompt, setPrompt] = useState("");
-  const [files, setFiles] = useState<UploadFileItem[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [generateStatus, setGenerateStatus] = useState<
-    "idle" | "generating" | "done" | "stopped"
-  >("idle");
-  const [questions, setQuestions] = useState<QuestionItem[]>([]);
-  const [existingCatalogCandidates, setExistingCatalogCandidates] = useState<
-    Array<TopicOption>
-  >([]);
-  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
-  const [isEditingQuestion, setIsEditingQuestion] = useState(false);
-  const [editingIndex, setEditingIndex] = useState(-1);
-  const [questionDraft, setQuestionDraft] = useState("");
-  const [sourceLabel, setSourceLabel] = useState<string | null>(null);
-  const [isSavingToTopic, setIsSavingToTopic] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
-    null,
-  );
-  const [parsePhase, setParsePhase] = useState<
-    "uploading" | "parsing" | "analyzing" | null
-  >(null);
-  const generateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function toUploadItem(file: File): UploadFileItem {
-    return {
-      id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
-      file,
-      previewUrl: file.type.startsWith("image/")
-        ? URL.createObjectURL(file)
-        : null,
-      rotationDegrees: 0,
-    };
-  }
+  // 组合基础状态 Hook
+  const {
+    prompt,
+    setPrompt,
+    files,
+    setFiles,
+    isDragging,
+    setIsDragging,
+    isMaximized,
+    setIsMaximized,
+    generateStatus,
+    setGenerateStatus,
+    addFiles,
+    removeFile,
+    updateFileRotation,
+  } = useCore();
 
-  function updateFileRotation(id: string, degrees: ImageRotationDegrees) {
-    setFiles((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, rotationDegrees: degrees } : item,
-      ),
-    );
-  }
+  // 组合面板管理 Hook（需要在生成器之前初始化）
+  const {
+    questionPanels,
+    setQuestionPanels,
+    existingCatalogCandidates,
+    setExistingCatalogCandidates,
+    editingPanelId,
+    questionDraft,
+    setQuestionDraft,
+    savingPanelId,
+    handleEditStart,
+    handleEditCancel,
+    handleEditSave,
+    handleTopicSelect,
+    handleConfirm,
+  } = usePanelsManager({
+    onInvalidateTopicCache: (topicId) => invalidateTopicCache(topicId),
+    onNavigate: (path) => router.push(path),
+    onStatusReset: () => {
+      setPrompt("");
+      setFiles([]);
+      setGenerateStatus("idle");
+    },
+  });
 
-  function addFiles(newFiles: FileList | File[]) {
-    const items = Array.from(newFiles).map(toUploadItem);
-    setFiles((prev) => [...prev, ...items]);
-  }
-
-  function removeFile(id: string) {
-    setFiles((prev) => {
-      const target = prev.find((item) => item.id === id);
-      if (target?.previewUrl) {
-        URL.revokeObjectURL(target.previewUrl);
-      }
-      return prev.filter((item) => item.id !== id);
+  // 组合题目生成 Hook
+  const { parsePhase, activePanelIndex, sourceLabel, handleGenerateClick } =
+    useQuestionGenerator({
+      prompt,
+      files,
+      onPanelsGenerated: (panels: QuestionPanelItem[]) => {
+        setQuestionPanels(panels);
+      },
+      onTopicsFetched: (topics: TopicOption[]) => {
+        setExistingCatalogCandidates(topics);
+      },
+      onStatusChange: setGenerateStatus,
     });
-  }
-
-  function stopGenerating() {
-    if (generateTimerRef.current) {
-      clearTimeout(generateTimerRef.current);
-      generateTimerRef.current = null;
-    }
-    setIsEditingQuestion(false);
-    setGenerateStatus("stopped");
-  }
-
-  async function startGenerating() {
-    if (generateTimerRef.current) {
-      clearTimeout(generateTimerRef.current);
-    }
-    setGenerateStatus("generating");
-    setQuestions([]);
-    setExistingCatalogCandidates([]);
-    setSelectedTopicId(null);
-    setIsEditingQuestion(false);
-    setQuestionDraft("");
-    setSourceLabel(null);
-    setAnalysisResult(null);
-    setParsePhase(null);
-
-    const hasPromptText = prompt.trim().length > 0;
-    const hasFiles = files.length > 0;
-
-    if (!hasPromptText && !hasFiles) {
-      setGenerateStatus("stopped");
-      return;
-    }
-
-    const parts: string[] = [];
-
-    try {
-      if (hasFiles) {
-        const mineruItems = files.filter((item) => isMineruFile(item.file));
-        const plainItems = files.filter((item) => !isMineruFile(item.file));
-
-        for (const item of plainItems) {
-          setParsePhase("parsing");
-          const text = await readPlainTextFile(item.file);
-          if (text.trim()) {
-            parts.push(text);
-            console.log(`【文档解析】${item.file.name}:\n`, text);
-          }
-        }
-
-        if (mineruItems.length > 0) {
-          setParsePhase("uploading");
-          const formData = new FormData();
-          for (const item of mineruItems) {
-            const isImage = item.file.type.startsWith("image/");
-            const needsRotation = isImage && item.rotationDegrees !== 0;
-            const fileToAppend = needsRotation
-              ? await rotateImageToFile(item.file, item.rotationDegrees)
-              : item.file;
-            formData.append("file", fileToAppend);
-          }
-
-          const submitResult = await submitMineruExtract(formData);
-          if (!submitResult.success) {
-            setGenerateStatus("stopped");
-            setParsePhase(null);
-            alert(`解析失败：${submitResult.error}`);
-            return;
-          }
-
-          setParsePhase("parsing");
-          let batchDone = false;
-          let pollResult: Awaited<
-            ReturnType<typeof getMineruExtractResult>
-          > | null = null;
-
-          while (!batchDone) {
-            pollResult = await getMineruExtractResult(submitResult.batchId);
-            if (!pollResult.success && pollResult.state === "failed") {
-              setGenerateStatus("stopped");
-              setParsePhase(null);
-              alert(`解析失败：${pollResult.error}`);
-              return;
-            }
-            batchDone =
-              pollResult.state === "done" || pollResult.state === "failed";
-            if (!batchDone) {
-              await new Promise((r) => setTimeout(r, 2500));
-            }
-          }
-
-          if (
-            pollResult?.success &&
-            pollResult.state === "done" &&
-            pollResult.markdownContents?.length
-          ) {
-            for (let i = 0; i < pollResult.markdownContents.length; i += 1) {
-              const md = pollResult.markdownContents[i];
-              const fileName = mineruItems[i]?.file.name ?? `文件${i + 1}`;
-              console.log(`【MinerU 解析】${fileName}:\n`, md);
-            }
-            parts.push(...pollResult.markdownContents);
-          }
-        }
-
-        setParsePhase(null);
-      }
-
-      if (hasPromptText) {
-        parts.unshift(prompt.trim());
-      }
-
-      const rawContent = parts.join("\n\n---\n\n").trim();
-      console.log("【合并后的原始内容】:\n", rawContent);
-      if (!rawContent) {
-        setGenerateStatus("stopped");
-        alert("未能从文件或文字中提取到有效内容");
-        return;
-      }
-
-      setParsePhase("analyzing");
-      const result = await analyzeQuestionAction({ rawContent });
-      setParsePhase(null);
-
-      if (!result.success) {
-        console.error("AI 分析失败:", result.error);
-        const convertedMarkdown = textToMarkdown(rawContent);
-        const topicsData = await getTopics();
-        const topicOptions: Array<TopicOption> = topicsData.map((topic) => ({
-          id: topic.id,
-          name: topic.name,
-        }));
-
-        setSourceLabel("文字/文档输入（AI 分析失败，使用本地转换）");
-        setQuestions([
-          {
-            id: crypto.randomUUID(),
-            formattedContent: convertedMarkdown,
-            questionType: "subjective",
-            questionTypeLabel: "主观题",
-          },
-        ]);
-        setExistingCatalogCandidates(topicOptions);
-        setSelectedTopicId(topicOptions[0]?.id ?? null);
-        setQuestionDraft(convertedMarkdown);
-        setGenerateStatus("done");
-        return;
-      }
-
-      const analysis = result.data;
-      setAnalysisResult(analysis);
-
-      const topicsData = await getTopics();
-      const topicOptions: Array<TopicOption> = topicsData.map((topic) => ({
-        id: topic.id,
-        name: topic.name,
-      }));
-
-      const recommendedTopic = topicOptions.find(
-        (t) =>
-          t.id === analysis.catalogRecommendation.topicId ||
-          t.name === analysis.catalogRecommendation.topicName,
-      );
-      const defaultTopicId =
-        recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
-
-      setSourceLabel("AI 智能分析");
-      setQuestions(
-        analysis.questions.map((q) => ({
-          ...q,
-          id: crypto.randomUUID(),
-        })),
-      );
-      setExistingCatalogCandidates(topicOptions);
-      setSelectedTopicId(defaultTopicId);
-      setQuestionDraft(
-        analysis.questions.length === 1
-          ? analysis.questions[0].formattedContent
-          : "",
-      );
-      setGenerateStatus("done");
-    } catch (error) {
-      console.error("生成失败:", error);
-      setGenerateStatus("stopped");
-      setParsePhase(null);
-    }
-  }
-
-  function handleGenerateClick() {
-    if (generateStatus === "generating") {
-      stopGenerating();
-      return;
-    }
-    if (!files.length && !prompt.trim()) {
-      return;
-    }
-    startGenerating();
-  }
 
   const shouldShowResultPanels =
     files.length > 0 || prompt.trim().length > 0 || generateStatus !== "idle";
@@ -327,116 +87,25 @@ export function AgentCommandCenter() {
         onRotationChange={updateFileRotation}
         onGenerateClick={handleGenerateClick}
       />
-      {shouldShowResultPanels ? (
-        <div className="flex w-full flex-col gap-3">
-          <div className="flex flex-col overflow-hidden rounded-xl border border-[#e5eaf3] bg-white">
-            <QuestionPanel
-              generateStatus={generateStatus}
-              parsePhase={parsePhase}
-              questions={questions}
-              sourceLabel={sourceLabel}
-              analysisResult={analysisResult}
-              isEditing={isEditingQuestion}
-              editingIndex={editingIndex}
-              draftValue={questionDraft}
-              onDraftChange={setQuestionDraft}
-              onStartEdit={(index) => {
-                const q = questions[index];
-                if (q) {
-                  setQuestionDraft(q.formattedContent);
-                  setEditingIndex(index);
-                  setIsEditingQuestion(true);
-                }
-              }}
-              onCancelEdit={() => {
-                setEditingIndex(-1);
-                setIsEditingQuestion(false);
-              }}
-              onSaveEdit={(index) => {
-                const next = [...questions];
-                const target = next[index];
-                if (target) {
-                  next[index] = {
-                    ...target,
-                    formattedContent: questionDraft.trim(),
-                  };
-                  setQuestions(next);
-                }
-                setEditingIndex(-1);
-                setIsEditingQuestion(false);
-              }}
-              existingCatalogCandidates={existingCatalogCandidates}
-              selectedTopicId={selectedTopicId}
-              isSaving={isSavingToTopic}
-              onSelectTopic={(id) => {
-                setSelectedTopicId(id);
-              }}
-              onConfirm={async () => {
-                if (!selectedTopicId || questions.length === 0) {
-                  return;
-                }
-
-                const selectedTopic = existingCatalogCandidates.find(
-                  (topic) => topic.id === selectedTopicId,
-                );
-                if (!selectedTopic) {
-                  alert("请选择有效的题库");
-                  return;
-                }
-
-                const validQuestions = questions.filter(
-                  (q) => q.formattedContent.trim().length > 0,
-                );
-                if (validQuestions.length === 0) {
-                  alert("题目内容不能为空");
-                  return;
-                }
-
-                setIsSavingToTopic(true);
-                try {
-                  const result = await saveQuestionsToCatalog({
-                    topicId: selectedTopicId,
-                    questions: validQuestions.map((q) => ({
-                      content: q.formattedContent.trim(),
-                      questionType: q.questionType as
-                        | "choice"
-                        | "blank"
-                        | "subjective"
-                        | "application"
-                        | "proof"
-                        | "comprehensive",
-                    })),
-                    source: sourceLabel || undefined,
-                  });
-
-                  if (result.success) {
-                    invalidateTopicCache(result.topicId);
-                    setPrompt("");
-                    setFiles([]);
-                    setQuestions([]);
-                    setExistingCatalogCandidates([]);
-                    setSelectedTopicId(null);
-                    setIsEditingQuestion(false);
-                    setEditingIndex(-1);
-                    setQuestionDraft("");
-                    setSourceLabel(null);
-                    setAnalysisResult(null);
-                    setGenerateStatus("idle");
-                    router.push(`/topics/${result.topicId}`);
-                  } else {
-                    alert(`保存失败：${result.error}`);
-                  }
-                } catch (error) {
-                  console.error("保存题目失败:", error);
-                  alert("保存失败，请稍后重试");
-                } finally {
-                  setIsSavingToTopic(false);
-                }
-              }}
-            />
-          </div>
-        </div>
-      ) : null}
+      {shouldShowResultPanels && (
+        <ResultPanels
+          sourceLabel={sourceLabel}
+          questionPanels={questionPanels}
+          generateStatus={generateStatus}
+          parsePhase={parsePhase}
+          activePanelIndex={activePanelIndex}
+          existingCatalogCandidates={existingCatalogCandidates}
+          editingPanelId={editingPanelId}
+          questionDraft={questionDraft}
+          savingPanelId={savingPanelId}
+          onDraftChange={setQuestionDraft}
+          onStartEdit={handleEditStart}
+          onCancelEdit={handleEditCancel}
+          onSaveEdit={handleEditSave}
+          onSelectTopic={handleTopicSelect}
+          onConfirm={handleConfirm}
+        />
+      )}
     </div>
   );
 }

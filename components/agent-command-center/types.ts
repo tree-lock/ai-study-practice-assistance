@@ -37,3 +37,14 @@ export type AnalysisResult = {
   catalogRecommendation: CatalogRecommendation;
   notice?: string;
 };
+
+/** 单题独立面板数据，每道题拥有独立的 notice、类型、内容、推荐目录 */
+export type QuestionPanelItem = {
+  id: string;
+  notice?: string;
+  questionType: string;
+  questionTypeLabel: string;
+  formattedContent: string;
+  catalogRecommendation: CatalogRecommendation;
+  selectedTopicId: string | null;
+};
