@@ -43,7 +43,12 @@ export function AppShell({
         {sidebarContent}
 
         <div className="relative flex-1">
-          <div className="w-full">
+          {/* 侧边栏与主内容区分线：渐变模拟 border，与 shadcn 做法一致 */}
+          <div
+            className="absolute left-0 top-0 bottom-0 z-0 w-px shrink-0 bg-gradient-to-b from-transparent via-border to-transparent"
+            aria-hidden
+          />
+          <div className="relative z-10 w-full">
             {floatingActions ? (
               <div className="absolute right-5 top-5 z-10">
                 <div className="flex items-center gap-2">
