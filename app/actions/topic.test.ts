@@ -74,6 +74,11 @@ vi.mock("@/lib/auth/get-current-user-id", () => ({
   getCurrentUserId: getCurrentUserIdMock,
 }));
 
+vi.mock("@/lib/ai/topic/outline", () => ({
+  generateOutline: vi.fn(async () => "第一章 概述\n第二章 基础概念"),
+  generateKnowledgePointsFromOutline: vi.fn(async () => []),
+}));
+
 import {
   createTopic,
   deleteTopic,
