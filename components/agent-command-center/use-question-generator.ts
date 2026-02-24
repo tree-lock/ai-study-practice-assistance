@@ -16,14 +16,20 @@ import {
 import { getTopics } from "@/app/actions/topic";
 import { rotateImageToFile } from "@/lib/rotate-image";
 import { isMineruFile, readPlainTextFile } from "./file-utils";
-import type { QuestionPanelParsePhase } from "./question-panel";
+import type { QuestionPanelParsePhase } from "./parse-phase-constants";
 import { textToMarkdown } from "./text-to-markdown";
-import type { QuestionPanelItem, TopicOption, UploadFileItem } from "./types";
+import type {
+  CatalogRecommendation,
+  QuestionPanelItem,
+  TopicOption,
+  UploadFileItem,
+} from "./types";
 
 type UseQuestionGeneratorProps = {
   prompt: string;
   files: UploadFileItem[];
   onPanelsGenerated: (panels: QuestionPanelItem[]) => void;
+  onPanelPatch: (panelId: string, patch: Partial<QuestionPanelItem>) => void;
   onTopicsFetched: (topics: TopicOption[]) => void;
   onStatusChange: (status: "idle" | "generating" | "done" | "stopped") => void;
 };
@@ -32,12 +38,12 @@ export function useQuestionGenerator({
   prompt,
   files,
   onPanelsGenerated,
+  onPanelPatch,
   onTopicsFetched,
   onStatusChange,
 }: UseQuestionGeneratorProps) {
   const stoppedRef = useRef(false);
   const [parsePhase, setParsePhase] = useState<QuestionPanelParsePhase>(null);
-  const [activePanelIndex, setActivePanelIndex] = useState(0);
   const [sourceLabel, setSourceLabel] = useState<string | null>(null);
 
   function stopGenerating() {
@@ -50,7 +56,6 @@ export function useQuestionGenerator({
     onStatusChange("generating");
     onPanelsGenerated([]);
     setParsePhase(null);
-    setActivePanelIndex(0);
     setSourceLabel(null);
 
     const hasPromptText = prompt.trim().length > 0;
@@ -195,57 +200,92 @@ export function useQuestionGenerator({
         questionParts = [rawContent];
       }
 
-      const panels: QuestionPanelItem[] = [];
+      const emptyCatalog: CatalogRecommendation = {
+        topicId: "",
+        topicName: "",
+        matchScore: 0,
+      };
 
-      for (let i = 0; i < questionParts.length && !stoppedRef.current; i++) {
-        const questionRaw = questionParts[i];
-        setActivePanelIndex(i);
+      const panels: QuestionPanelItem[] = questionParts.map(() => ({
+        id: crypto.randomUUID(),
+        questionRaw: "",
+        notice: undefined,
+        questionType: "subjective",
+        questionTypeLabel: "主观题",
+        formattedContent: "",
+        catalogRecommendation: emptyCatalog,
+        selectedTopicId: null,
+        status: "processing" as const,
+        currentPhase: null as QuestionPanelParsePhase,
+      }));
 
-        setParsePhase("notice");
+      onPanelsGenerated([...panels]);
+      setParsePhase(null);
+
+      async function processSingleQuestion(
+        questionRaw: string,
+        panel: QuestionPanelItem,
+      ): Promise<void> {
+        const panelId = panel.id;
+        onPanelPatch(panelId, {
+          questionRaw,
+          status: "processing",
+          currentPhase: "notice",
+        });
+        if (stoppedRef.current) return;
+
         const qNoticeResult = await analyzeQuestionStepNotice({
           rawContent: questionRaw,
         });
         const qNotice = qNoticeResult.success
           ? qNoticeResult.notice
           : undefined;
+        if (stoppedRef.current) return;
 
-        if (stoppedRef.current) break;
-
-        setParsePhase("type");
+        onPanelPatch(panelId, { currentPhase: "type" });
         const typeResult = await analyzeQuestionStepType({
           questionRaw,
           notice: qNotice,
         });
-        if (!typeResult.success || stoppedRef.current) {
-          if (!typeResult.success) alert(`分析失败：${typeResult.error}`);
-          break;
+        if (!typeResult.success) {
+          alert(`分析失败：${typeResult.error}`);
+          return;
         }
+        if (stoppedRef.current) return;
 
         const { questionType, questionTypeLabel } = typeResult;
-
-        setParsePhase("format");
+        onPanelPatch(panelId, {
+          notice: qNotice,
+          questionType,
+          questionTypeLabel,
+          currentPhase: "format",
+        });
         const formatResult = await analyzeQuestionStepFormat({
           questionRaw,
           questionType,
         });
-        if (!formatResult.success || stoppedRef.current) {
-          if (!formatResult.success) alert(`分析失败：${formatResult.error}`);
-          break;
+        if (!formatResult.success) {
+          alert(`分析失败：${formatResult.error}`);
+          return;
         }
+        if (stoppedRef.current) return;
 
         let formattedContent = formatResult.formattedContent;
         if (!formattedContent.trim()) {
           formattedContent = textToMarkdown(questionRaw);
         }
-
-        setParsePhase("catalog");
+        onPanelPatch(panelId, {
+          formattedContent,
+          currentPhase: "catalog",
+        });
         const catalogResult = await analyzeQuestionStepCatalog({
           questionRaw,
         });
-        if (!catalogResult.success || stoppedRef.current) {
-          if (!catalogResult.success) alert(`分析失败：${catalogResult.error}`);
-          break;
+        if (!catalogResult.success) {
+          alert(`分析失败：${catalogResult.error}`);
+          return;
         }
+        if (stoppedRef.current) return;
 
         const catalogRecommendation = catalogResult.catalogRecommendation;
         const recommendedTopic = topicOptions.find(
@@ -256,23 +296,17 @@ export function useQuestionGenerator({
         const defaultTopicId =
           recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
 
-        const newPanel: QuestionPanelItem = {
-          id: crypto.randomUUID(),
-          questionRaw,
-          notice: qNotice,
-          questionType,
-          questionTypeLabel,
-          formattedContent,
+        onPanelPatch(panelId, {
           catalogRecommendation,
           selectedTopicId: defaultTopicId,
-        };
-
-        panels.push(newPanel);
+          status: "done",
+          currentPhase: null,
+        });
       }
 
-      if (panels.length > 0) {
-        onPanelsGenerated(panels);
-      }
+      await Promise.all(
+        questionParts.map((raw, i) => processSingleQuestion(raw, panels[i])),
+      );
 
       setParsePhase(null);
       onStatusChange(stoppedRef.current ? "stopped" : "done");
@@ -296,7 +330,6 @@ export function useQuestionGenerator({
 
   return {
     parsePhase,
-    activePanelIndex,
     sourceLabel,
     startGenerating,
     stopGenerating,

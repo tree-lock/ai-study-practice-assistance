@@ -5,22 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { QUESTION_TYPE_LABELS } from "@/lib/ai/types";
 import { CatalogPanel } from "./catalog-panel";
+import {
+  PARSE_PHASE_LABELS,
+  type QuestionPanelParsePhase,
+} from "./parse-phase-constants";
 import { QuestionMarkdownContent } from "./question-markdown-content";
+import { QuestionPanelProgress } from "./question-panel-progress";
 import { QuestionTypeSelector } from "./question-type-selector";
 import type { CatalogRecommendation, TopicOption } from "./types";
 
-type GenerateStatus = "idle" | "generating" | "done" | "stopped";
+export type { QuestionPanelParsePhase };
 
-export type QuestionPanelParsePhase =
-  | "uploading"
-  | "parsing"
-  | "notice"
-  | "count"
-  | "splitting"
-  | "type"
-  | "format"
-  | "catalog"
-  | null;
+type GenerateStatus = "idle" | "generating" | "done" | "stopped";
 
 type QuestionPanelProps = {
   questionIndex: number;
@@ -49,20 +45,10 @@ type QuestionPanelProps = {
   onQuestionTypeChange?: (type: string, label: string) => void;
   onReRecognize?: () => void;
   isReRecognizing?: boolean;
-};
-
-const PARSE_PHASE_LABELS: Record<
-  NonNullable<QuestionPanelParsePhase>,
-  string
-> = {
-  uploading: "正在上传文档...",
-  parsing: "正在解析文档...",
-  notice: "AI 正在检查题目...",
-  count: "AI 正在统计题目数量...",
-  splitting: "AI 正在拆分题目...",
-  type: "AI 正在识别题目类型...",
-  format: "AI 正在格式化题目...",
-  catalog: "AI 正在推荐题库...",
+  /** 题目级状态，未传则视为 done（兼容历史） */
+  panelStatus?: "pending" | "processing" | "done";
+  /** 当前处理阶段，用于进度条 */
+  panelCurrentPhase?: QuestionPanelParsePhase | null;
 };
 
 export function QuestionPanel({
@@ -91,13 +77,26 @@ export function QuestionPanel({
   onQuestionTypeChange,
   onReRecognize,
   isReRecognizing = false,
+  panelStatus,
+  panelCurrentPhase,
 }: QuestionPanelProps) {
   const title =
     totalQuestions > 1
       ? `题目 ${questionIndex + 1}（共 ${totalQuestions} 道）`
       : "题目";
-  const showGenerating = generateStatus === "generating" && isActivePanel;
+  const isPanelComplete = panelStatus === undefined || panelStatus === "done";
+  const showLegacyGenerating =
+    generateStatus === "generating" &&
+    isActivePanel &&
+    panelStatus === undefined;
   const hasContent = formattedContent.trim().length > 0;
+  const showContentBlock =
+    panelStatus !== undefined
+      ? true
+      : (generateStatus === "done" || hasContent) && !showLegacyGenerating;
+  const hasValidCatalog =
+    (catalogRecommendation.topicId ?? "").trim() !== "" ||
+    (catalogRecommendation.topicName ?? "").trim() !== "";
 
   return (
     <div className="flex flex-col gap-2 px-3.5 py-3">
@@ -105,10 +104,14 @@ export function QuestionPanel({
         <span className="text-sm font-bold">{title}</span>
       </div>
 
-      {showGenerating ? (
+      {showLegacyGenerating ? (
         <p className="text-sm text-muted-foreground">
           {parsePhase ? PARSE_PHASE_LABELS[parsePhase] : "AI 正在分析题目..."}
         </p>
+      ) : null}
+
+      {panelStatus === "processing" && panelCurrentPhase ? (
+        <QuestionPanelProgress currentPhase={panelCurrentPhase} isProcessing />
       ) : null}
 
       {generateStatus === "stopped" && isActivePanel ? (
@@ -117,7 +120,7 @@ export function QuestionPanel({
         </p>
       ) : null}
 
-      {(generateStatus === "done" || hasContent) && !showGenerating ? (
+      {showContentBlock ? (
         <div className="flex flex-col gap-3">
           {notice ? (
             <Callout
@@ -141,7 +144,7 @@ export function QuestionPanel({
                         ] ?? v;
                       onQuestionTypeChange(v, label);
                     }}
-                    disabled={generateStatus !== "done"}
+                    disabled={!isPanelComplete}
                     className="h-8 w-[100px] shrink-0"
                   />
                 ) : (
@@ -149,9 +152,7 @@ export function QuestionPanel({
                     {questionTypeLabel}
                   </span>
                 )}
-                {generateStatus === "done" &&
-                questionRaw?.trim() &&
-                onReRecognize ? (
+                {isPanelComplete && questionRaw?.trim() && onReRecognize ? (
                   <Button
                     type="button"
                     variant="ghost"
@@ -167,7 +168,7 @@ export function QuestionPanel({
                   </Button>
                 ) : null}
               </div>
-              {generateStatus === "done" ? (
+              {generateStatus === "done" && isPanelComplete ? (
                 <div className="flex shrink-0 gap-2">
                   {isEditing ? (
                     <>
@@ -213,7 +214,17 @@ export function QuestionPanel({
                 className="min-h-[120px] w-full resize-y rounded-lg border border-[#dbe1ea] px-2.5 py-2 font-inherit leading-relaxed"
               />
             ) : (
-              <QuestionMarkdownContent questionMarkdown={formattedContent} />
+              <div className="min-h-[120px]">
+                {hasContent ? (
+                  <QuestionMarkdownContent
+                    questionMarkdown={formattedContent}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    AI 正在格式化题目...
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
@@ -226,6 +237,7 @@ export function QuestionPanel({
               isSaving={isSaving}
               onSelectTopic={onSelectTopic}
               onConfirm={onConfirm}
+              disabled={!hasValidCatalog || !isPanelComplete}
             />
           ) : null}
         </div>

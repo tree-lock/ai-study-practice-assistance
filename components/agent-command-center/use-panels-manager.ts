@@ -27,6 +27,12 @@ export function usePanelsManager({
     Set<string>
   >(new Set());
 
+  function patchPanel(panelId: string, patch: Partial<QuestionPanelItem>) {
+    setQuestionPanels((prev) =>
+      prev.map((p) => (p.id === panelId ? { ...p, ...patch } : p)),
+    );
+  }
+
   function updatePanelTopic(id: string, topicId: string | null) {
     setQuestionPanels((prev) =>
       prev.map((p) => (p.id === id ? { ...p, selectedTopicId: topicId } : p)),
@@ -167,6 +173,7 @@ export function usePanelsManager({
   return {
     questionPanels,
     setQuestionPanels,
+    patchPanel,
     existingCatalogCandidates,
     setExistingCatalogCandidates,
     editingPanelId,

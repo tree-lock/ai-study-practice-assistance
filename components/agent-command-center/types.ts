@@ -1,4 +1,5 @@
 import type { QuestionType } from "@/lib/ai/types";
+import type { QuestionPanelParsePhase } from "./parse-phase-constants";
 
 export type ImageRotationDegrees = 0 | 90 | 180 | 270;
 
@@ -49,4 +50,8 @@ export type QuestionPanelItem = {
   formattedContent: string;
   catalogRecommendation: CatalogRecommendation;
   selectedTopicId: string | null;
+  /** 题目级别状态，未传则视为 "done" 以兼容历史数据 */
+  status?: "pending" | "processing" | "done";
+  /** 当前处理阶段，用于进度条、高亮 */
+  currentPhase?: QuestionPanelParsePhase;
 };

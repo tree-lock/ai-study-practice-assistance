@@ -10,8 +10,8 @@ type ResultPanelsProps = {
   sourceLabel: string | null;
   questionPanels: QuestionPanelItem[];
   generateStatus: GenerateStatus;
+  /** 无 panels 时占位用（parsing、uploading、notice、count、splitting）；有 panels 时由 panel.currentPhase 驱动 */
   parsePhase: QuestionPanelParsePhase | null;
-  activePanelIndex: number;
   existingCatalogCandidates: TopicOption[];
 
   // 编辑状态
@@ -36,7 +36,6 @@ export function ResultPanels({
   questionPanels,
   generateStatus,
   parsePhase,
-  activePanelIndex,
   existingCatalogCandidates,
   editingPanelId,
   questionDraft,
@@ -56,24 +55,25 @@ export function ResultPanels({
       {sourceLabel ? (
         <p className="text-xs text-muted-foreground">来源：{sourceLabel}</p>
       ) : null}
+      {generateStatus === "generating" && questionPanels.length > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          检测到 {questionPanels.length} 题
+        </p>
+      ) : null}
       {questionPanels.map((panel, index) => (
         <div
           key={panel.id}
-          className="flex flex-col overflow-hidden rounded-xl border border-[#e5eaf3] bg-white"
+          className={`flex flex-col overflow-hidden rounded-xl border border-[#e5eaf3] bg-white ${
+            panel.status === "pending" ? "opacity-60" : ""
+          }`}
         >
           <QuestionPanel
             questionIndex={index}
             totalQuestions={questionPanels.length}
             generateStatus={generateStatus}
-            parsePhase={
-              index === activePanelIndex ||
-              (questionPanels.length === 1 && generateStatus === "generating")
-                ? parsePhase
-                : null
-            }
+            parsePhase={null}
             isActivePanel={
-              index === activePanelIndex ||
-              (generateStatus !== "generating" && questionPanels.length > 0)
+              generateStatus !== "generating" || panel.status !== "pending"
             }
             notice={panel.notice}
             questionType={panel.questionType}
@@ -101,6 +101,8 @@ export function ResultPanels({
             onSelectTopic={(id) => onSelectTopic(panel.id, id)}
             onConfirm={() => onConfirm(panel)}
             isSaving={savingPanelId === panel.id}
+            panelStatus={panel.status}
+            panelCurrentPhase={panel.currentPhase ?? null}
           />
         </div>
       ))}

@@ -19,6 +19,8 @@ type CatalogPanelProps = {
   isSaving: boolean;
   onSelectTopic: (id: string) => void;
   onConfirm: () => void;
+  /** 禁用时不可选题库，显示加载占位 */
+  disabled?: boolean;
 };
 
 export function CatalogPanel({
@@ -29,23 +31,28 @@ export function CatalogPanel({
   isSaving,
   onSelectTopic,
   onConfirm,
+  disabled = false,
 }: CatalogPanelProps) {
   const hasTopics = existingCatalogCandidates.length > 0;
   const isLowMatch = matchScore > 0 && matchScore < 60;
 
   return (
     <div className="flex w-full flex-col gap-2 border-t border-[#eef2f7] pt-2.5">
-      {isLowMatch && suggestedTopicName && (
+      {disabled ? (
+        <p className="text-sm text-muted-foreground">AI 正在推荐题库...</p>
+      ) : null}
+      {!disabled && isLowMatch && suggestedTopicName ? (
         <Callout variant="amber" icon={<TriangleAlert className="size-4" />}>
           匹配度较低，建议新建题库：「{suggestedTopicName}」
         </Callout>
-      )}
+      ) : null}
 
-      {!hasTopics ? (
+      {!disabled && !hasTopics ? (
         <p className="text-sm text-muted-foreground">
           暂无题库，请先在侧边栏创建题库
         </p>
-      ) : (
+      ) : null}
+      {!disabled && hasTopics ? (
         <div className="flex w-full items-center gap-2">
           <span className="shrink-0 text-sm text-muted-foreground">
             保存到：
@@ -87,7 +94,7 @@ export function CatalogPanel({
             )}
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

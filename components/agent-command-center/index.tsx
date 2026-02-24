@@ -33,6 +33,7 @@ export function AgentCommandCenter() {
   const {
     questionPanels,
     setQuestionPanels,
+    patchPanel,
     existingCatalogCandidates,
     setExistingCatalogCandidates,
     editingPanelId,
@@ -58,18 +59,20 @@ export function AgentCommandCenter() {
   });
 
   // 组合题目生成 Hook
-  const { parsePhase, activePanelIndex, sourceLabel, handleGenerateClick } =
-    useQuestionGenerator({
+  const { parsePhase, sourceLabel, handleGenerateClick } = useQuestionGenerator(
+    {
       prompt,
       files,
       onPanelsGenerated: (panels: QuestionPanelItem[]) => {
         setQuestionPanels(panels);
       },
+      onPanelPatch: patchPanel,
       onTopicsFetched: (topics: TopicOption[]) => {
         setExistingCatalogCandidates(topics);
       },
       onStatusChange: setGenerateStatus,
-    });
+    },
+  );
 
   const shouldShowResultPanels =
     files.length > 0 || prompt.trim().length > 0 || generateStatus !== "idle";
@@ -96,7 +99,6 @@ export function AgentCommandCenter() {
           questionPanels={questionPanels}
           generateStatus={generateStatus}
           parsePhase={parsePhase}
-          activePanelIndex={activePanelIndex}
           existingCatalogCandidates={existingCatalogCandidates}
           editingPanelId={editingPanelId}
           questionDraft={questionDraft}
