@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { saveQuestionToCatalog } from "@/app/actions/agent";
 import { analyzeQuestionStepFormat } from "@/app/actions/agent-steps";
 import type { QuestionPanelItem, TopicOption } from "./types";
@@ -171,7 +172,15 @@ export function usePanelsManager({
           onStatusReset();
         }
 
-        onNavigate(`/topics/${result.topicId}`);
+        toast.success("题目已添加到题库", {
+          description: `已保存到「${selectedTopic.name}」`,
+          action: {
+            label: "前往目录",
+            onClick: () => {
+              onNavigate(`/topics/${result.topicId}`);
+            },
+          },
+        });
       } else {
         alert(`保存失败：${result.error}`);
       }

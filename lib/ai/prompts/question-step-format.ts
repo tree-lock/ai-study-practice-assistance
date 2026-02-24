@@ -49,7 +49,7 @@ ${STREAM_OUTPUT_INSTRUCTION}`;
 function buildBlankFormatRules(): string {
   return `### 填空题
 检查上述题目是否符合格式：
-1. 应当包含 10 个连续下划线 ________，而不是 latex 格式的下划线，下划线前后应有空格；
+1. 应当包含 "10" 个连续下划线 ________，而不是 latex 格式的下划线，下划线前后应有空格；
 2. 符合 Latex 的正确格式；
 3. 应当只包含题目，不包含答案和解析
 
