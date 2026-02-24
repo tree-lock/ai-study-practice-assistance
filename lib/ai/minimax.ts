@@ -11,4 +11,4 @@ export const minimax = new Anthropic({
   apiKey: process.env.MINIMAX_API_KEY ?? "",
 });
 
-export const MINIMAX_MODEL = "MiniMax-M2.5";
+export const MINIMAX_MODEL = "MiniMax-M2.5-highspeed";

@@ -7,7 +7,8 @@ import {
   analyzeStepCount,
   analyzeStepFormat,
   analyzeStepNotice,
-  analyzeStepSplit,
+  analyzeStepNoticeCount,
+  analyzeStepSplitTypeCatalog,
   analyzeStepType,
 } from "@/lib/ai/question-analyzer-steps";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
@@ -45,6 +46,46 @@ export async function analyzeQuestionStepNotice(input: {
     return { success: true, notice: result.notice };
   } catch (error) {
     console.error("Step notice 失败:", error);
+    return { success: false, error: "AI 分析失败，请稍后重试" };
+  }
+}
+
+const stepNoticeCountSchema = z.object({
+  rawContent: z.string().trim().min(1, "请输入题目内容"),
+});
+
+export type StepNoticeCountResult =
+  | { success: true; notice?: string; count: number }
+  | { success: false; error: string };
+
+export async function analyzeQuestionStepNoticeCount(input: {
+  rawContent: string;
+}): Promise<StepNoticeCountResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, error: "请先登录后再使用 AI 分析" };
+  }
+  if (!process.env.MINIMAX_API_KEY) {
+    return { success: false, error: "AI 服务未配置，请联系管理员" };
+  }
+
+  const parsed = stepNoticeCountSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "输入不合法",
+    };
+  }
+
+  try {
+    const result = await analyzeStepNoticeCount(parsed.data.rawContent);
+    return {
+      success: true,
+      notice: result.notice,
+      count: result.count,
+    };
+  } catch (error) {
+    console.error("Step notice-count 失败:", error);
     return { success: false, error: "AI 分析失败，请稍后重试" };
   }
 }
@@ -95,8 +136,15 @@ const stepSplitSchema = z.object({
   count: z.number().int().min(1),
 });
 
+export type StepSplitPart = {
+  content: string;
+  questionType: string;
+  questionTypeLabel: string;
+  catalogRecommendation: CatalogRecommendation;
+};
+
 export type StepSplitResult =
-  | { success: true; parts: string[] }
+  | { success: true; parts: StepSplitPart[] }
   | { success: false; error: string };
 
 export async function analyzeQuestionStepSplit(input: {
@@ -120,11 +168,23 @@ export async function analyzeQuestionStepSplit(input: {
   }
 
   try {
-    const result = await analyzeStepSplit(
+    const topicsData = await getTopics();
+    const existingTopics = topicsData.map((t) => ({ id: t.id, name: t.name }));
+
+    const result = await analyzeStepSplitTypeCatalog(
       parsed.data.rawContent,
       parsed.data.count,
+      existingTopics,
     );
-    return { success: true, parts: result.parts };
+
+    const parts: StepSplitPart[] = result.parts.map((part) => ({
+      content: part.content,
+      questionType: part.questionType,
+      questionTypeLabel: part.questionTypeLabel,
+      catalogRecommendation: part.catalogRecommendation,
+    }));
+
+    return { success: true, parts };
   } catch (error) {
     console.error("Step split 失败:", error);
     return { success: false, error: "AI 分析失败，请稍后重试" };

@@ -1,8 +1,15 @@
 "use client";
 
-import { Check, Pencil, RefreshCw, TriangleAlert, X } from "lucide-react";
+import { Check, Info, Pencil, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { QUESTION_TYPE_LABELS } from "@/lib/ai/types";
 import { CatalogPanel } from "./catalog-panel";
 import {
@@ -12,6 +19,7 @@ import {
 import { QuestionMarkdownContent } from "./question-markdown-content";
 import { QuestionPanelProgress } from "./question-panel-progress";
 import { QuestionTypeSelector } from "./question-type-selector";
+import { textToMarkdown } from "./text-to-markdown";
 import type { CatalogRecommendation, TopicOption } from "./types";
 
 export type { QuestionPanelParsePhase };
@@ -102,6 +110,29 @@ export function QuestionPanel({
     <div className="flex flex-col gap-2 px-3.5 py-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold">{title}</span>
+        {questionRaw?.trim() ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="查看原始文本"
+                className="size-7 text-muted-foreground hover:text-foreground"
+              >
+                <Info className="size-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>原始文本（未经过 AI 识别）</DialogTitle>
+              </DialogHeader>
+              <div className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap wrap-break-word rounded-md bg-muted px-3 py-2 font-mono text-sm">
+                {questionRaw}
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : null}
       </div>
 
       {showLegacyGenerating ? (
@@ -168,7 +199,7 @@ export function QuestionPanel({
                   </Button>
                 ) : null}
               </div>
-              {generateStatus === "done" && isPanelComplete ? (
+              {isPanelComplete ? (
                 <div className="flex shrink-0 gap-2">
                   {isEditing ? (
                     <>
@@ -214,10 +245,14 @@ export function QuestionPanel({
                 className="min-h-[120px] w-full resize-y rounded-lg border border-[#dbe1ea] px-2.5 py-2 font-inherit leading-relaxed"
               />
             ) : (
-              <div className="min-h-[120px]">
+              <div className="min-h-12">
                 {hasContent ? (
                   <QuestionMarkdownContent
                     questionMarkdown={formattedContent}
+                  />
+                ) : questionRaw?.trim() ? (
+                  <QuestionMarkdownContent
+                    questionMarkdown={textToMarkdown(questionRaw)}
                   />
                 ) : (
                   <p className="text-sm text-muted-foreground">

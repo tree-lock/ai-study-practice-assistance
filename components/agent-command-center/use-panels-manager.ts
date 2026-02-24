@@ -106,7 +106,20 @@ export function usePanelsManager({
   }
 
   function handleEditSave(panelId: string) {
-    updatePanelContent(panelId, questionDraft.trim());
+    const trimmed = questionDraft.trim();
+    // 用户编辑题目时，同时更新展示内容和原始文本，
+    // 方便后续基于用户修改后的原文重新生成
+    setQuestionPanels((prev) =>
+      prev.map((p) =>
+        p.id === panelId
+          ? {
+              ...p,
+              formattedContent: trimmed,
+              questionRaw: trimmed || p.questionRaw,
+            }
+          : p,
+      ),
+    );
     setEditingPanelId(null);
   }
 

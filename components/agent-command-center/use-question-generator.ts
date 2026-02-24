@@ -2,12 +2,8 @@
 
 import { useRef, useState } from "react";
 import {
-  analyzeQuestionStepCatalog,
-  analyzeQuestionStepCount,
-  analyzeQuestionStepFormat,
-  analyzeQuestionStepNotice,
+  analyzeQuestionStepNoticeCount,
   analyzeQuestionStepSplit,
-  analyzeQuestionStepType,
 } from "@/app/actions/agent-steps";
 import {
   getMineruExtractResult,
@@ -157,156 +153,168 @@ export function useQuestionGenerator({
       }));
       onTopicsFetched(topicOptions);
 
-      setParsePhase("notice");
-      const noticeResult = await analyzeQuestionStepNotice({ rawContent });
-      if (!noticeResult.success || stoppedRef.current) {
-        if (!noticeResult.success) alert(`分析失败：${noticeResult.error}`);
-        onStatusChange("stopped");
-        setParsePhase(null);
-        return;
-      }
-
-      const globalNotice = noticeResult.notice;
-
-      setParsePhase("count");
-      const countResult = await analyzeQuestionStepCount({
+      setParsePhase("notice-count");
+      const noticeCountResult = await analyzeQuestionStepNoticeCount({
         rawContent,
-        notice: globalNotice,
       });
-      if (!countResult.success || stoppedRef.current) {
-        if (!countResult.success) alert(`分析失败：${countResult.error}`);
+      if (!noticeCountResult.success || stoppedRef.current) {
+        if (!noticeCountResult.success)
+          alert(`分析失败：${noticeCountResult.error}`);
         onStatusChange("stopped");
         setParsePhase(null);
         return;
       }
 
-      const count = countResult.count;
-      let questionParts: string[];
-
-      if (count > 1) {
-        setParsePhase("splitting");
-        const splitResult = await analyzeQuestionStepSplit({
-          rawContent,
-          count,
-        });
-        if (!splitResult.success || stoppedRef.current) {
-          if (!splitResult.success) alert(`分析失败：${splitResult.error}`);
-          onStatusChange("stopped");
-          setParsePhase(null);
-          return;
-        }
-        questionParts = splitResult.parts;
-      } else {
-        questionParts = [rawContent];
+      const globalNotice = noticeCountResult.notice;
+      const count = noticeCountResult.count;
+      setParsePhase("splitting");
+      const splitResult = await analyzeQuestionStepSplit({
+        rawContent,
+        count,
+      });
+      if (!splitResult.success || stoppedRef.current) {
+        if (!splitResult.success) alert(`分析失败：${splitResult.error}`);
+        onStatusChange("stopped");
+        setParsePhase(null);
+        return;
       }
+      const questionItems = splitResult.parts;
 
       const emptyCatalog: CatalogRecommendation = {
         topicId: "",
         topicName: "",
         matchScore: 0,
       };
+      const panels: QuestionPanelItem[] = questionItems.map((item) => {
+        const questionRaw = item.content;
+        const recommendation = item.catalogRecommendation ?? emptyCatalog;
+        const recommendedTopic = topicOptions.find(
+          (t) =>
+            t.id === recommendation.topicId ||
+            t.name === recommendation.topicName,
+        );
+        const defaultTopicId =
+          recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
 
-      const panels: QuestionPanelItem[] = questionParts.map(() => ({
-        id: crypto.randomUUID(),
-        questionRaw: "",
-        notice: undefined,
-        questionType: "subjective",
-        questionTypeLabel: "主观题",
-        formattedContent: "",
-        catalogRecommendation: emptyCatalog,
-        selectedTopicId: null,
-        status: "processing" as const,
-        currentPhase: null as QuestionPanelParsePhase,
-      }));
+        return {
+          id: crypto.randomUUID(),
+          questionRaw,
+          notice: globalNotice,
+          questionType: item.questionType,
+          questionTypeLabel: item.questionTypeLabel,
+          formattedContent: "",
+          catalogRecommendation: recommendation,
+          selectedTopicId: defaultTopicId,
+          status: "processing" as const,
+          currentPhase: "format" as QuestionPanelParsePhase,
+        };
+      });
 
       onPanelsGenerated([...panels]);
       setParsePhase(null);
 
       async function processSingleQuestion(
-        questionRaw: string,
         panel: QuestionPanelItem,
       ): Promise<void> {
         const panelId = panel.id;
+        const questionRaw = panel.questionRaw ?? "";
+        const questionType = panel.questionType || "subjective";
+
         onPanelPatch(panelId, {
-          questionRaw,
           status: "processing",
-          currentPhase: "notice",
-        });
-        if (stoppedRef.current) return;
-
-        const qNoticeResult = await analyzeQuestionStepNotice({
-          rawContent: questionRaw,
-        });
-        const qNotice = qNoticeResult.success
-          ? qNoticeResult.notice
-          : undefined;
-        if (stoppedRef.current) return;
-
-        onPanelPatch(panelId, { currentPhase: "type" });
-        const typeResult = await analyzeQuestionStepType({
-          questionRaw,
-          notice: qNotice,
-        });
-        if (!typeResult.success) {
-          alert(`分析失败：${typeResult.error}`);
-          return;
-        }
-        if (stoppedRef.current) return;
-
-        const { questionType, questionTypeLabel } = typeResult;
-        onPanelPatch(panelId, {
-          notice: qNotice,
-          questionType,
-          questionTypeLabel,
           currentPhase: "format",
         });
-        const formatResult = await analyzeQuestionStepFormat({
-          questionRaw,
-          questionType,
-        });
-        if (!formatResult.success) {
-          alert(`分析失败：${formatResult.error}`);
+        if (stoppedRef.current) return;
+
+        const formatAbortController = new AbortController();
+        let formattedContent = "";
+        let formatError: string | null = null;
+
+        try {
+          const response = await fetch("/api/agent/format-stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ questionRaw, questionType }),
+            signal: formatAbortController.signal,
+          });
+
+          if (!response.ok) {
+            const errBody = await response.json().catch(() => ({}));
+            formatError =
+              (errBody as { error?: string }).error ?? "格式化请求失败";
+          } else if (response.body) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            let sseDone = false;
+
+            while (!sseDone) {
+              if (stoppedRef.current) {
+                formatAbortController.abort();
+                break;
+              }
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n\n");
+              buffer = lines.pop() ?? "";
+
+              for (const line of lines) {
+                if (line.startsWith("data: ")) {
+                  try {
+                    const payload = JSON.parse(line.slice(6)) as
+                      | { type: "chunk"; text: string }
+                      | { type: "done" }
+                      | { type: "error"; error: string };
+                    if (payload.type === "chunk") {
+                      formattedContent += payload.text;
+                      onPanelPatch(panelId, {
+                        formattedContent,
+                        currentPhase: "format",
+                      });
+                    } else if (payload.type === "error") {
+                      formatError = payload.error;
+                      sseDone = true;
+                    } else if (payload.type === "done") {
+                      sseDone = true;
+                    }
+                  } catch {
+                    // 忽略解析失败的行
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          if ((e as { name?: string }).name !== "AbortError") {
+            formatError = e instanceof Error ? e.message : "格式化请求失败";
+          }
+        }
+
+        if (formatError) {
+          alert(`分析失败：${formatError}`);
+          // 格式化失败时，回退为可编辑状态，展示原始文本
+          onPanelPatch(panelId, {
+            formattedContent: textToMarkdown(questionRaw),
+            status: "done",
+            currentPhase: null,
+          });
           return;
         }
         if (stoppedRef.current) return;
 
-        let formattedContent = formatResult.formattedContent;
         if (!formattedContent.trim()) {
           formattedContent = textToMarkdown(questionRaw);
         }
         onPanelPatch(panelId, {
           formattedContent,
-          currentPhase: "catalog",
-        });
-        const catalogResult = await analyzeQuestionStepCatalog({
-          questionRaw,
-        });
-        if (!catalogResult.success) {
-          alert(`分析失败：${catalogResult.error}`);
-          return;
-        }
-        if (stoppedRef.current) return;
-
-        const catalogRecommendation = catalogResult.catalogRecommendation;
-        const recommendedTopic = topicOptions.find(
-          (t) =>
-            t.id === catalogRecommendation.topicId ||
-            t.name === catalogRecommendation.topicName,
-        );
-        const defaultTopicId =
-          recommendedTopic?.id ?? topicOptions[0]?.id ?? null;
-
-        onPanelPatch(panelId, {
-          catalogRecommendation,
-          selectedTopicId: defaultTopicId,
           status: "done",
           currentPhase: null,
         });
       }
 
-      await Promise.all(
-        questionParts.map((raw, i) => processSingleQuestion(raw, panels[i])),
-      );
+      await Promise.all(panels.map((panel) => processSingleQuestion(panel)));
 
       setParsePhase(null);
       onStatusChange(stoppedRef.current ? "stopped" : "done");

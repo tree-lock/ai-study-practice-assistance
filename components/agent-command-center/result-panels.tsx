@@ -10,7 +10,7 @@ type ResultPanelsProps = {
   sourceLabel: string | null;
   questionPanels: QuestionPanelItem[];
   generateStatus: GenerateStatus;
-  /** 无 panels 时占位用（parsing、uploading、notice、count、splitting）；有 panels 时由 panel.currentPhase 驱动 */
+  /** 无 panels 时占位用（parsing、uploading、notice-count、splitting）；有 panels 时由 panel.currentPhase 驱动 */
   parsePhase: QuestionPanelParsePhase | null;
   existingCatalogCandidates: TopicOption[];
 

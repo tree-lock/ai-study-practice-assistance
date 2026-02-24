@@ -1,12 +1,10 @@
 export type QuestionPanelParsePhase =
   | "uploading"
   | "parsing"
-  | "notice"
-  | "count"
+  | "notice-count"
   | "splitting"
-  | "type"
+  | "type-catalog"
   | "format"
-  | "catalog"
   | null;
 
 export const PARSE_PHASE_LABELS: Record<
@@ -15,12 +13,10 @@ export const PARSE_PHASE_LABELS: Record<
 > = {
   uploading: "正在上传文档...",
   parsing: "正在解析文档...",
-  notice: "AI 正在检查题目...",
-  count: "AI 正在统计题目数量...",
+  "notice-count": "AI 正在检查并统计题目...",
   splitting: "AI 正在拆分题目...",
-  type: "AI 正在识别题目类型...",
+  "type-catalog": "AI 正在识别类型并推荐题库...",
   format: "AI 正在格式化题目...",
-  catalog: "AI 正在推荐题库...",
 };
 
 const PHASE_PROGRESS_MAP: Record<
@@ -29,12 +25,10 @@ const PHASE_PROGRESS_MAP: Record<
 > = {
   uploading: 10,
   parsing: 15,
-  notice: 20,
-  count: 25,
-  splitting: 30,
-  type: 33,
-  format: 66,
-  catalog: 100,
+  "notice-count": 25,
+  splitting: 35,
+  "type-catalog": 45,
+  format: 100,
 };
 
 export function getPhaseProgress(phase: QuestionPanelParsePhase): number {
