@@ -64,8 +64,10 @@ export function SidebarFooter({
       </Avatar>
       {!collapsed ? (
         <div>
-          <p className="text-sm font-bold">AI 学习助教</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm font-bold text-sidebar-foreground">
+            AI 学习助教
+          </p>
+          <p className="text-xs text-sidebar-foreground/80">
             {userLabel ?? "欢迎使用"}
           </p>
         </div>

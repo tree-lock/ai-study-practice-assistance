@@ -141,7 +141,8 @@ input[type="reset"]:disabled,
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
   --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
+  /* 提高暗色下次要文字对比度，便于阅读 */
+  --muted-foreground: oklch(0.82 0.03 256);
   --accent: oklch(0.279 0.041 260.031);
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);

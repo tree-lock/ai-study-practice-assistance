@@ -1,5 +1,6 @@
 import { Settings } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 type Topic = {
@@ -37,7 +38,7 @@ export function AppShell({
   );
 
   return (
-    <div className="min-h-screen bg-[#f3f3f5]">
+    <div className="min-h-screen bg-background">
       <div className="flex">
         {sidebarContent}
 
@@ -46,6 +47,7 @@ export function AppShell({
             {floatingActions ? (
               <div className="absolute right-5 top-5 z-10">
                 <div className="flex items-center gap-2">
+                  <ThemeToggle />
                   <Button
                     type="button"
                     variant="ghost"
@@ -74,6 +76,7 @@ export function AppShell({
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2">
+                  <ThemeToggle />
                   <Button
                     type="button"
                     variant="ghost"

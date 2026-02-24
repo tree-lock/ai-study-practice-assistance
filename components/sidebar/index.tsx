@@ -21,10 +21,10 @@ export function Sidebar({ topics = [], userLabel }: SidebarProps) {
 
   return (
     <div
-      className={`sticky top-0 h-screen overflow-hidden px-2.5 py-3.5 transition-all duration-200 ease-in-out ${
+      className={`sticky top-0 h-screen overflow-hidden px-2.5 py-3.5 text-sidebar-foreground transition-all duration-200 ease-in-out ${
         collapsed
-          ? "w-14 min-w-14 bg-[#efeff1]"
-          : "min-w-[250px] w-[250px] bg-[#efeff1]"
+          ? "w-14 min-w-14 bg-sidebar"
+          : "min-w-[250px] w-[250px] bg-sidebar"
       }`}
     >
       <div

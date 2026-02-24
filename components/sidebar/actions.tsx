@@ -13,14 +13,14 @@ type SidebarActionsProps = {
 };
 
 const actionItemBaseClass =
-  "flex cursor-pointer items-center gap-2 rounded-md h-8 text-[13px] text-gray-700 no-underline transition-colors hover:bg-gray-200 active:bg-gray-300";
+  "flex cursor-pointer items-center gap-2 rounded-md h-8 text-[13px] text-sidebar-foreground no-underline transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80";
 
 const actionItemExpandedClass = "w-full pl-3 pr-1";
 
 const actionItemCollapsedClass = "justify-center px-2";
 
 const actionItemActiveClass =
-  "flex cursor-pointer items-center gap-2 rounded-md bg-blue-200 h-8 w-full pl-3 pr-1 text-[13px] text-gray-700 no-underline transition-colors";
+  "flex cursor-pointer items-center gap-2 rounded-md h-8 w-full pl-3 pr-1 text-[13px] bg-sidebar-primary text-sidebar-primary-foreground no-underline transition-colors hover:opacity-90";
 
 export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
   const router = useRouter();
@@ -63,7 +63,7 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
         href="/"
         className={
           collapsed
-            ? `${actionItemBaseClass} ${actionItemCollapsedClass} ${isNewQuestionPage ? "bg-blue-200" : ""}`
+            ? `${actionItemBaseClass} ${actionItemCollapsedClass} ${isNewQuestionPage ? "bg-sidebar-primary text-sidebar-primary-foreground" : ""}`
             : isNewQuestionPage
               ? actionItemActiveClass
               : `${actionItemBaseClass} ${actionItemExpandedClass}`

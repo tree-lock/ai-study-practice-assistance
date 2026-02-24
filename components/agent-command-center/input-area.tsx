@@ -135,10 +135,10 @@ export function InputArea({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative flex min-h-[140px] flex-col gap-2 rounded-2xl px-4 py-3.5 transition-[background,border] duration-150 ${
+      className={`relative flex min-h-[140px] flex-col gap-2 rounded-2xl border bg-card px-4 py-3.5 transition-[background,border] duration-150 ${
         isDragging
-          ? "border-2 border-dashed border-blue-500 bg-[#f0f4f8]"
-          : "border border-[#e8ecf1] bg-[#fafbfc]"
+          ? "border-2 border-dashed border-primary bg-accent/50"
+          : "border-border"
       } ${isMaximized ? "min-h-[560px] max-h-[72vh]" : ""}`}
     >
       <div className="absolute right-2.5 top-2.5 p-px">
@@ -175,7 +175,7 @@ export function InputArea({
         }}
         onInput={adjustTextareaHeight}
         rows={1}
-        className="max-h-none min-h-0 w-full resize-none overflow-y-auto border-none bg-transparent p-0 font-inherit leading-normal outline-none"
+        className="max-h-none min-h-0 w-full resize-none overflow-y-auto border-none bg-transparent p-0 font-inherit leading-normal text-foreground placeholder:text-muted-foreground outline-none"
         style={{
           minHeight: MIN_TEXTAREA_HEIGHT,
           maxHeight: MAX_TEXTAREA_HEIGHT,
@@ -215,12 +215,12 @@ export function InputArea({
           }
           disabled={generateButtonDisabled}
           onClick={onGenerateClick}
-          className={`inline-flex size-7 items-center justify-center rounded-full border-none text-white transition-all duration-200 ease-in-out ${
+          className={`inline-flex size-7 items-center justify-center rounded-full border-none transition-all duration-200 ease-in-out ${
             generateButtonDisabled
-              ? "bg-gray-400 opacity-72"
+              ? "bg-muted text-muted-foreground cursor-not-allowed opacity-80"
               : generateStatus === "generating"
-                ? "bg-[#1f2432] shadow-[0_3px_8px_rgba(17,24,39,0.22)]"
-                : "bg-[#111827] shadow-[0_3px_8px_rgba(17,24,39,0.22)]"
+                ? "bg-destructive text-white shadow-sm"
+                : "bg-primary text-primary-foreground shadow-sm hover:opacity-90"
           }`}
         >
           {generateStatus === "generating" ? (

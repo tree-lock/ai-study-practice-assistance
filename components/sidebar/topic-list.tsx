@@ -24,7 +24,9 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="whitespace-nowrap pl-3 text-sm font-bold">题库</p>
+      <p className="whitespace-nowrap pl-3 text-sm font-bold text-sidebar-foreground">
+        题库
+      </p>
       <div className="flex flex-col">
         {topics.map((topic) => {
           const isActive = pathname === `/topics/${topic.id}`;
@@ -33,15 +35,19 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
               key={topic.id}
               className={`group flex items-center rounded-md transition-colors ${
                 isActive
-                  ? "bg-blue-200"
-                  : "bg-transparent hover:bg-gray-200 active:bg-gray-300"
+                  ? "bg-sidebar-primary"
+                  : "bg-transparent hover:bg-sidebar-accent active:bg-sidebar-accent/80"
               }`}
             >
               <Link
                 href={`/topics/${topic.id}`}
-                className="min-w-0 flex-1 py-1.5 pl-3 pr-2 text-[13px] text-gray-700 no-underline"
+                className="min-w-0 flex-1 py-1.5 pl-3 pr-2 text-[13px] text-sidebar-foreground no-underline hover:text-sidebar-accent-foreground"
               >
-                <span className="truncate text-sm">{topic.name}</span>
+                <span
+                  className={`truncate text-sm ${isActive ? "text-sidebar-primary-foreground" : ""}`}
+                >
+                  {topic.name}
+                </span>
               </Link>
               <div
                 className={`flex items-center pr-1.5 transition-opacity ${
