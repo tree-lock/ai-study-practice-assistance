@@ -27,17 +27,17 @@ const {
   const localFromMock = vi.fn(() => ({ where: localWhereSelectMock }));
   const localSelectMock = vi.fn(() => ({ from: localFromMock }));
 
-  const localValuesMock = vi.fn();
+  const localValuesMock = vi.fn().mockResolvedValue(undefined);
   const localInsertMock = vi.fn(() => ({ values: localValuesMock }));
 
-  const localWhereUpdateMock = vi.fn();
+  const localWhereUpdateMock = vi.fn().mockResolvedValue(undefined);
   const localSetMock = vi.fn(() => ({ where: localWhereUpdateMock }));
   const localUpdateMock = vi.fn(() => ({ set: localSetMock }));
 
-  const localWhereDeleteMock = vi.fn();
+  const localWhereDeleteMock = vi.fn().mockResolvedValue(undefined);
   const localDeleteMock = vi.fn(() => ({ where: localWhereDeleteMock }));
 
-  const localGetCurrentUserIdMock = vi.fn();
+  const localGetCurrentUserIdMock = vi.fn().mockResolvedValue("user-1");
   const localRevalidatePathMock = vi.fn();
 
   return {
@@ -79,6 +79,22 @@ vi.mock("@/lib/ai/topic/outline", () => ({
   generateKnowledgePointsFromOutline: vi.fn(async () => []),
 }));
 
+const mocks = {
+  limitMock,
+  fromMock,
+  whereSelectMock,
+  selectMock,
+  valuesMock,
+  insertMock,
+  whereUpdateMock,
+  setMock,
+  updateMock,
+  whereDeleteMock,
+  deleteMock,
+  getCurrentUserIdMock,
+  revalidatePathMock,
+};
+
 import {
   createTopic,
   deleteTopic,
@@ -88,42 +104,33 @@ import {
 
 describe("topic actions", () => {
   beforeEach(() => {
-    limitMock.mockReset().mockResolvedValue([]);
-    fromMock.mockClear();
-    whereSelectMock.mockReset();
-    selectMock.mockClear();
-    valuesMock.mockReset();
-    insertMock.mockClear();
-    whereUpdateMock.mockReset();
-    setMock.mockClear();
-    updateMock.mockClear();
-    whereDeleteMock.mockReset();
-    deleteMock.mockClear();
-    getCurrentUserIdMock.mockReset();
-    revalidatePathMock.mockReset();
-
-    getCurrentUserIdMock.mockResolvedValue("user-1");
+    vi.clearAllMocks();
+    mocks.limitMock.mockResolvedValue([]);
+    mocks.getCurrentUserIdMock.mockResolvedValue("user-1");
+    mocks.valuesMock.mockResolvedValue(undefined);
+    mocks.whereUpdateMock.mockResolvedValue(undefined);
+    mocks.whereDeleteMock.mockResolvedValue(undefined);
   });
 
   it("getTopics 应返回查询结果", async () => {
     const rows = [{ id: "1", name: "高等数学", description: "极限与微分" }];
-    limitMock.mockResolvedValue(rows);
+    mocks.limitMock.mockResolvedValue(rows);
 
     const result = await getTopics();
 
-    expect(selectMock).toHaveBeenCalledOnce();
-    expect(fromMock).toHaveBeenCalledOnce();
-    expect(whereSelectMock).toHaveBeenCalledOnce();
+    expect(mocks.selectMock).toHaveBeenCalledOnce();
+    expect(mocks.fromMock).toHaveBeenCalledOnce();
+    expect(mocks.whereSelectMock).toHaveBeenCalledOnce();
     expect(result).toEqual(rows);
   });
 
   it("getTopics 未登录时应返回空数组", async () => {
-    getCurrentUserIdMock.mockResolvedValueOnce(null);
+    mocks.getCurrentUserIdMock.mockResolvedValueOnce(null);
 
     const result = await getTopics();
 
     expect(result).toEqual([]);
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(mocks.selectMock).not.toHaveBeenCalled();
   });
 
   it("createTopic 校验失败时应返回 error", async () => {
@@ -133,31 +140,29 @@ describe("topic actions", () => {
     });
 
     expect(result).toHaveProperty("error");
-    expect(insertMock).not.toHaveBeenCalled();
-    expect(revalidatePathMock).not.toHaveBeenCalled();
+    expect(mocks.insertMock).not.toHaveBeenCalled();
+    expect(mocks.revalidatePathMock).not.toHaveBeenCalled();
   });
 
   it("createTopic 成功时应写入并触发 revalidate", async () => {
-    valuesMock.mockResolvedValue(undefined);
-
     const result = await createTopic({
       name: "线性代数",
       description: "矩阵与向量空间",
     });
 
-    expect(insertMock).toHaveBeenCalledOnce();
-    expect(valuesMock).toHaveBeenCalledWith({
+    expect(mocks.insertMock).toHaveBeenCalledOnce();
+    expect(mocks.valuesMock).toHaveBeenCalledWith({
       name: "线性代数",
       description: "矩阵与向量空间",
       userId: "user-1",
     });
-    expect(revalidatePathMock).toHaveBeenCalledWith("/");
-    expect(revalidatePathMock).toHaveBeenCalledWith("/topics");
+    expect(mocks.revalidatePathMock).toHaveBeenCalledWith("/");
+    expect(mocks.revalidatePathMock).toHaveBeenCalledWith("/topics");
     expect(result).toEqual({ success: true });
   });
 
   it("createTopic 未登录时应返回错误", async () => {
-    getCurrentUserIdMock.mockResolvedValueOnce(null);
+    mocks.getCurrentUserIdMock.mockResolvedValueOnce(null);
 
     const result = await createTopic({
       name: "线代",
@@ -165,11 +170,11 @@ describe("topic actions", () => {
     });
 
     expect(result).toEqual({ error: "请先登录后再创建题库" });
-    expect(insertMock).not.toHaveBeenCalled();
+    expect(mocks.insertMock).not.toHaveBeenCalled();
   });
 
   it("createTopic 数据库异常时应返回错误信息", async () => {
-    valuesMock.mockRejectedValue(new Error("insert failed"));
+    mocks.valuesMock.mockRejectedValue(new Error("insert failed"));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const result = await createTopic({
@@ -178,7 +183,7 @@ describe("topic actions", () => {
     });
 
     expect(result).toEqual({ error: "创建题库失败" });
-    expect(revalidatePathMock).not.toHaveBeenCalled();
+    expect(mocks.revalidatePathMock).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 
@@ -189,12 +194,12 @@ describe("topic actions", () => {
     });
 
     expect(result).toHaveProperty("error");
-    expect(updateMock).not.toHaveBeenCalled();
-    expect(revalidatePathMock).not.toHaveBeenCalled();
+    expect(mocks.updateMock).not.toHaveBeenCalled();
+    expect(mocks.revalidatePathMock).not.toHaveBeenCalled();
   });
 
   it("updateTopic 未登录时应返回错误", async () => {
-    getCurrentUserIdMock.mockResolvedValueOnce(null);
+    mocks.getCurrentUserIdMock.mockResolvedValueOnce(null);
 
     const result = await updateTopic("topic-1", {
       name: "线代",
@@ -202,26 +207,24 @@ describe("topic actions", () => {
     });
 
     expect(result).toEqual({ error: "请先登录后再更新题库" });
-    expect(updateMock).not.toHaveBeenCalled();
+    expect(mocks.updateMock).not.toHaveBeenCalled();
   });
 
   it("updateTopic 成功时应更新并触发 revalidate", async () => {
-    whereUpdateMock.mockResolvedValue(undefined);
-
     const result = await updateTopic("topic-1", {
       name: "计算机网络",
       description: "TCP/IP 与应用层协议",
     });
 
-    expect(updateMock).toHaveBeenCalledOnce();
-    expect(setMock).toHaveBeenCalledOnce();
-    expect(whereUpdateMock).toHaveBeenCalledOnce();
-    expect(revalidatePathMock).toHaveBeenCalledWith("/");
+    expect(mocks.updateMock).toHaveBeenCalledOnce();
+    expect(mocks.setMock).toHaveBeenCalledOnce();
+    expect(mocks.whereUpdateMock).toHaveBeenCalledOnce();
+    expect(mocks.revalidatePathMock).toHaveBeenCalledWith("/");
     expect(result).toEqual({ success: true });
   });
 
   it("updateTopic 数据库异常时应返回错误信息", async () => {
-    whereUpdateMock.mockRejectedValue(new Error("update failed"));
+    mocks.whereUpdateMock.mockRejectedValue(new Error("update failed"));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const result = await updateTopic("topic-1", {
@@ -230,38 +233,36 @@ describe("topic actions", () => {
     });
 
     expect(result).toEqual({ error: "更新题库失败" });
-    expect(revalidatePathMock).not.toHaveBeenCalled();
+    expect(mocks.revalidatePathMock).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 
   it("deleteTopic 成功时应删除并触发 revalidate", async () => {
-    whereDeleteMock.mockResolvedValue(undefined);
-
     const result = await deleteTopic("topic-1");
 
-    expect(deleteMock).toHaveBeenCalledOnce();
-    expect(whereDeleteMock).toHaveBeenCalledOnce();
-    expect(revalidatePathMock).toHaveBeenCalledWith("/");
+    expect(mocks.deleteMock).toHaveBeenCalledOnce();
+    expect(mocks.whereDeleteMock).toHaveBeenCalledOnce();
+    expect(mocks.revalidatePathMock).toHaveBeenCalledWith("/");
     expect(result).toEqual({ success: true });
   });
 
   it("deleteTopic 未登录时应返回错误", async () => {
-    getCurrentUserIdMock.mockResolvedValueOnce(null);
+    mocks.getCurrentUserIdMock.mockResolvedValueOnce(null);
 
     const result = await deleteTopic("topic-1");
 
     expect(result).toEqual({ error: "请先登录后再删除题库" });
-    expect(deleteMock).not.toHaveBeenCalled();
+    expect(mocks.deleteMock).not.toHaveBeenCalled();
   });
 
   it("deleteTopic 数据库异常时应返回错误信息", async () => {
-    whereDeleteMock.mockRejectedValue(new Error("delete failed"));
+    mocks.whereDeleteMock.mockRejectedValue(new Error("delete failed"));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const result = await deleteTopic("topic-1");
 
     expect(result).toEqual({ error: "删除题库失败" });
-    expect(revalidatePathMock).not.toHaveBeenCalled();
+    expect(mocks.revalidatePathMock).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 });

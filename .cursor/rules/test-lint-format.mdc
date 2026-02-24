@@ -1,0 +1,14 @@
+---
+description: Test命令规范
+alwaysApply: false
+---
+
+# 测试 / Lint / 格式化 规范
+
+## 测试（Test）
+
+- 优先使用项目脚本运行 Vitest，而不是直接调用 Bun 自带测试运行器。
+- **命令**：
+  - 运行一次性测试：`bun run test`
+  - 监听模式：`bun run test:watch`
+- **重要提示**：请确保使用 `bun run test` 命令而不是 `bun test` 命令，否则 Bun 将运行自己的测试运行程序。
