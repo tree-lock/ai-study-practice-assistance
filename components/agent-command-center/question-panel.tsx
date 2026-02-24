@@ -209,7 +209,7 @@ export function QuestionPanel({
                         size="icon"
                         onClick={onCancelEdit}
                         aria-label="取消编辑题目"
-                        className="size-[26px] border-gray-300 bg-white hover:bg-gray-50"
+                        className="size-[26px]"
                       >
                         <X className="size-4" />
                       </Button>
@@ -218,7 +218,7 @@ export function QuestionPanel({
                         size="icon"
                         onClick={onSaveEdit}
                         aria-label="保存题目编辑"
-                        className="size-[26px] border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                        className="size-[26px]"
                       >
                         <Check className="size-4" />
                       </Button>
@@ -230,7 +230,7 @@ export function QuestionPanel({
                       size="icon"
                       onClick={onStartEdit}
                       aria-label="编辑题目"
-                      className="size-[26px] border-gray-300 bg-white hover:bg-gray-50"
+                      className="size-[26px]"
                     >
                       <Pencil className="size-4" />
                     </Button>
@@ -242,7 +242,7 @@ export function QuestionPanel({
               <textarea
                 value={draftValue}
                 onChange={(e) => onDraftChange(e.target.value)}
-                className="min-h-[120px] w-full resize-y rounded-lg border border-[#dbe1ea] px-2.5 py-2 font-inherit leading-relaxed"
+                className="min-h-[120px] w-full resize-y rounded-lg border border-input bg-background px-2.5 py-2 font-inherit leading-relaxed"
               />
             ) : (
               <div className="min-h-12">

@@ -54,9 +54,9 @@ export function FileUpload({
         {files.map((item) => (
           <div
             key={item.id}
-            className="flex w-[98px] flex-col gap-1 overflow-hidden rounded-xl border border-[#d9dee8] bg-white"
+            className="flex w-[98px] flex-col gap-1 overflow-hidden rounded-xl border border-border bg-card shadow-sm"
           >
-            <div className="relative flex h-[72px] w-full items-end justify-end overflow-hidden bg-[#eef2f7]">
+            <div className="relative flex h-[72px] w-full items-end justify-end overflow-hidden bg-muted">
               {item.previewUrl ? (
                 <button
                   type="button"

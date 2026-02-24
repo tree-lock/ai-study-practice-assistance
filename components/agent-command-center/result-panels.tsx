@@ -63,7 +63,7 @@ export function ResultPanels({
       {questionPanels.map((panel, index) => (
         <div
           key={panel.id}
-          className={`flex flex-col overflow-hidden rounded-xl border border-[#e5eaf3] bg-white ${
+          className={`flex flex-col overflow-hidden rounded-xl border border-border bg-card ${
             panel.status === "pending" ? "opacity-60" : ""
           }`}
         >
@@ -109,7 +109,7 @@ export function ResultPanels({
       {generateStatus === "generating" &&
       questionPanels.length === 0 &&
       parsePhase ? (
-        <div className="flex flex-col overflow-hidden rounded-xl border border-[#e5eaf3] bg-white">
+        <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
           <QuestionPanel
             questionIndex={0}
             totalQuestions={1}
