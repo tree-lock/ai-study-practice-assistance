@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SidebarActions } from "./actions";
+import { FallbackActions } from "./fallback-actions";
 import { SidebarTopicListFallback } from "./topic-list-fallback";
 import { SidebarFooter, SidebarUserInfo } from "./user-info";
 
@@ -26,11 +26,7 @@ export function SidebarFallback() {
             collapsed={collapsed}
             onToggleCollapse={() => setCollapsed((prev) => !prev)}
           />
-          <SidebarActions
-            collapsed={collapsed}
-            disabled
-            onExpand={() => setCollapsed(false)}
-          />
+          <FallbackActions collapsed={collapsed} />
           <SidebarTopicListFallback />
         </div>
         <SidebarFooter userLabel="加载中" collapsed={collapsed} />
