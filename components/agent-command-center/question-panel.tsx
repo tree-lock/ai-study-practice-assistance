@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, Info, Pencil, RefreshCw, TriangleAlert, X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Callout } from "@/components/ui/callout";
 import {
   Dialog,
   DialogContent,
@@ -154,12 +154,12 @@ export function QuestionPanel({
       {showContentBlock ? (
         <div className="flex flex-col gap-3">
           {notice ? (
-            <Callout
-              variant="amber"
-              icon={<TriangleAlert className="size-4" />}
-            >
-              {notice}
-            </Callout>
+            <Alert className="border-amber-500/50 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-200">
+              <TriangleAlert className="size-4" />
+              <AlertDescription className="text-inherit">
+                {notice}
+              </AlertDescription>
+            </Alert>
           ) : null}
 
           <div className="flex flex-col gap-2">
@@ -263,7 +263,7 @@ export function QuestionPanel({
             )}
           </div>
 
-          {!isEditing ? (
+          {!isEditing && existingCatalogCandidates.length > 0 ? (
             <CatalogPanel
               existingCatalogCandidates={existingCatalogCandidates}
               selectedTopicId={selectedTopicId}

@@ -36,9 +36,14 @@ import { Spinner } from "@/components/ui/spinner";
 type TopicActionMenuProps = {
   topicId: string;
   topicName: string;
+  isDefault?: boolean;
 };
 
-export function TopicActionMenu({ topicId, topicName }: TopicActionMenuProps) {
+export function TopicActionMenu({
+  topicId,
+  topicName,
+  isDefault = false,
+}: TopicActionMenuProps) {
   const router = useRouter();
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -111,18 +116,22 @@ export function TopicActionMenu({ topicId, topicName }: TopicActionMenuProps) {
             <Pencil className="size-4" />
             重命名
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onSelect={(e: Event) => {
-              e.preventDefault();
-              setError(null);
-              setIsDeleteOpen(true);
-            }}
-          >
-            <Trash2 className="size-4" />
-            删除
-          </DropdownMenuItem>
+          {!isDefault ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={(e: Event) => {
+                  e.preventDefault();
+                  setError(null);
+                  setIsDeleteOpen(true);
+                }}
+              >
+                <Trash2 className="size-4" />
+                删除
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
 

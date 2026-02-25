@@ -71,11 +71,13 @@ export function SolutionGenerator({
       )}
 
       {hasContent ? (
-        <div className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="flex flex-col gap-4 rounded-lg border border-border bg-muted/50 p-4">
           {answer?.content && (
             <div>
-              <h3 className="mb-2 text-base font-semibold">答案</h3>
-              <div className="rounded-md bg-white p-3">
+              <h3 className="mb-2 text-base font-semibold text-foreground">
+                答案
+              </h3>
+              <div className="rounded-md bg-card p-3 text-foreground">
                 <MarkdownContent content={answer.content} />
               </div>
             </div>
@@ -83,15 +85,17 @@ export function SolutionGenerator({
 
           {answer?.explanation && (
             <div>
-              <h3 className="mb-2 text-base font-semibold">解析</h3>
-              <div className="rounded-md bg-white p-3">
+              <h3 className="mb-2 text-base font-semibold text-foreground">
+                解析
+              </h3>
+              <div className="rounded-md bg-card p-3 text-foreground">
                 <MarkdownContent content={answer.explanation} />
               </div>
             </div>
           )}
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+        <div className="rounded-lg border border-dashed border-border bg-muted/50 p-6 text-center">
           <p className="text-sm text-muted-foreground">暂无答案和解析</p>
         </div>
       )}

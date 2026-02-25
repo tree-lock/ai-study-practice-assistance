@@ -50,10 +50,29 @@ export function ResultPanels({
   onQuestionTypeChange,
   onReRecognize,
 }: ResultPanelsProps) {
+  const hasNoCatalog = existingCatalogCandidates.length === 0;
+  const showNoCatalogHint =
+    hasNoCatalog &&
+    questionPanels.length > 0 &&
+    generateStatus !== "generating";
+
   return (
     <div className="flex w-full flex-col gap-3">
-      {sourceLabel ? (
-        <p className="text-xs text-muted-foreground">来源：{sourceLabel}</p>
+      {sourceLabel != null || showNoCatalogHint ? (
+        <div className="flex min-w-0 items-center justify-between gap-3">
+          {sourceLabel ? (
+            <p className="shrink-0 text-xs text-muted-foreground">
+              来源：{sourceLabel}
+            </p>
+          ) : (
+            <span className="shrink-0" />
+          )}
+          {showNoCatalogHint ? (
+            <p className="min-w-0 truncate text-xs text-muted-foreground">
+              暂无题库，请先在侧边栏创建题库
+            </p>
+          ) : null}
+        </div>
       ) : null}
       {generateStatus === "generating" && questionPanels.length > 0 ? (
         <p className="text-sm text-muted-foreground">
@@ -63,7 +82,7 @@ export function ResultPanels({
       {questionPanels.map((panel, index) => (
         <div
           key={panel.id}
-          className={`flex flex-col overflow-hidden rounded-xl border border-border bg-card ${
+          className={`flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card ${
             panel.status === "pending" ? "opacity-60" : ""
           }`}
         >
@@ -109,7 +128,7 @@ export function ResultPanels({
       {generateStatus === "generating" &&
       questionPanels.length === 0 &&
       parsePhase ? (
-        <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card">
           <QuestionPanel
             questionIndex={0}
             totalQuestions={1}

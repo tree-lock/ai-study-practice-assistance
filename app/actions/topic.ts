@@ -20,13 +20,27 @@ const topicSchema = z.object({
   description: z.string().optional(),
 });
 
+const DEFAULT_TOPIC_NAME = "默认题库";
+
 export async function getTopics() {
   const userId = await getCurrentUserId();
   if (!userId) {
     return [];
   }
 
-  return await db.select().from(topics).where(eq(topics.userId, userId));
+  const list = await db.select().from(topics).where(eq(topics.userId, userId));
+
+  // 若用户尚无题库，懒创建默认题库（兼容注册前已存在的用户）
+  if (list.length === 0) {
+    await db.insert(topics).values({
+      name: DEFAULT_TOPIC_NAME,
+      userId,
+      isDefault: true,
+    });
+    return await db.select().from(topics).where(eq(topics.userId, userId));
+  }
+
+  return list;
 }
 
 async function fetchTopicById(topicId: string, userId: string) {
@@ -125,6 +139,15 @@ export async function deleteTopic(id: string) {
   const userId = await getCurrentUserId();
   if (!userId) {
     return { error: "请先登录后再删除题库" };
+  }
+
+  const topic = await db
+    .select({ isDefault: topics.isDefault })
+    .from(topics)
+    .where(and(eq(topics.id, id), eq(topics.userId, userId)))
+    .limit(1);
+  if (topic.length > 0 && topic[0].isDefault) {
+    return { error: "默认题库不可删除" };
   }
 
   try {

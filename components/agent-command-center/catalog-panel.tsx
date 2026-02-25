@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, TriangleAlert } from "lucide-react";
-import { Callout } from "@/components/ui/callout";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -37,17 +37,20 @@ export function CatalogPanel({
   const isLowMatch = matchScore > 0 && matchScore < 60;
 
   return (
-    <div className="flex w-full flex-col gap-2 border-t border-[#eef2f7] pt-2.5">
-      {disabled ? (
+    <div className="flex w-full flex-col gap-2 border-t border-border/60 pt-2.5">
+      {disabled && hasTopics ? (
         <p className="text-sm text-muted-foreground">AI 正在推荐题库...</p>
       ) : null}
       {!disabled && isLowMatch && suggestedTopicName ? (
-        <Callout variant="amber" icon={<TriangleAlert className="size-4" />}>
-          匹配度较低，建议新建题库：「{suggestedTopicName}」
-        </Callout>
+        <Alert className="border-amber-500/50 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-200">
+          <TriangleAlert className="size-4" />
+          <AlertDescription className="text-inherit">
+            匹配度较低，建议新建题库：「{suggestedTopicName}」
+          </AlertDescription>
+        </Alert>
       ) : null}
 
-      {!disabled && !hasTopics ? (
+      {!hasTopics ? (
         <p className="text-sm text-muted-foreground">
           暂无题库，请先在侧边栏创建题库
         </p>

@@ -103,6 +103,12 @@ input[type="reset"]:disabled,
   cursor: not-allowed;
 }
 
+/* KaTeX dark mode: use foreground color so math formulas are visible on dark backgrounds */
+.dark .markdown-content .katex,
+.dark .question-markdown .katex {
+  color: var(--foreground);
+}
+
 /* Force-hide KaTeX MathML accessibility layer to prevent duplicate visual rendering. */
 .katex .katex-mathml {
   border: 0;

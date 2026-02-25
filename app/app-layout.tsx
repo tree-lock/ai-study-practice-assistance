@@ -3,7 +3,9 @@ import { getTopics } from "@/app/actions/topic";
 import { signIn, signOut } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { Sidebar } from "@/components/sidebar";
-import { SidebarSkeleton } from "@/components/sidebar/skeleton";
+import { SidebarFallback } from "@/components/sidebar/fallback";
+import { SidebarTopicListFallback } from "@/components/sidebar/topic-list-fallback";
+import { TopicListWithContext } from "@/components/sidebar/topic-list-with-context";
 import { Button } from "@/components/ui/button";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 
@@ -11,12 +13,25 @@ const hasGoogleAuthConfig =
   Boolean(process.env.AUTH_GOOGLE_ID) &&
   Boolean(process.env.AUTH_GOOGLE_SECRET);
 
+async function AsyncTopicList() {
+  const topics = await getTopics();
+  return <TopicListWithContext topics={topics} />;
+}
+
 async function SidebarContent() {
   const userId = await getCurrentUserId();
-  const topics = await getTopics();
   const userLabel = userId ? `用户 ${userId.slice(0, 8)}` : "未登录";
 
-  return <Sidebar topics={topics} userLabel={userLabel} />;
+  return (
+    <Sidebar
+      userLabel={userLabel}
+      topicListSlot={
+        <Suspense fallback={<SidebarTopicListFallback />}>
+          <AsyncTopicList />
+        </Suspense>
+      }
+    />
+  );
 }
 
 async function FloatingActions() {
@@ -78,7 +93,7 @@ export default function AppLayout({
         )
       }
       sidebar={
-        <Suspense fallback={<SidebarSkeleton />}>
+        <Suspense fallback={<SidebarFallback />}>
           <SidebarContent />
         </Suspense>
       }

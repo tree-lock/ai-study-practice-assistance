@@ -115,6 +115,7 @@ export const topics = pgTable("topics", {
   description: text("description"),
   outline: text("outline"),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+  isDefault: boolean("is_default").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

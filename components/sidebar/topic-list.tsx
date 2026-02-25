@@ -8,6 +8,7 @@ type Topic = {
   id: string;
   name: string;
   description: string | null;
+  isDefault?: boolean;
 };
 
 type SidebarTopicListProps = {
@@ -56,7 +57,11 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
                     : "opacity-0 group-hover:opacity-100 group-has-data-[state=open]:opacity-100"
                 }`}
               >
-                <TopicActionMenu topicId={topic.id} topicName={topic.name} />
+                <TopicActionMenu
+                  topicId={topic.id}
+                  topicName={topic.name}
+                  isDefault={topic.isDefault}
+                />
               </div>
             </div>
           );

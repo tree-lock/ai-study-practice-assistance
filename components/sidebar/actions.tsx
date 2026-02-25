@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 type SidebarActionsProps = {
   collapsed: boolean;
   onExpand: () => void;
+  disabled?: boolean;
 };
 
 const actionItemBaseClass =
@@ -22,7 +23,14 @@ const actionItemCollapsedClass = "justify-center px-2";
 const actionItemActiveClass =
   "flex cursor-pointer items-center gap-2 rounded-md h-8 w-full pl-3 pr-1 text-[13px] bg-sidebar-primary text-sidebar-primary-foreground no-underline transition-colors hover:opacity-90";
 
-export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
+const disabledItemClass =
+  "flex h-8 cursor-not-allowed items-center gap-2 rounded-md text-[13px] text-sidebar-foreground/50 opacity-60";
+
+export function SidebarActions({
+  collapsed,
+  onExpand,
+  disabled = false,
+}: SidebarActionsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
@@ -56,6 +64,43 @@ export function SidebarActions({ collapsed, onExpand }: SidebarActionsProps) {
     setNewTopicName("");
     setCreateError("");
   };
+
+  if (disabled) {
+    return (
+      <div className="flex min-w-0 flex-col pt-2">
+        <button
+          type="button"
+          disabled
+          className={
+            collapsed
+              ? `${disabledItemClass} ${actionItemCollapsedClass}`
+              : `${disabledItemClass} ${actionItemExpandedClass}`
+          }
+          aria-label="新增题目"
+        >
+          <FilePlus className="size-4 shrink-0" />
+          <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
+            新增题目
+          </span>
+        </button>
+        <button
+          type="button"
+          disabled
+          className={
+            collapsed
+              ? `${disabledItemClass} ${actionItemCollapsedClass}`
+              : `${disabledItemClass} ${actionItemExpandedClass}`
+          }
+          aria-label="新建题库"
+        >
+          <Plus className="size-4 shrink-0" />
+          <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
+            新建题库
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-w-0 flex-col pt-2">

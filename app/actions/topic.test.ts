@@ -113,7 +113,14 @@ describe("topic actions", () => {
   });
 
   it("getTopics 应返回查询结果", async () => {
-    const rows = [{ id: "1", name: "高等数学", description: "极限与微分" }];
+    const rows = [
+      {
+        id: "1",
+        name: "高等数学",
+        description: "极限与微分",
+        isDefault: false,
+      },
+    ];
     mocks.limitMock.mockResolvedValue(rows);
 
     const result = await getTopics();
@@ -122,6 +129,29 @@ describe("topic actions", () => {
     expect(mocks.fromMock).toHaveBeenCalledOnce();
     expect(mocks.whereSelectMock).toHaveBeenCalledOnce();
     expect(result).toEqual(rows);
+  });
+
+  it("getTopics 当用户无题库时应懒创建默认题库", async () => {
+    const defaultTopic = {
+      id: "default-1",
+      name: "默认题库",
+      description: null,
+      isDefault: true,
+    };
+    mocks.limitMock
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([defaultTopic]);
+
+    const result = await getTopics();
+
+    expect(mocks.insertMock).toHaveBeenCalledOnce();
+    expect(mocks.valuesMock).toHaveBeenCalledWith({
+      name: "默认题库",
+      userId: "user-1",
+      isDefault: true,
+    });
+    expect(mocks.selectMock).toHaveBeenCalledTimes(2);
+    expect(result).toEqual([defaultTopic]);
   });
 
   it("getTopics 未登录时应返回空数组", async () => {
@@ -238,12 +268,23 @@ describe("topic actions", () => {
   });
 
   it("deleteTopic 成功时应删除并触发 revalidate", async () => {
+    mocks.limitMock.mockResolvedValue([{ isDefault: false }]);
+
     const result = await deleteTopic("topic-1");
 
     expect(mocks.deleteMock).toHaveBeenCalledOnce();
     expect(mocks.whereDeleteMock).toHaveBeenCalledOnce();
     expect(mocks.revalidatePathMock).toHaveBeenCalledWith("/");
     expect(result).toEqual({ success: true });
+  });
+
+  it("deleteTopic 当题库为默认题库时应返回错误且不删除", async () => {
+    mocks.limitMock.mockResolvedValue([{ isDefault: true }]);
+
+    const result = await deleteTopic("topic-1");
+
+    expect(result).toEqual({ error: "默认题库不可删除" });
+    expect(mocks.deleteMock).not.toHaveBeenCalled();
   });
 
   it("deleteTopic 未登录时应返回错误", async () => {

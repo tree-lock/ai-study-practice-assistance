@@ -11,6 +11,7 @@ interface Topic {
   id: string;
   name: string;
   description: string | null;
+  isDefault?: boolean;
 }
 
 export function TopicList({ topics }: { topics: Topic[] }) {
@@ -39,17 +40,19 @@ export function TopicList({ topics }: { topics: Topic[] }) {
               <Button variant="secondary" asChild>
                 <Link href={`/dashboard/topics/${topic.id}`}>进入题库</Link>
               </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={async () => {
-                  if (confirm("确认删除该题库吗？")) {
-                    await deleteTopic(topic.id);
-                  }
-                }}
-              >
-                删除
-              </Button>
+              {!topic.isDefault ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={async () => {
+                    if (confirm("确认删除该题库吗？")) {
+                      await deleteTopic(topic.id);
+                    }
+                  }}
+                >
+                  删除
+                </Button>
+              ) : null}
             </div>
           </CardContent>
         </Card>
