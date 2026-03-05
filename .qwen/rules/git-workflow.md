@@ -28,15 +28,22 @@ All commit messages must follow the Conventional Commits format:
 ## Git Operations Protocol
 
 1.  **No Unauthorized Execution**: You may suggest git commands when relevant to the task, but **NEVER** execute `git` commands (especially destructive ones) without explicit user permission or a clear instruction to do so.
-2.  **Explicit Triggers**:
+2.  **Pre-commit / Pre-push: Build Check**:
+    - 在 **commit** 和 **push** 之前，**必须先执行一次 build**（本项目使用 `bun run build`）。
+    - 若 build **失败**，则**不得**继续执行 commit 或 push，并应向用户报告 build 错误。
+    - 只有 build **成功**后，才可进行 commit 或 push。
+3.  **Explicit Triggers**:
+    - **「commit 并 push」/「提交并推送」**：使用 project skill **commit-and-push**，先 build，再 commit，再 push（一步完成）。
     - **"commit 代码"**: When the user says this, you should:
-      1.  Check status (`git status`).
-      2.  Stage all changes (`git add .`).
-      3.  Generate a conventional commit message based on the changes.
-      4.  Execute the commit.
+      1.  **Run build** (`bun run build`). If it fails, **stop** and report the error; do not commit.
+      2.  Check status (`git status`).
+      3.  Stage all changes (`git add .`).
+      4.  Generate a conventional commit message based on the changes.
+      5.  Execute the commit.
     - **"push 代码"**: When the user says this, you should:
-      1.  Push the current branch to the remote (`git push`).
-      2.  Handle upstream setting if necessary (`git push -u origin <branch>`).
+      1.  **Run build** (`bun run build`). If it fails, **stop** and report the error; do not push.
+      2.  Push the current branch to the remote (`git push`).
+      3.  Handle upstream setting if necessary (`git push -u origin <branch>`).
 
 ## GitHub Integration (MCP)
 

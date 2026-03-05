@@ -1,7 +1,8 @@
 "use client";
 
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TopicQuestion, TopicTag } from "@/app/actions/question";
+import { getTopicDetailById } from "@/app/actions/topic";
 
 type TopicInfo = {
   id: string;
@@ -16,7 +17,20 @@ export type TopicData = {
   tags: Array<TopicTag>;
 };
 
-/** 供错误边界区分 404/401 等 HTTP 状态 */
+/** 401/404 时不抛错，返回此结构由页面在 useEffect 中 redirect/notFound，避免渲染中更新 Router */
+export type TopicAuthError = {
+  __topicError: true;
+  code: 401 | 404;
+  message: string;
+};
+
+export function isTopicAuthError(
+  data: TopicData | TopicAuthError,
+): data is TopicAuthError {
+  return typeof data === "object" && data !== null && "__topicError" in data;
+}
+
+/** 供错误边界区分非 401/404 的 HTTP 状态（如 500） */
 export class FetchError extends Error {
   constructor(
     message: string,
@@ -27,35 +41,43 @@ export class FetchError extends Error {
   }
 }
 
-async function fetcher(url: string): Promise<TopicData> {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: "Unknown error" }));
-    const message = body.error ?? "Failed to fetch";
-    throw new FetchError(message, res.status);
+async function fetchTopicData(
+  topicId: string,
+): Promise<TopicData | TopicAuthError> {
+  const res = await getTopicDetailById(topicId);
+  if ("error" in res && res.code) {
+    const status = res.code === "UNAUTHORIZED" ? 401 : 404;
+    return { __topicError: true, code: status, message: res.error };
   }
-  return res.json();
+  if ("data" in res) return res.data;
+  throw new FetchError("Failed to fetch", 500);
 }
 
 /** 供 prefetch 与 useSuspenseQuery 复用的 query 配置 */
 export function getTopicQueryOptions(topicId: string) {
   return {
     queryKey: ["topics", topicId] as const,
-    queryFn: () => fetcher(`/api/topics/${topicId}`),
+    queryFn: () => fetchTopicData(topicId),
   };
 }
 
 /**
- * 客户端数据获取 hook，使用 TanStack Query suspense 模式
+ * 客户端数据获取 hook，使用 useQuery 避免在渲染中 throw Promise
  *
- * 工作原理：
- * 1. useSuspenseQuery 在 loading 时 throw promise，触发 Suspense boundary
- * 2. 数据加载完成后缓存在 QueryClient 中
- * 3. 再次访问页面时，优先显示缓存数据（无需等待）
+ * 返回：
+ * - data: TopicData | TopicAuthError | undefined
+ * - isLoading: 首次加载中
+ * - error: 非 401/404 的错误（如 500）
+ *
+ * 401/404 通过 data.__topicError 返回，由调用方在 useEffect 中 redirect/notFound
  */
-export function useTopicData(topicId: string): TopicData {
-  const { data } = useSuspenseQuery(getTopicQueryOptions(topicId));
-  return data;
+export function useTopicData(topicId: string): {
+  data: TopicData | TopicAuthError | undefined;
+  isLoading: boolean;
+  error: Error | null;
+} {
+  const { data, isLoading, error } = useQuery(getTopicQueryOptions(topicId));
+  return { data, isLoading, error: error ?? null };
 }
 
 /**

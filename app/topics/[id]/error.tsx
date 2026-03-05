@@ -1,6 +1,7 @@
 "use client";
 
 import { notFound, redirect } from "next/navigation";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FetchError } from "@/lib/hooks/use-topic-data";
 
@@ -10,14 +11,16 @@ type TopicPageErrorProps = {
 };
 
 export default function TopicPageError({ error, reset }: TopicPageErrorProps) {
-  if (error instanceof FetchError) {
-    if (error.status === 404) {
-      notFound();
+  useEffect(() => {
+    if (error instanceof FetchError) {
+      if (error.status === 404) {
+        notFound();
+      }
+      if (error.status === 401) {
+        redirect("/");
+      }
     }
-    if (error.status === 401) {
-      redirect("/");
-    }
-  }
+  }, [error]);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-6 pt-20 pb-8">

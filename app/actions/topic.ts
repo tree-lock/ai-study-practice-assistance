@@ -1,8 +1,9 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { cacheTag, revalidatePath } from "next/cache";
 import { treeifyError, z } from "zod";
+import type { TopicQuestion, TopicTag } from "@/app/actions/question";
 import {
   generateKnowledgePointsFromOutline,
   generateOutline,
@@ -11,8 +12,11 @@ import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 import { db } from "@/lib/db";
 import {
   questionKnowledgePoints,
+  questions,
+  tags,
   topicKnowledgePoints,
   topics,
+  users,
 } from "@/lib/db/schema";
 
 const topicSchema = z.object({
@@ -62,6 +66,83 @@ export async function getTopicById(id: string) {
   }
 
   return fetchTopicById(id, userId);
+}
+
+export type GetTopicDetailResult =
+  | {
+      data: {
+        topic: {
+          id: string;
+          name: string;
+          description: string | null;
+          outline: string | null;
+        };
+        questions: Array<TopicQuestion>;
+        tags: Array<TopicTag>;
+      };
+    }
+  | { error: string; code: "UNAUTHORIZED" | "NOT_FOUND" };
+
+export async function getTopicDetailById(
+  topicId: string,
+): Promise<GetTopicDetailResult> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { error: "Unauthorized", code: "UNAUTHORIZED" };
+  }
+
+  const topic = await fetchTopicById(topicId, userId);
+  if (!topic) {
+    return { error: "Topic not found", code: "NOT_FOUND" };
+  }
+
+  const [questionRows, tagRows] = await Promise.all([
+    db
+      .select({
+        id: questions.id,
+        content: questions.content,
+        type: questions.type,
+        source: questions.source,
+        createdAt: questions.createdAt,
+        creatorId: users.id,
+        creatorName: users.name,
+      })
+      .from(questions)
+      .leftJoin(users, eq(questions.creatorId, users.id))
+      .where(eq(questions.topicId, topicId))
+      .orderBy(desc(questions.createdAt)),
+    db
+      .select({
+        id: tags.id,
+        name: tags.name,
+      })
+      .from(tags)
+      .where(eq(tags.topicId, topicId)),
+  ]);
+
+  const formattedQuestions: Array<TopicQuestion> = questionRows.map((row) => ({
+    id: row.id,
+    content: row.content,
+    type: row.type,
+    source: row.source,
+    createdAt: row.createdAt,
+    creator: row.creatorId
+      ? { id: row.creatorId, name: row.creatorName }
+      : null,
+  }));
+
+  return {
+    data: {
+      topic: {
+        id: topic.id,
+        name: topic.name,
+        description: topic.description,
+        outline: topic.outline,
+      },
+      questions: formattedQuestions,
+      tags: tagRows,
+    },
+  };
 }
 
 export async function createTopic(data: z.infer<typeof topicSchema>) {

@@ -308,8 +308,9 @@ bun test app/actions/topic.test.ts
 
 ### REST API
 
-- **`GET /api/topics/[id]`**：获取题库详情
 - **`POST /api/agent/format-stream`**：流式 AI 分析接口
+
+题库详情由 server action **`getTopicDetailById`**（`app/actions/topic.ts`）提供，客户端通过 `useTopicData` / prefetch 调用。
 
 ## 技术细节
 

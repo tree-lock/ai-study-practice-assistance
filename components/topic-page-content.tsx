@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useTopicData } from "@/lib/hooks/use-topic-data";
+import { notFound, redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { isTopicAuthError, useTopicData } from "@/lib/hooks/use-topic-data";
+import { LoadingBar } from "./loading-bar";
 import { QuestionCard } from "./question-card";
 import { TagFilter } from "./tag-filter";
 import { TopicHeader } from "./topic-header";
@@ -12,9 +14,32 @@ type TopicPageContentProps = {
 };
 
 export function TopicPageContent({ topicId }: TopicPageContentProps) {
-  const { topic, questions, tags } = useTopicData(topicId);
+  const { data, isLoading, error } = useTopicData(topicId);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (data && isTopicAuthError(data)) {
+      if (data.code === 404) notFound();
+      if (data.code === 401) redirect("/");
+    }
+  }, [data]);
+
+  if (isLoading) {
+    return <LoadingBar />;
+  }
+
+  if (error) {
+    return (
+      <div className="py-12 text-center text-gray-500">加载失败，请重试。</div>
+    );
+  }
+
+  if (!data || isTopicAuthError(data)) {
+    return <LoadingBar />;
+  }
+
+  const { topic, questions, tags } = data;
 
   return (
     <>
