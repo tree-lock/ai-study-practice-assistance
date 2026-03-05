@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { updateTopicOutlineCache } from "@/lib/hooks/use-topic-data";
+import { useUpdateTopicOutlineCache } from "@/lib/hooks/use-topic-data";
 
 type OutlineEditorProps = {
   topicId: string;
@@ -21,6 +21,7 @@ type OutlineEditorProps = {
 };
 
 export function OutlineEditor({ topicId, outline }: OutlineEditorProps) {
+  const updateTopicOutlineCache = useUpdateTopicOutlineCache();
   const [isOpen, setIsOpen] = useState(false);
   const [editedOutline, setEditedOutline] = useState(outline ?? "");
   const [isPending, startTransition] = useTransition();

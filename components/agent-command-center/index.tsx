@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { invalidateTopicCache } from "@/lib/hooks/use-topic-data";
+import { useInvalidateTopicCache } from "@/lib/hooks/use-topic-data";
 import { InputArea } from "./input-area";
 import { ResultPanels } from "./result-panels";
 import type { QuestionPanelItem, TopicOption } from "./types";
@@ -11,6 +11,7 @@ import { useQuestionGenerator } from "./use-question-generator";
 
 export function AgentCommandCenter() {
   const router = useRouter();
+  const invalidateTopicCache = useInvalidateTopicCache();
 
   // 组合基础状态 Hook
   const {
@@ -49,7 +50,7 @@ export function AgentCommandCenter() {
     handleReRecognize,
     handleQuestionTypeChange,
   } = usePanelsManager({
-    onInvalidateTopicCache: (topicId) => invalidateTopicCache(topicId),
+    onInvalidateTopicCache: invalidateTopicCache,
     onNavigate: (path) => router.push(path),
     onStatusReset: () => {
       setPrompt("");

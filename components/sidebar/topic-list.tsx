@@ -1,8 +1,10 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TopicActionMenu } from "@/components/topic-action-menu";
+import { getTopicQueryOptions } from "@/lib/hooks/use-topic-data";
 
 type Topic = {
   id: string;
@@ -18,6 +20,7 @@ type SidebarTopicListProps = {
 
 export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
 
   if (collapsed) {
     return null;
@@ -43,6 +46,12 @@ export function SidebarTopicList({ topics, collapsed }: SidebarTopicListProps) {
               <Link
                 href={`/topics/${topic.id}`}
                 className="min-w-0 flex-1 py-1.5 pl-3 pr-2 text-[13px] text-sidebar-foreground no-underline hover:text-sidebar-accent-foreground"
+                onMouseEnter={() =>
+                  queryClient.prefetchQuery(getTopicQueryOptions(topic.id))
+                }
+                onFocus={() =>
+                  queryClient.prefetchQuery(getTopicQueryOptions(topic.id))
+                }
               >
                 <span
                   className={`truncate text-sm ${isActive ? "text-sidebar-primary-foreground" : ""}`}
