@@ -1,0 +1,116 @@
+---
+description: General project rules and workflow standards
+globs: "**/*"
+alwaysApply: true
+---
+
+# Project Standards & Workflow
+
+## Tech Stack
+
+- **Runtime**: Bun (Use `bun` for all package management and script execution)
+- **Framework**: Next.js 15 (App Router)
+- **Database**: PostgreSQL + Drizzle ORM
+- **Validation**: Zod
+- **Auth**: Auth.js (NextAuth v5)
+- **AI**: Vercel AI SDK
+- **Bun Style Imports**: Prefer Bun-style APIs and avoid importing `node:*` modules unless there is no viable Bun-compatible alternative.
+
+## Coding Standards
+
+- **Component Architecture**:
+  - **Component Separation**: Avoid over-coupling multiple features in a single file. Split complex components into focused sub-components (e.g., Sidebar → UserInfo, Actions, TopicList).
+  - **Suspense for Async Data**: Use `Suspense` boundaries to wrap async Server Components. Pass Promises to child components instead of making the entire page async, preventing full-page blocking during data fetching.
+  - **Layout Reuse**: Shared layout components (Sidebar, AppShell) should be placed in `layout.tsx` to avoid repetition across pages. Pages should only contain page-specific content.
+  - **Minimize 'use client'**: Only add `'use client'` directive when the component requires client-side interactivity (useState, useEffect, event handlers, usePathname, etc.). If a component only receives callbacks via props, it can remain a Server Component.
+
+- **Linter/Formatter**: Biome
+  - STRICTLY follow Biome rules.
+  - **NO non-null assertions** (`!`). Use optional chaining (`?.`) or explicit null checks.
+  - **NO `any` type**: Define proper interfaces or types.
+  - **NO `as any` assertions**: Prohibited unless explicitly requested by user, no type-safe alternative exists, and justified with comments. See `.qwen/rules/no-any-assertions.md`.
+  - **Button UX**: Buttons should prefer icons over text whenever semantics are clear. If a text button is required, keep wording minimal. Use `Button` from `@/components/ui/button` with `size="icon"` for icon-only buttons.
+  - **Accessibility**:
+    - Always associate `<label>` with inputs using `htmlFor` + `id` or nesting.
+    - Always specify `type` for `<button>` (button, submit, reset).
+    - Icon-only buttons must include meaningful `aria-label`.
+  - **UI Library**: Tailwind CSS + shadcn/ui
+    - Use components from `@/components/ui` (Button, Input, Card, Dialog, etc.) for consistent UI/UX.
+    - Interactive components (Dropdown, Dialog, Select, Tabs) use Radix Primitives under the hood, styled with Tailwind.
+    - Use `lucide-react` for icons.
+  - **Styling Best Practices**:
+    - Use Tailwind CSS `className` when possible; prefer it over inline `style`.
+    - Unless necessary, avoid using `margin`. Prefer `padding`, `flex + gap`, or other layout techniques to prevent margin collapse issues.
+  - **Navigation**: Use Next.js `Link` for in-app navigation. Do NOT use `onClick={() => (window.location.href = "/path")}` — use `Link` component for client-side navigation without full page reload.
+  - **Auto-Format**: After modifying files, run `bun biome format --write <file_path>` to ensure code style consistency.
+  - **Type Safety**: After code modifications, run `bun run typecheck` (or `tsc --noEmit`) to verify type correctness.
+  - Run `bun check` to verify before finishing tasks. If issues persist and cannot be resolved, report them to the user.
+- **Environment Variables**:
+  - Do NOT use `dotenv`. Bun automatically loads `.env` files.
+  - Access via `process.env.VAR_NAME`.
+  - ALWAYS check for existence/undefined before using critical env vars.
+
+## Interaction Protocol
+
+### Language Policy
+
+- **Project Language**: This is a Chinese project. UI copy, documentation, and default user-facing text should be written in Chinese unless the user explicitly requests another language.
+- **Assistant Reply Language**: All assistant responses must be in Chinese.
+
+### User Intervention
+
+- **Automate Everything**: Do NOT ask the user to run commands unless absolutely necessary (e.g., OAuth flows, third-party account creation).
+- **Consent First**: If an action has side effects (e.g., database migration, file deletion), ask for consent first, then execute immediately upon approval.
+- **Retry Limit**: If an action (e.g., linter fix, test run) fails or produces the same error 3 times in a row, STOP and ask the user for guidance. Do NOT loop indefinitely.
+- **Planning Change Sync**: If a request changes product planning or feature strategy, update both implementation code and `README.md` in the same task.
+- **Git Operations**:
+  - **No Unauthorized Execution**: You may suggest git commands when relevant to the task, but **NEVER** execute `git` commands (especially commit, push, or destructive ones) without explicit user permission or a clear instruction to do so.
+  - **Explicit Triggers**: Only execute git commands when the user gives clear instructions like "commit 代码", "push 代码", etc.
+
+### Browser Debugging & MCP Usage
+
+- **Primary Browser MCP**: For frontend inspection, debugging, and verification, ALWAYS use `user-chrome-devtools` MCP first.
+- **Required Checks**: When validating a page, use DevTools MCP to inspect:
+  - page snapshot (`take_snapshot`)
+  - console logs (`list_console_messages`)
+  - network requests when relevant (`list_network_requests`)
+- **Tool Preference**: Do NOT use other browser MCP servers for normal page verification unless the user explicitly requests it.
+
+### Model Routing
+
+- **Task-to-Model Mapping**:
+  - Use **GPT** for code writing, code fixes, refactoring, debugging, and test-related implementation tasks.
+  - Use **Gemini** for documentation writing, task planning, requirement decomposition, and roadmap-style outputs.
+- **Pre-Execution Model Check**:
+  - Before starting any task, verify the currently selected model matches the task type above.
+  - If the model does not match, STOP and ask the user whether to switch model before proceeding.
+
+### Response Format
+
+Every response must follow this structure exactly:
+
+1. **变更摘要 (Summary)**
+   - Brief explanation of the "Why" behind changes or current status.
+2. **我完成了什么 (Completed Actions)**
+   - Concise list of completed actions (file creations, edits, deletions).
+3. **验证结果 (Verification)**
+   - Confirm linter checks (`bun check`), type checking (`bun run typecheck`), and type safety.
+4. **目前有什么问题 (Current Issues)**
+   - List of known bugs, blockers, or unresolved issues. If none, state "None".
+5. **你需要我同意什么 (Pending Approval)**
+   - List of sensitive actions waiting for user approval (e.g., DB migrations, destructive deletions). If none, state "None".
+6. **需要我做什么 (User Action)**
+   - List of manual actions the user must perform (e.g., "Add API Key to .env").
+7. **下一步计划 (Next Steps)**
+   - (Optional) If the task is incomplete, what is the immediate next step.
+
+## Database Workflow
+
+- **Schema Changes**: Modify `lib/db/schema.ts`.
+- **Migration**: Use `bun db:push` for rapid prototyping.
+- **Vector Search**: Ensure `pgvector` extension is enabled (handled via Docker).
+
+## Docker
+
+- Use `docker-compose` for local database services.
+- Database credentials must match `.env.local`.
