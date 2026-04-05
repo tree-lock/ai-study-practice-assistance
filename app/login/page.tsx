@@ -1,4 +1,4 @@
-import { LoginForm } from "@/app/login/login-form";
+import { LoginDialog } from "@/components/login-dialog";
 
 const hasGoogleOAuth =
   Boolean(process.env.AUTH_GOOGLE_ID) &&
@@ -6,8 +6,12 @@ const hasGoogleOAuth =
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center p-6">
-      <LoginForm hasGoogleOAuth={hasGoogleOAuth} />
+    <div className="flex min-h-[50vh] items-center justify-center p-6">
+      <LoginDialog
+        hasGoogleOAuth={hasGoogleOAuth}
+        defaultOpen
+        onCloseNavigate="/"
+      />
     </div>
   );
 }

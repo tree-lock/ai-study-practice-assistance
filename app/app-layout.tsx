@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { listTasks } from "@/app/actions/task";
-import { signIn, signOut } from "@/auth";
+import { signOut } from "@/auth";
 import { AppShell } from "@/components/app-shell";
+import { FloatingLoginActions } from "@/components/floating-login-actions";
 import { Sidebar } from "@/components/sidebar";
 import { SidebarFallback } from "@/components/sidebar/fallback";
 import { TaskListFallback } from "@/components/sidebar/task-list-fallback";
@@ -20,12 +20,8 @@ async function AsyncTaskList() {
 }
 
 async function SidebarContent() {
-  const userId = await getCurrentUserId();
-  const userLabel = userId ? `用户 ${userId.slice(0, 8)}` : "未登录";
-
   return (
     <Sidebar
-      userLabel={userLabel}
       taskListSlot={
         <Suspense fallback={<TaskListFallback />}>
           <AsyncTaskList />
@@ -39,39 +35,19 @@ async function FloatingActions() {
   const userId = await getCurrentUserId();
   const isLoggedIn = Boolean(userId);
 
-  async function loginWithGoogle() {
-    "use server";
-    await signIn("google", { redirectTo: "/" });
-  }
-
   async function logout() {
     "use server";
     await signOut({ redirectTo: "/" });
   }
 
   return isLoggedIn ? (
-    <form action={logout}>
-      <Button type="submit" variant="default" className="justify-start">
+    <form action={logout} className="shrink-0">
+      <Button type="submit" variant="default">
         退出登录
       </Button>
     </form>
   ) : (
-    <div className="flex flex-col items-stretch gap-2">
-      <Button type="button" className="justify-start" asChild>
-        <Link href="/login">登录</Link>
-      </Button>
-      {hasGoogleAuthConfig ? (
-        <form action={loginWithGoogle}>
-          <Button
-            type="submit"
-            variant="outline"
-            className="w-full justify-start"
-          >
-            Google 登录
-          </Button>
-        </form>
-      ) : null}
-    </div>
+    <FloatingLoginActions hasGoogleOAuth={hasGoogleAuthConfig} />
   );
 }
 
@@ -97,7 +73,13 @@ export default function AppLayout({
       headerActions={headerActions}
       floatingActions={
         floatingActions ?? (
-          <Suspense fallback={<Button disabled>加载中...</Button>}>
+          <Suspense
+            fallback={
+              <Button type="button" disabled className="shrink-0">
+                加载中...
+              </Button>
+            }
+          >
             <FloatingActions />
           </Suspense>
         )

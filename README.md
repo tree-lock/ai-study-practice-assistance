@@ -5,7 +5,7 @@
 ## 功能概览
 
 - **任务**：登录用户可创建任务，在 `/tasks/[id]` 与模型对话；消息持久化在 PostgreSQL。
-- **认证**：邮箱验证码注册与登录、邮箱密码登录（Auth.js Credentials），可选 Google OAuth；数据按用户隔离。
+- **认证**：邮箱验证码注册与登录、邮箱密码登录（Auth.js Credentials），可选 Google OAuth；数据按用户隔离。（会话为 **JWT**（Cookie），与 Credentials 写入方式一致；`session` 表仍存在于 schema，供 Adapter 兼容。）
 - **UI**：浅色/深色主题、Markdown 渲染（含 KaTeX）。
 
 ## 技术栈
@@ -46,6 +46,8 @@ bun install
 bun db:push
 # 若 drizzle-kit push 卡在「enum 是新建还是重命名」的交互提示，可改用（幂等）：
 bun run db:ensure-agent
+# 若 push 卡在「email_otp / email_otp_send_log 是新建还是重命名」提示（旧题库表残留），可改用（幂等）：
+bun run db:ensure-email-auth
 bun dev
 ```
 

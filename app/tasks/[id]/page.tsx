@@ -26,12 +26,14 @@ async function TaskPageInner({ params }: PageProps) {
 
 export default function TaskPage({ params }: PageProps) {
   return (
-    <div className="flex min-h-0 flex-1 justify-center px-3 pb-6 pt-4 md:px-8">
-      <Suspense
-        fallback={<p className="text-sm text-muted-foreground">加载对话…</p>}
-      >
-        <TaskPageInner params={params} />
-      </Suspense>
+    <div className="flex min-h-0 flex-1 flex-col px-3 pb-6 pt-4 md:px-8">
+      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col">
+        <Suspense
+          fallback={<p className="text-sm text-muted-foreground">加载对话…</p>}
+        >
+          <TaskPageInner params={params} />
+        </Suspense>
+      </div>
     </div>
   );
 }

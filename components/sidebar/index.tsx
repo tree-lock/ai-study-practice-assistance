@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SidebarActions } from "./actions";
 import { SidebarCollapsedProvider } from "./collapsed-context";
 import { SidebarTaskList } from "./task-list";
-import { SidebarFooter, SidebarUserInfo } from "./user-info";
+import { SidebarUserInfo } from "./user-info";
 
 export type SidebarTaskItem = {
   id: string;
@@ -13,11 +13,10 @@ export type SidebarTaskItem = {
 
 type SidebarProps = {
   tasks?: SidebarTaskItem[];
-  userLabel?: string;
   taskListSlot?: React.ReactNode;
 };
 
-export function Sidebar({ tasks = [], userLabel, taskListSlot }: SidebarProps) {
+export function Sidebar({ tasks = [], taskListSlot }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -30,10 +29,14 @@ export function Sidebar({ tasks = [], userLabel, taskListSlot }: SidebarProps) {
         }`}
       >
         <div
-          className={`flex h-full flex-col ${collapsed ? "items-center justify-between" : "items-stretch justify-between"}`}
+          className={`flex h-full min-h-0 flex-col ${
+            collapsed ? "items-center justify-between" : "gap-6"
+          }`}
         >
           <div
-            className={`flex flex-col gap-6 ${collapsed ? "items-center" : "items-stretch"}`}
+            className={`flex shrink-0 flex-col gap-6 ${
+              collapsed ? "items-center" : "items-stretch"
+            }`}
           >
             <SidebarUserInfo
               collapsed={collapsed}
@@ -43,11 +46,14 @@ export function Sidebar({ tasks = [], userLabel, taskListSlot }: SidebarProps) {
               collapsed={collapsed}
               onExpand={() => setCollapsed(false)}
             />
-            {taskListSlot ?? (
-              <SidebarTaskList tasks={tasks} collapsed={collapsed} />
-            )}
           </div>
-          <SidebarFooter userLabel={userLabel} collapsed={collapsed} />
+          {!collapsed ? (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              {taskListSlot ?? (
+                <SidebarTaskList tasks={tasks} collapsed={collapsed} />
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </SidebarCollapsedProvider>

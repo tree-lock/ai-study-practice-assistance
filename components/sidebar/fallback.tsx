@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FallbackActions } from "./fallback-actions";
 import { TaskListFallback } from "./task-list-fallback";
-import { SidebarFooter, SidebarUserInfo } from "./user-info";
+import { SidebarUserInfo } from "./user-info";
 
 export function SidebarFallback() {
   const [collapsed, setCollapsed] = useState(false);
@@ -17,19 +17,26 @@ export function SidebarFallback() {
       }`}
     >
       <div
-        className={`flex h-full flex-col ${collapsed ? "items-center justify-between" : "items-stretch justify-between"}`}
+        className={`flex h-full min-h-0 flex-col ${
+          collapsed ? "items-center justify-between" : "gap-6"
+        }`}
       >
         <div
-          className={`flex flex-col gap-6 ${collapsed ? "items-center" : "items-stretch"}`}
+          className={`flex shrink-0 flex-col gap-6 ${
+            collapsed ? "items-center" : "items-stretch"
+          }`}
         >
           <SidebarUserInfo
             collapsed={collapsed}
             onToggleCollapse={() => setCollapsed((prev) => !prev)}
           />
           <FallbackActions collapsed={collapsed} />
-          <TaskListFallback />
         </div>
-        <SidebarFooter userLabel="加载中" collapsed={collapsed} />
+        {!collapsed ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <TaskListFallback />
+          </div>
+        ) : null}
       </div>
     </div>
   );

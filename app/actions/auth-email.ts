@@ -8,7 +8,8 @@ import { db } from "@/lib/db";
 import { emailOtpSendLogs, emailOtps } from "@/lib/db/schema";
 import { sendLoginVerificationEmail } from "@/lib/email/send-verification-code";
 
-const SEND_COOLDOWN_MS = 60_000;
+/** 同一邮箱两次发送最小间隔（略放宽，避免正常重试被 60s 卡死） */
+const SEND_COOLDOWN_MS = 30_000;
 const MAX_SENDS_PER_24H = 10;
 const OTP_TTL_MS = 10 * 60 * 1000;
 
@@ -34,21 +35,25 @@ export async function sendEmailOtp(
   }
   const email = parsed.data;
 
-  const cooldownSince = new Date(Date.now() - SEND_COOLDOWN_MS);
-  const [recentSend] = await db
-    .select({ id: emailOtpSendLogs.id })
+  const [lastSend] = await db
+    .select({ createdAt: emailOtpSendLogs.createdAt })
     .from(emailOtpSendLogs)
-    .where(
-      and(
-        eq(emailOtpSendLogs.email, email),
-        gte(emailOtpSendLogs.createdAt, cooldownSince),
-      ),
-    )
+    .where(eq(emailOtpSendLogs.email, email))
     .orderBy(desc(emailOtpSendLogs.createdAt))
     .limit(1);
 
-  if (recentSend) {
-    return { ok: false, message: "发送过于频繁，请稍后再试" };
+  if (lastSend) {
+    const elapsed = Date.now() - lastSend.createdAt.getTime();
+    if (elapsed < SEND_COOLDOWN_MS) {
+      const waitSec = Math.max(
+        1,
+        Math.ceil((SEND_COOLDOWN_MS - elapsed) / 1000),
+      );
+      return {
+        ok: false,
+        message: `发送过于频繁，请 ${waitSec} 秒后再试`,
+      };
+    }
   }
 
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);

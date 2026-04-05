@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 type AppShellProps = {
   title?: string;
   subtitle?: string;
-  /** @deprecated Use sidebar prop with Suspense-wrapped sidebar content */
-  userLabel?: string;
   /** Sidebar component with Suspense boundary. */
   sidebar?: React.ReactNode;
   headerActions?: React.ReactNode;
@@ -18,28 +16,27 @@ type AppShellProps = {
 export function AppShell({
   title,
   subtitle,
-  userLabel,
   sidebar,
   headerActions,
   floatingActions,
   children,
 }: AppShellProps) {
-  const sidebarContent = sidebar ?? <Sidebar userLabel={userLabel} />;
+  const sidebarContent = sidebar ?? <Sidebar />;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
         {sidebarContent}
 
-        <div className="relative flex-1">
+        <div className="relative flex h-screen min-h-0 flex-1 flex-col">
           <div
             className="absolute top-0 bottom-0 left-0 z-0 w-px shrink-0 bg-gradient-to-b from-transparent via-border to-transparent"
             aria-hidden
           />
-          <div className="relative z-10 w-full">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col">
             {floatingActions ? (
-              <div className="absolute top-5 right-5 z-10">
-                <div className="flex items-center gap-2">
+              <div className="absolute top-5 right-5 z-10 max-w-[calc(100vw-1.25rem)]">
+                <div className="flex shrink-0 flex-nowrap items-center gap-2">
                   <ThemeToggle />
                   <Button
                     type="button"
@@ -83,7 +80,7 @@ export function AppShell({
               </div>
             ) : null}
 
-            {children}
+            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
           </div>
         </div>
       </div>

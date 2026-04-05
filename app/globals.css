@@ -174,6 +174,13 @@ input[type="reset"]:disabled,
   * {
     @apply border-border outline-ring/50;
   }
+  /**
+   * Radix Dialog 打开时会锁定 body 滚动，滚动条消失会导致视口变宽、整页横向漂移。
+   * 为滚动条预留稳定槽位（Chrome / Firefox / Safari 17+）。
+   */
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground;
   }

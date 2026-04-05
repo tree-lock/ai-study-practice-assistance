@@ -34,7 +34,12 @@ const providers = [
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter(getDb()),
-  session: { strategy: "database" },
+  /**
+   * Credentials 登录在 @auth/core 里固定走 JWT 写入 cookie；若此处用 database，
+   * /api/auth/session 会把 cookie 当 DB sessionToken 查表，永远对不上，表现为「登录未生效」。
+   * OAuth 仍可用 adapter 落库用户/账号，会话走 JWT。
+   */
+  session: { strategy: "jwt" },
   providers,
   pages: {
     signIn: "/login",

@@ -1,6 +1,5 @@
 import type { User } from "@auth/core/types";
 import { eq } from "drizzle-orm";
-import { CredentialsSignin } from "next-auth";
 import { z } from "zod";
 import { verifyOtpAgainstStored } from "@/lib/auth/email-otp-crypto";
 import {
@@ -13,10 +12,6 @@ import { db } from "@/lib/db";
 import { emailOtps, users } from "@/lib/db/schema";
 
 const MAX_OTP_ATTEMPTS = 5;
-
-export class NeedPasswordForRegisterError extends CredentialsSignin {
-  code = "need_password";
-}
 
 const credentialsSchema = z.object({
   email: z.string(),
@@ -108,13 +103,12 @@ export async function authorizeEmailCredentials(
       return toAuthUser(existing);
     }
 
-    if (!password || password.length < MIN_PASSWORD_LENGTH) {
-      throw new NeedPasswordForRegisterError();
-    }
-
     await db.delete(emailOtps).where(eq(emailOtps.email, email));
 
-    const passwordHash = hashPassword(password);
+    const passwordHash =
+      password !== undefined && password.length >= MIN_PASSWORD_LENGTH
+        ? hashPassword(password)
+        : null;
     const id = crypto.randomUUID();
     const displayName = email.split("@")[0] ?? "用户";
 

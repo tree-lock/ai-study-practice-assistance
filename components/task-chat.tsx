@@ -3,19 +3,10 @@
 import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import { DefaultChatTransport } from "ai";
-import {
-  ArrowUp,
-  Loader2,
-  Plus,
-  RefreshCw,
-  Share2,
-  Square,
-} from "lucide-react";
+import { ArrowUp, Loader2, Square } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
-import { createTask } from "@/app/actions/task";
 import { MarkdownContent } from "@/components/markdown-content";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
@@ -57,73 +48,17 @@ export function TaskChat({ taskId, title, initialMessages }: TaskChatProps) {
   const lastMessage = messages[messages.length - 1];
   const showReplySpinner = busy && lastMessage?.role === "user";
 
-  const handleNewTask = async () => {
-    try {
-      const result = await createTask();
-      if ("error" in result) {
-        toast.error(result.error);
-        return;
-      }
-      router.push(`/tasks/${result.id}`);
-      router.refresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "创建任务失败，请稍后重试");
-    }
-  };
-
-  const handleShare = async () => {
-    const url = `${window.location.origin}/tasks/${taskId}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("链接已复制");
-    } catch {
-      toast.error("无法复制链接");
-    }
-  };
-
   return (
-    <div className="flex h-[min(calc(100dvh-5.5rem),100%)] min-h-[320px] w-full max-w-5xl flex-col">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border/80 pb-4">
+    <div className="flex min-h-0 min-h-[320px] w-full flex-1 flex-col">
+      <header className="flex shrink-0 items-center pb-4">
         <h1 className="min-w-0 truncate text-xl font-semibold tracking-tight">
           {title}
         </h1>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="新建任务"
-            onClick={() => void handleNewTask()}
-          >
-            <Plus className="size-5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="刷新"
-            onClick={() => router.refresh()}
-          >
-            <RefreshCw className="size-5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="复制任务链接"
-            onClick={() => void handleShare()}
-          >
-            <Share2 className="size-5" />
-          </Button>
-        </div>
       </header>
 
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto py-6 pr-1">
         {messages.length === 0 && !busy ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+          <div className="flex min-h-full flex-col items-center justify-center gap-2 py-16 text-center">
             <p className="text-sm text-muted-foreground">
               输入需求后按 Enter 或点击发送，开始与本任务中的 Agent 对话。
             </p>
