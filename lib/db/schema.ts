@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -26,6 +27,8 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  /** Scrypt hash for email+password login; null for OAuth-only users */
+  passwordHash: text("passwordHash"),
 });
 
 export const accounts = pgTable(
@@ -92,6 +95,33 @@ export const authenticators = pgTable(
     primaryKey({
       columns: [authenticator.userId, authenticator.credentialID],
     }),
+  ],
+);
+
+/** Latest email OTP per mailbox (login / register); replaced on each send */
+export const emailOtps = pgTable(
+  "email_otp",
+  {
+    email: text("email").notNull(),
+    codeHash: text("code_hash").notNull(),
+    salt: text("salt").notNull(),
+    expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("email_otp_email_unique").on(t.email)],
+);
+
+/** One row per send; used for cooldown and daily caps */
+export const emailOtpSendLogs = pgTable(
+  "email_otp_send_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: text("email").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("email_otp_send_log_email_created_idx").on(t.email, t.createdAt),
   ],
 );
 

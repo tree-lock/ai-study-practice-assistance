@@ -5,7 +5,7 @@
 ## 功能概览
 
 - **任务**：登录用户可创建任务，在 `/tasks/[id]` 与模型对话；消息持久化在 PostgreSQL。
-- **认证**：Google OAuth（Auth.js / NextAuth v5），数据按用户隔离。
+- **认证**：邮箱验证码注册与登录、邮箱密码登录（Auth.js Credentials），可选 Google OAuth；数据按用户隔离。
 - **UI**：浅色/深色主题、Markdown 渲染（含 KaTeX）。
 
 ## 技术栈
@@ -26,7 +26,7 @@
 - **agent_tasks**：任务（会话）元数据，`user_id` 外键。
 - **agent_messages**：消息内容，`task_id` 级联删除。
 
-Auth 表：`user`、`account`、`session`、`verificationToken`、`authenticator`（与 Drizzle Adapter 一致）。
+Auth 表：`user`（含 `passwordHash` 供邮箱密码）、`account`、`session`、`verificationToken`、`authenticator`（与 Drizzle Adapter 一致）；另有 `email_otp`、`email_otp_send_log` 用于邮箱验证码与发信限流。
 
 ## 环境变量
 
@@ -34,6 +34,7 @@ Auth 表：`user`、`account`、`session`、`verificationToken`、`authenticator
 
 - `DATABASE_URL`：PostgreSQL 连接串
 - `AUTH_SECRET`、`AUTH_GOOGLE_ID`、`AUTH_GOOGLE_SECRET`（若启用 Google 登录）
+- `RESEND_API_KEY`、`EMAIL_FROM`：邮箱验证码发信（生产环境必填；本地开发未配置时验证码会输出在运行 `bun dev` 的终端）
 - `AI_GATEWAY_API_KEY`：Vercel AI Gateway API Key
 - `AI_GATEWAY_MODEL`：模型 ID（`provider/model`，见 Gateway 文档）
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { listTasks } from "@/app/actions/task";
 import { signIn, signOut } from "@/auth";
@@ -54,14 +55,23 @@ async function FloatingActions() {
         退出登录
       </Button>
     </form>
-  ) : hasGoogleAuthConfig ? (
-    <form action={loginWithGoogle}>
-      <Button type="submit">登录</Button>
-    </form>
   ) : (
-    <Button type="button" disabled>
-      Google 登录未配置
-    </Button>
+    <div className="flex flex-col items-stretch gap-2">
+      <Button type="button" className="justify-start" asChild>
+        <Link href="/login">登录</Link>
+      </Button>
+      {hasGoogleAuthConfig ? (
+        <form action={loginWithGoogle}>
+          <Button
+            type="submit"
+            variant="outline"
+            className="w-full justify-start"
+          >
+            Google 登录
+          </Button>
+        </form>
+      ) : null}
+    </div>
   );
 }
 
