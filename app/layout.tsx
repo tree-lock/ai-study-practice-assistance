@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { QueryProvider } from "@/components/query-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import AppLayout from "./app-layout";
@@ -17,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI 智能刷题助手",
-  description: "基于 Bun + Next.js 的 AI 刷题与复习平台",
+  title: "TreeZLock 的 AI Agent",
+  description: "基于 Bun + Next.js 的 AI Agent 助手",
 };
 
 export default function RootLayout({
@@ -37,10 +36,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <AppLayout>{children}</AppLayout>
-            <Toaster richColors position="top-center" />
-          </QueryProvider>
+          <AppLayout>{children}</AppLayout>
+          <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>
     </html>

@@ -1,30 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { cookiesMock, selectMock, fromMock, whereMock, limitMock } = vi.hoisted(
-  () => {
-    const localCookiesMock = vi.fn();
-    const localLimitMock = vi.fn();
-    const localWhereMock = vi.fn(() => ({ limit: localLimitMock }));
-    const localFromMock = vi.fn(() => ({ where: localWhereMock }));
-    const localSelectMock = vi.fn(() => ({ from: localFromMock }));
+const mockState = {
+  cookiesMock: vi.fn(),
+  selectMock: vi.fn(),
+  fromMock: vi.fn(),
+  whereMock: vi.fn(),
+  limitMock: vi.fn(),
+};
 
-    return {
-      cookiesMock: localCookiesMock,
-      selectMock: localSelectMock,
-      fromMock: localFromMock,
-      whereMock: localWhereMock,
-      limitMock: localLimitMock,
-    };
-  },
-);
+mockState.whereMock.mockImplementation(() => ({ limit: mockState.limitMock }));
+mockState.fromMock.mockImplementation(() => ({ where: mockState.whereMock }));
+mockState.selectMock.mockImplementation(() => ({ from: mockState.fromMock }));
 
 vi.mock("next/headers", () => ({
-  cookies: cookiesMock,
+  cookies: mockState.cookiesMock,
 }));
 
 vi.mock("@/lib/db", () => ({
   db: {
-    select: selectMock,
+    select: (...args: unknown[]) => mockState.selectMock(...args),
   },
 }));
 
@@ -39,7 +33,7 @@ vi.mock("@/lib/db/schema", () => ({
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 
 function mockCookieStore(values: Record<string, string | undefined>) {
-  cookiesMock.mockResolvedValue({
+  mockState.cookiesMock.mockResolvedValue({
     get: vi.fn((name: string) => {
       const value = values[name];
       if (!value) {
@@ -52,11 +46,20 @@ function mockCookieStore(values: Record<string, string | undefined>) {
 
 describe("getCurrentUserId", () => {
   beforeEach(() => {
-    cookiesMock.mockReset();
-    selectMock.mockClear();
-    fromMock.mockClear();
-    whereMock.mockClear();
-    limitMock.mockReset();
+    mockState.cookiesMock.mockReset();
+    mockState.selectMock.mockClear();
+    mockState.fromMock.mockClear();
+    mockState.whereMock.mockClear();
+    mockState.limitMock.mockReset();
+    mockState.whereMock.mockImplementation(() => ({
+      limit: mockState.limitMock,
+    }));
+    mockState.fromMock.mockImplementation(() => ({
+      where: mockState.whereMock,
+    }));
+    mockState.selectMock.mockImplementation(() => ({
+      from: mockState.fromMock,
+    }));
   });
 
   it("没有任何会话 cookie 时应返回 null", async () => {
@@ -65,19 +68,21 @@ describe("getCurrentUserId", () => {
     const userId = await getCurrentUserId();
 
     expect(userId).toBeNull();
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(mockState.selectMock).not.toHaveBeenCalled();
   });
 
   it("存在 authjs.session-token 且 session 有效时应返回 userId", async () => {
     mockCookieStore({
       "authjs.session-token": "token-1",
     });
-    limitMock.mockResolvedValue([{ userId: "user-1" }]);
+    mockState.limitMock.mockResolvedValue([{ userId: "user-1" }]);
 
     const userId = await getCurrentUserId();
 
-    expect(selectMock).toHaveBeenCalledWith({ userId: "user_id_column" });
-    expect(limitMock).toHaveBeenCalledWith(1);
+    expect(mockState.selectMock).toHaveBeenCalledWith({
+      userId: "user_id_column",
+    });
+    expect(mockState.limitMock).toHaveBeenCalledWith(1);
     expect(userId).toBe("user-1");
   });
 
@@ -85,11 +90,11 @@ describe("getCurrentUserId", () => {
     mockCookieStore({
       "__Secure-next-auth.session-token": "secure-token",
     });
-    limitMock.mockResolvedValue([{ userId: "user-2" }]);
+    mockState.limitMock.mockResolvedValue([{ userId: "user-2" }]);
 
     const userId = await getCurrentUserId();
 
-    expect(limitMock).toHaveBeenCalledWith(1);
+    expect(mockState.limitMock).toHaveBeenCalledWith(1);
     expect(userId).toBe("user-2");
   });
 
@@ -97,7 +102,7 @@ describe("getCurrentUserId", () => {
     mockCookieStore({
       "next-auth.session-token": "token-3",
     });
-    limitMock.mockResolvedValue([]);
+    mockState.limitMock.mockResolvedValue([]);
 
     const userId = await getCurrentUserId();
 

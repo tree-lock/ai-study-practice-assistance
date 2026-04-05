@@ -1,32 +1,20 @@
 import {
   boolean,
   integer,
-  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
-  vector,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
-// Enums
-export const difficultyEnum = pgEnum("difficulty", ["easy", "medium", "hard"]);
-export const questionTypeEnum = pgEnum("question_type", [
-  "choice",
-  "blank",
-  "subjective",
-  "application",
-  "proof",
-  "comprehensive",
-]);
-export const progressStatusEnum = pgEnum("progress_status", [
-  "new",
-  "learning",
-  "review",
-  "mastered",
+export const agentMessageRoleEnum = pgEnum("agent_message_role", [
+  "user",
+  "assistant",
+  "system",
 ]);
 
 // Auth.js Tables
@@ -107,127 +95,34 @@ export const authenticators = pgTable(
   ],
 );
 
-// Business Tables
-
-export const topics = pgTable("topics", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  outline: text("outline"),
-  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
-  isDefault: boolean("is_default").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const questions = pgTable("questions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  topicId: uuid("topic_id")
-    .notNull()
-    .references(() => topics.id, {
-      onDelete: "cascade",
-    }),
-  content: text("content").notNull(), // Markdown/LaTeX
-  type: questionTypeEnum("type").notNull(),
-  difficulty: difficultyEnum("difficulty").default("medium"),
-  source: text("source"), // e.g. "2023 考研数学一"
-  embedding: vector("embedding", { dimensions: 1536 }), // OpenAI embedding dimension
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  creatorId: text("creator_id").references(() => users.id, {
-    onDelete: "set null",
-  }),
-});
-// Legacy tags table (kept for backward compatibility)
-export const tags = pgTable("tags", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  topicId: uuid("topic_id")
-    .references(() => topics.id, { onDelete: "cascade" })
-    .notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Legacy question_tags table (kept for backward compatibility)
-export const questionTags = pgTable(
-  "question_tags",
-  {
-    questionId: uuid("question_id")
-      .references(() => questions.id, { onDelete: "cascade" })
-      .notNull(),
-    tagId: uuid("tag_id")
-      .references(() => tags.id, { onDelete: "cascade" })
-      .notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.questionId, t.tagId] })],
-);
-
-// Knowledge Points - managed at topic level
-export const topicKnowledgePoints = pgTable("topic_knowledge_points", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  topicId: uuid("topic_id")
-    .references(() => topics.id, { onDelete: "cascade" })
-    .notNull(),
-  name: text("name").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Question-KnowledgePoint association
-export const questionKnowledgePoints = pgTable(
-  "question_knowledge_points",
-  {
-    questionId: uuid("question_id")
-      .references(() => questions.id, { onDelete: "cascade" })
-      .notNull(),
-    knowledgePointId: uuid("knowledge_point_id")
-      .references(() => topicKnowledgePoints.id, { onDelete: "cascade" })
-      .notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.questionId, t.knowledgePointId] })],
-);
-
-export const options = pgTable("options", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  questionId: uuid("question_id")
-    .references(() => questions.id, { onDelete: "cascade" })
-    .notNull(),
-  content: text("content").notNull(),
-  isCorrect: boolean("is_correct").default(false).notNull(),
-  order: integer("order").default(0),
-});
-
-export const answers = pgTable("answers", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  questionId: uuid("question_id")
-    .references(() => questions.id, { onDelete: "cascade" })
-    .notNull(),
-  content: text("content"), // For subjective/blank questions
-  explanation: text("explanation"), // AI generated or user uploaded
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const userProgress = pgTable("user_progress", {
+// Agent tasks (conversation threads)
+export const agentTasks = pgTable("agent_tasks", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
-    .notNull(),
-  questionId: uuid("question_id")
-    .references(() => questions.id, { onDelete: "cascade" })
-    .notNull(),
-  status: progressStatusEnum("status").default("new").notNull(),
-  nextReviewDate: timestamp("next_review_date"),
-  lastReviewDate: timestamp("last_review_date"),
-  easeFactor: integer("ease_factor").default(250), // 2.5 * 100 for integer storage or use float
-  interval: integer("interval").default(0), // days
-  history:
-    jsonb("history").$type<
-      {
-        date: string;
-        result: "correct" | "incorrect";
-        quality: number; // 0-5
-        duration: number; // seconds
-      }[]
-    >(),
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull().default("新任务"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const agentMessages = pgTable(
+  "agent_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    taskId: uuid("task_id")
+      .notNull()
+      .references(() => agentTasks.id, { onDelete: "cascade" }),
+    role: agentMessageRoleEnum("role").notNull(),
+    content: text("content").notNull(),
+    /** UIMessage.id from the client; used to dedupe persisted user turns */
+    clientMessageId: text("client_message_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("agent_messages_task_client_msg").on(
+      t.taskId,
+      t.clientMessageId,
+    ),
+  ],
+);

@@ -3,28 +3,21 @@
 import { useState } from "react";
 import { SidebarActions } from "./actions";
 import { SidebarCollapsedProvider } from "./collapsed-context";
-import { SidebarTopicList } from "./topic-list";
+import { SidebarTaskList } from "./task-list";
 import { SidebarFooter, SidebarUserInfo } from "./user-info";
 
-type Topic = {
+export type SidebarTaskItem = {
   id: string;
-  name: string;
-  description: string | null;
-  isDefault?: boolean;
+  title: string;
 };
 
 type SidebarProps = {
-  topics?: Array<Topic>;
+  tasks?: SidebarTaskItem[];
   userLabel?: string;
-  /** 题库区域插槽，通过 SidebarCollapsedContext 获取 collapsed */
-  topicListSlot?: React.ReactNode;
+  taskListSlot?: React.ReactNode;
 };
 
-export function Sidebar({
-  topics = [],
-  userLabel,
-  topicListSlot,
-}: SidebarProps) {
+export function Sidebar({ tasks = [], userLabel, taskListSlot }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -50,8 +43,8 @@ export function Sidebar({
               collapsed={collapsed}
               onExpand={() => setCollapsed(false)}
             />
-            {topicListSlot ?? (
-              <SidebarTopicList topics={topics} collapsed={collapsed} />
+            {taskListSlot ?? (
+              <SidebarTaskList tasks={tasks} collapsed={collapsed} />
             )}
           </div>
           <SidebarFooter userLabel={userLabel} collapsed={collapsed} />

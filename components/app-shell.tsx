@@ -3,20 +3,12 @@ import { Sidebar } from "@/components/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
-type Topic = {
-  id: string;
-  name: string;
-  description: string | null;
-};
-
 type AppShellProps = {
   title?: string;
   subtitle?: string;
-  /** @deprecated Use sidebar prop with SidebarWrapper for Suspense support */
+  /** @deprecated Use sidebar prop with Suspense-wrapped sidebar content */
   userLabel?: string;
-  /** @deprecated Use sidebar prop with SidebarWrapper for Suspense support */
-  topics?: Array<Topic>;
-  /** Sidebar component with Suspense boundary. Pass <SidebarWrapper /> here for async loading. */
+  /** Sidebar component with Suspense boundary. */
   sidebar?: React.ReactNode;
   headerActions?: React.ReactNode;
   floatingActions?: React.ReactNode;
@@ -27,15 +19,12 @@ export function AppShell({
   title,
   subtitle,
   userLabel,
-  topics = [],
   sidebar,
   headerActions,
   floatingActions,
   children,
 }: AppShellProps) {
-  const sidebarContent = sidebar ?? (
-    <Sidebar topics={topics} userLabel={userLabel} />
-  );
+  const sidebarContent = sidebar ?? <Sidebar userLabel={userLabel} />;
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,14 +32,13 @@ export function AppShell({
         {sidebarContent}
 
         <div className="relative flex-1">
-          {/* 侧边栏与主内容区分线：渐变模拟 border，与 shadcn 做法一致 */}
           <div
-            className="absolute left-0 top-0 bottom-0 z-0 w-px shrink-0 bg-gradient-to-b from-transparent via-border to-transparent"
+            className="absolute top-0 bottom-0 left-0 z-0 w-px shrink-0 bg-gradient-to-b from-transparent via-border to-transparent"
             aria-hidden
           />
           <div className="relative z-10 w-full">
             {floatingActions ? (
-              <div className="absolute right-5 top-5 z-10">
+              <div className="absolute top-5 right-5 z-10">
                 <div className="flex items-center gap-2">
                   <ThemeToggle />
                   <Button

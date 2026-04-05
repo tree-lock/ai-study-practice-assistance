@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { getTopics } from "@/app/actions/topic";
+import { listTasks } from "@/app/actions/task";
 import { signIn, signOut } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { Sidebar } from "@/components/sidebar";
 import { SidebarFallback } from "@/components/sidebar/fallback";
-import { SidebarTopicListFallback } from "@/components/sidebar/topic-list-fallback";
-import { TopicListWithContext } from "@/components/sidebar/topic-list-with-context";
+import { TaskListFallback } from "@/components/sidebar/task-list-fallback";
+import { TaskListWithContext } from "@/components/sidebar/task-list-with-context";
 import { Button } from "@/components/ui/button";
 import { getCurrentUserId } from "@/lib/auth/get-current-user-id";
 
@@ -13,9 +13,9 @@ const hasGoogleAuthConfig =
   Boolean(process.env.AUTH_GOOGLE_ID) &&
   Boolean(process.env.AUTH_GOOGLE_SECRET);
 
-async function AsyncTopicList() {
-  const topics = await getTopics();
-  return <TopicListWithContext topics={topics} />;
+async function AsyncTaskList() {
+  const tasks = await listTasks();
+  return <TaskListWithContext tasks={tasks} />;
 }
 
 async function SidebarContent() {
@@ -25,9 +25,9 @@ async function SidebarContent() {
   return (
     <Sidebar
       userLabel={userLabel}
-      topicListSlot={
-        <Suspense fallback={<SidebarTopicListFallback />}>
-          <AsyncTopicList />
+      taskListSlot={
+        <Suspense fallback={<TaskListFallback />}>
+          <AsyncTaskList />
         </Suspense>
       }
     />

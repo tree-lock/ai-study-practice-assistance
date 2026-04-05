@@ -1,11 +1,10 @@
 "use client";
 
-import { FilePlus, Plus } from "lucide-react";
+import { Home, SquarePen } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { createTopic } from "@/app/actions/topic";
-import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { createTask } from "@/app/actions/task";
 
 type SidebarActionsProps = {
   collapsed: boolean;
@@ -33,36 +32,21 @@ export function SidebarActions({
 }: SidebarActionsProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isCreatingTopic, setIsCreatingTopic] = useState(false);
-  const [newTopicName, setNewTopicName] = useState("");
-  const [createError, setCreateError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isHome = pathname === "/";
 
-  const isNewQuestionPage = pathname === "/";
-
-  const handleCreateTopic = async () => {
-    const name = newTopicName.trim();
-    if (!name || isSubmitting) return;
-    setIsSubmitting(true);
-    setCreateError("");
-    const result = await createTopic({ name });
-    setIsSubmitting(false);
-    if ("error" in result) {
+  const handleNewTask = async () => {
+    try {
+      const result = await createTask();
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      router.push(`/tasks/${result.id}`);
+    } catch (e) {
       const message =
-        typeof result.error === "string" ? result.error : "创建题库失败";
-      setCreateError(message);
-      return;
+        e instanceof Error ? e.message : "创建任务失败，请稍后重试";
+      toast.error(message);
     }
-    setNewTopicName("");
-    setIsCreatingTopic(false);
-    setCreateError("");
-    router.refresh();
-  };
-
-  const handleCancelCreate = () => {
-    setIsCreatingTopic(false);
-    setNewTopicName("");
-    setCreateError("");
   };
 
   if (disabled) {
@@ -76,26 +60,11 @@ export function SidebarActions({
               ? `${disabledItemClass} ${actionItemCollapsedClass}`
               : `${disabledItemClass} ${actionItemExpandedClass}`
           }
-          aria-label="新增题目"
+          aria-label="新建任务"
         >
-          <FilePlus className="size-4 shrink-0" />
+          <SquarePen className="size-4 shrink-0" />
           <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
-            新增题目
-          </span>
-        </button>
-        <button
-          type="button"
-          disabled
-          className={
-            collapsed
-              ? `${disabledItemClass} ${actionItemCollapsedClass}`
-              : `${disabledItemClass} ${actionItemExpandedClass}`
-          }
-          aria-label="新建题库"
-        >
-          <Plus className="size-4 shrink-0" />
-          <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
-            新建题库
+            新建任务
           </span>
         </button>
       </div>
@@ -103,13 +72,13 @@ export function SidebarActions({
   }
 
   return (
-    <div className="flex min-w-0 flex-col pt-2">
+    <div className="flex min-w-0 flex-col gap-1 pt-2">
       <Link
         href="/"
         className={
           collapsed
-            ? `${actionItemBaseClass} ${actionItemCollapsedClass} ${isNewQuestionPage ? "bg-sidebar-primary text-sidebar-primary-foreground" : ""}`
-            : isNewQuestionPage
+            ? `${actionItemBaseClass} ${actionItemCollapsedClass} ${isHome ? "bg-sidebar-primary text-sidebar-primary-foreground" : ""}`
+            : isHome
               ? actionItemActiveClass
               : `${actionItemBaseClass} ${actionItemExpandedClass}`
         }
@@ -119,73 +88,32 @@ export function SidebarActions({
             onExpand();
           }
         }}
-        aria-label="新增题目"
+        aria-label="首页"
       >
-        <FilePlus className="size-4 shrink-0" />
-        <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
-          新增题目
-        </span>
+        <Home className="size-4 shrink-0" />
+        <span className={collapsed ? "hidden" : "whitespace-nowrap"}>首页</span>
       </Link>
 
-      {isCreatingTopic && !collapsed ? (
-        <div className="flex flex-col h-8 gap-1">
-          <form
-            className="w-full h-full"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void handleCreateTopic();
-            }}
-            onKeyDown={(e: React.KeyboardEvent<HTMLFormElement>) => {
-              if (e.key === "Escape") {
-                e.preventDefault();
-                handleCancelCreate();
-              }
-            }}
-          >
-            <Input
-              value={newTopicName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setNewTopicName(e.target.value);
-                setCreateError("");
-              }}
-              onBlur={() => {
-                if (!newTopicName.trim()) {
-                  handleCancelCreate();
-                }
-              }}
-              placeholder="输入题库名称..."
-              autoFocus
-              disabled={isSubmitting}
-              className="h-full min-h-0 px-2 text-[13px] leading-none"
-            />
-          </form>
-          {createError ? (
-            <p className="block text-xs text-destructive">{createError}</p>
-          ) : null}
-        </div>
-      ) : (
-        <button
-          type="button"
-          className={
-            collapsed
-              ? `${actionItemBaseClass} ${actionItemCollapsedClass}`
-              : `${actionItemBaseClass} ${actionItemExpandedClass}`
+      <button
+        type="button"
+        className={
+          collapsed
+            ? `${actionItemBaseClass} ${actionItemCollapsedClass}`
+            : `${actionItemBaseClass} ${actionItemExpandedClass}`
+        }
+        onClick={() => {
+          if (collapsed) {
+            onExpand();
           }
-          onClick={() => {
-            if (collapsed) {
-              onExpand();
-            } else {
-              setIsCreatingTopic(true);
-            }
-          }}
-          aria-label="新建题库"
-        >
-          <Plus className="size-4 shrink-0" />
-          <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
-            新建题库
-          </span>
-        </button>
-      )}
+          void handleNewTask();
+        }}
+        aria-label="新建任务"
+      >
+        <SquarePen className="size-4 shrink-0" />
+        <span className={collapsed ? "hidden" : "whitespace-nowrap"}>
+          新建任务
+        </span>
+      </button>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FallbackActions } from "./fallback-actions";
-import { SidebarTopicListFallback } from "./topic-list-fallback";
+import { TaskListFallback } from "./task-list-fallback";
 import { SidebarFooter, SidebarUserInfo } from "./user-info";
 
 export function SidebarFallback() {
@@ -27,7 +27,7 @@ export function SidebarFallback() {
             onToggleCollapse={() => setCollapsed((prev) => !prev)}
           />
           <FallbackActions collapsed={collapsed} />
-          <SidebarTopicListFallback />
+          <TaskListFallback />
         </div>
         <SidebarFooter userLabel="加载中" collapsed={collapsed} />
       </div>
